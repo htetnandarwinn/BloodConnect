@@ -1,0 +1,13 @@
+# Rewrite all requests to public/index.php
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /BloodConnect/public/
+
+  # If the request is for an existing file or directory, serve it directly
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Otherwise route to index.php
+  RewriteRule ^ index.php [L,QSA]
+</IfModule>
