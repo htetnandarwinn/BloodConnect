@@ -2,11 +2,232 @@
 
 namespace App\Shared\Helpers;
 
-class Validator
+final class Validator
 {
-    public static function validate(array $data, array $rules)
+    private array $errors = [];
+
+    private function addError(string $field, string $message): void
     {
-        // TODO: implement validation
-        return [];
+        if (!array_key_exists($field, $this->errors)) {
+            $this->errors[$field] = $message;
+        }
+    }
+
+    public function required(string $field, mixed $value): self
+    {
+        if (
+            $value === null || (is_string($value) && trim($value) === '')
+        ) {
+            $this->addError(
+                $field,
+                ucfirst(str_replace('_', ' ', $field)) . ' is required.'
+            );
+        }
+
+        return $this;
+    }
+    public function myanmarPhone(string $field, mixed $value): self
+    {
+        if ($this->hasError($field)) {
+            return $this;
+        }
+
+        $value = trim((string)$value);
+
+        if ($value === '') {
+            return $this;
+        }
+
+        if (!preg_match('/^09\d{9}$/', $value)) {
+            $this->addError(
+                $field,
+                'Phone number must start with 09 and contain exactly 11 digits.'
+            );
+        }
+
+        return $this;
+    }
+
+    public function email(string $field, mixed $value): self
+    {
+        if ($this->hasError($field)) {
+            return $this;
+        }
+
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return $this;
+        }
+
+        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+            $this->addError(
+                $field,
+                'Please enter a valid email address.'
+            );
+        }
+
+        return $this;
+    }
+
+    public function minLength(string $field, mixed $value, int $min): self
+    {
+        if ($this->hasError($field)) {
+            return $this;
+        }
+
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return $this;
+        }
+
+        if (mb_strlen($value) < $min) {
+            $this->addError(
+                $field,
+                ucfirst(str_replace('_', ' ', $field))
+                    . " must be at least {$min} characters."
+            );
+        }
+
+        return $this;
+    }
+
+    public function digits(string $field, mixed $value): self
+    {
+        if ($this->hasError($field)) {
+            return $this;
+        }
+
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return $this;
+        }
+
+        if (!preg_match('/^[0-9]+$/', $value)) {
+            $this->addError(
+                $field,
+                ucfirst(str_replace('_', ' ', $field))
+                    . ' must contain digits only.'
+            );
+        }
+
+        return $this;
+    }
+
+    public function lengthBetween(
+        string $field,
+        mixed $value,
+        int $min,
+        int $max
+    ): self {
+        if ($this->hasError($field)) {
+            return $this;
+        }
+
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return $this;
+        }
+
+        $length = mb_strlen($value);
+
+        if ($length < $min || $length > $max) {
+            $this->addError(
+                $field,
+                ucfirst(str_replace('_', ' ', $field))
+                    . " must be between {$min} and {$max} characters."
+            );
+        }
+
+        return $this;
+    }
+
+    public function match(
+        string $field,
+        mixed $value,
+        mixed $compare
+    ): self {
+        if ($this->hasError($field)) {
+            return $this;
+        }
+
+        if ((string) $value !== (string) $compare) {
+            $this->addError(
+                $field,
+                ucfirst(str_replace('_', ' ', $field))
+                    . ' does not match.'
+            );
+        }
+
+        return $this;
+    }
+
+    public function getErrors(): array
+    {
+
+        return $this->errors;
+    }
+    public function fails(): bool
+    {
+        return !empty($this->errors);
+    }
+
+    public function passes(): bool
+    {
+        return empty($this->errors);
+    }
+
+    private function hasError(string $field): bool
+    {
+        return isset($this->errors[$field]);
+    }
+
+    public function strongPassword(string $field, mixed $value): self
+    {
+        if ($this->hasError($field)) {
+            return $this;
+        }
+
+        $value = trim((string)$value);
+
+        if ($value === '') {
+            return $this;
+        }
+
+        if (!preg_match('/[A-Z]/', $value)) {
+            $this->addError(
+                $field,
+                'Password must contain at least one uppercase letter.'
+            );
+            return $this;
+        }
+
+        if (!preg_match('/[a-z]/', $value)) {
+            $this->addError(
+                $field,
+                'Password must contain at least one lowercase letter.'
+            );
+            return $this;
+        }
+
+        if (!preg_match('/[0-9]/', $value)) {
+            $this->addError(
+                $field,
+                'Password must contain at least one number.'
+            );
+            return $this;
+        }
+
+        if (!preg_match('/[^A-Za-z0-9]/', $value)) {
+            $this->addError(
+                $field,
+                'Password must contain at least one special character.'
+            );
+        }
+
+        return $this;
     }
 }

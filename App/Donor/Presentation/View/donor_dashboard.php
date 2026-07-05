@@ -1,11 +1,12 @@
 <?php
 
-require_once __DIR__ . '/../../../Shared/Helpers/Session.php';
-require_once __DIR__ . '/../../../Shared/infrastructure/Database/Database.php';
+require_once __DIR__ . '/../../../../vendor/autoload.php';
 
-use App\Shared\Helpers\Session;
+if (!class_exists(\App\Shared\Helpers\Session::class)) {
+    require_once __DIR__ . '/../../../Shared/Helpers/Session.php';
+}
 
-Session::start();
+\App\Shared\Helpers\Session::start();
 
 $basePath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 if ($basePath === '/' || $basePath === '\\') {
@@ -29,7 +30,7 @@ if ($userRole !== 'donor') {
     exit;
 }
 
-$db = new \Database();
+$db = new \App\Shared\Infrastructure\Database\Database();
 $pdo = $db->connect();
 
 function setFlash(string $message, string $type = 'success')

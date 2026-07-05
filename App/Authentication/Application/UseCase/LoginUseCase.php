@@ -2,27 +2,83 @@
 
 namespace App\Authentication\Application\UseCase;
 
-require_once __DIR__ . '/../../Infrastructure/Persistence/AuthRepository.php';
-
 use App\Authentication\Infrastructure\Persistence\AuthRepository;
 
 class LoginUseCase
 {
-    public function execute(array $credentials)
+    private AuthRepository $repo;
+
+    public function __construct()
     {
-        $repo = new AuthRepository();
-        $login = $credentials['login'] ?? '';
+        $this->repo = new AuthRepository();
+    }
+
+    public function execute(array $credentials): array
+    {
+        $errors = [];
+
+        $login = trim($credentials['login'] ?? '');
         $password = $credentials['password'] ?? '';
 
-        $user = $repo->findByEmail($login);
-        if (!$user) return false;
-
-        if (!isset($user['password'])) return false;
-
-        if (password_verify($password, $user['password'])) {
-            return $user;
+        // Validate login
+        if ($login === '') {
+            $errors['login'] = 'Email or Username is required.';
         }
 
-        return false;
+        // Validate password
+        if ($password === '') {
+            $errors['password'] = 'Password is required.';
+        }
+
+        if (!empty($errors)) {
+            return [
+                'success' => false,
+                'errors' => $errors
+            ];
+        }
+
+        // Find by email first
+        $user = $this->repo->findByEmail($login);
+
+        // If not found, find by username
+        if (!$user) {
+            $user = $this->repo->findByUsername($login);
+        }
+
+        // User not found
+        if (!$user) {
+            return [
+                'success' => false,
+                'errors' => [
+                    'form' => 'Incorrect email/username .'
+                ]
+            ];
+        }
+
+        // Verify password
+        if (!password_verify($password, $user['password'])) {
+            return [
+                'success' => false,
+                'errors' => [
+                    'form' => 'Incorrect password.'
+                ]
+            ];
+        }
+
+        // Check account status
+        if (isset($user['status']) && strtolower(trim($user['status'])) !== 'active') {
+            return [
+                'success' => false,
+                'errors' => [
+                    'form' => 'Your account is inactive.'
+                ]
+            ];
+        }
+
+        // Login successful
+        return [
+            'success' => true,
+            'user' => $user
+        ];
     }
 }

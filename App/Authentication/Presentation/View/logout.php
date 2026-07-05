@@ -1,10 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../../../Shared/Helpers/Session.php';
+require_once __DIR__ . '/../../../../vendor/autoload.php';
 
-use App\Shared\Helpers\Session;
-
-Session::start();
+\App\Shared\Helpers\Session::start();
 
 // Clear session data
 $_SESSION = [];

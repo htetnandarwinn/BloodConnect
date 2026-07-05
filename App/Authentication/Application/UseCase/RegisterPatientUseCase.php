@@ -2,15 +2,41 @@
 
 namespace App\Authentication\Application\UseCase;
 
-require_once __DIR__ . '/../../Infrastructure/Persistence/AuthRepository.php';
-
-use App\Authentication\Infrastructure\Persistence\AuthRepository;
+use App\Authentication\Application\DTO\RegisterPatientDTO;
+use App\Authentication\Domain\Repository\AuthRepositoryInterface;
+use App\Shared\Infrastructure\Mail\EmailService;
 
 class RegisterPatientUseCase
 {
-    public function execute(array $data)
-    {
-        $repo = new AuthRepository();
-        return $repo->registerPatient($data);
+    public function __construct(
+        private AuthRepositoryInterface $repo,
+        private EmailService $emailService
+    ) {}
+
+    public function execute(
+        RegisterPatientDTO $dto,
+        int $userTypeId,
+        int $statusId,
+        int $otp,
+        string $expiresAt
+    ): string {
+
+        if ($this->repo->findByEmail($dto->email)) {
+            throw new \DomainException("Email already exists");
+        }
+
+        // 1. Save user
+        $userId = $this->repo->createPatient(
+            $dto,
+            $userTypeId,
+            $statusId,
+            $otp,
+            $expiresAt
+        );
+
+        // 2. Send OTP EMAIL (IMPORTANT PART)
+        $this->emailService->sendOtp($dto->email, $otp);
+
+        return $userId;
     }
 }

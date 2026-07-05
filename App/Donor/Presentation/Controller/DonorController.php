@@ -2,20 +2,12 @@
 
 namespace App\Donor\Presentation\Controller;
 
+use App\Shared\Presentation\View\View;
+
 class DonorController
 {
-    public function dashboard()
+    public function donor_dashboard()
     {
-        // TODO
-    }
-
-    public function profile()
-    {
-        // TODO
-    }
-
-    public function donationHistory()
-    {
-        // TODO
+        return View::render('donor_dashboard');
     }
 }

@@ -2,17 +2,144 @@
 
 namespace App\Notification\Infrastructure\Persistence;
 
-use App\Notification\Domain\Repository\NotificationRepositoryInterface;
+use App\Shared\Infrastructure\Database\Database;
+use PDO;
+use Exception;
 
-class NotificationRepository implements NotificationRepositoryInterface
+class NotificationRepository
 {
-    public function create(array $data)
+    private PDO $db;
+
+    public function __construct()
     {
-        // TODO
+        $this->db = Database::getConnection();
     }
 
-    public function getByUser(int $userId)
+    /**
+     * Create notification
+     */
+    public function create(
+        int $userId,
+        string $title,
+        string $message,
+        string $type
+    ): bool {
+
+        $typeId = $this->getTypeId($type);
+
+        $stmt = $this->db->prepare("
+            INSERT INTO notifications
+            (
+                user_id,
+                notification_type_id,
+                title,
+                message,
+                type
+            )
+            VALUES
+            (
+                :user_id,
+                :notification_type_id,
+                :title,
+                :message,
+                :type
+            )
+        ");
+
+        return $stmt->execute([
+            ':user_id' => $userId,
+            ':notification_type_id' => $typeId,
+            ':title' => $title,
+            ':message' => $message,
+            ':type' => strtolower($type)
+        ]);
+    }
+
+    /**
+     * Convert notification code to master_data ID
+     */
+    private function getTypeId(string $type): int
     {
-        // TODO
+        $stmt = $this->db->prepare("
+            SELECT id
+            FROM master_data
+            WHERE category = 'NOTIFICATION_TYPE'
+              AND code = ?
+            LIMIT 1
+        ");
+
+        $stmt->execute([$type]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            throw new Exception("Invalid notification type: {$type}");
+        }
+
+        return (int)$row['id'];
+    }
+
+    /**
+     * Get notifications for a user
+     */
+    public function findByUserId(int $userId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                n.*,
+                md.code AS notification_code,
+                md.label AS notification_label
+            FROM notifications n
+            LEFT JOIN master_data md
+                ON md.id = n.notification_type_id
+            WHERE n.user_id = ?
+            ORDER BY n.created_at DESC
+        ");
+
+        $stmt->execute([$userId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Mark notification as read
+     */
+    public function markAsRead(int $notificationId): bool
+    {
+        $stmt = $this->db->prepare("
+            UPDATE notifications
+            SET is_read = 1
+            WHERE notification_id = ?
+        ");
+
+        return $stmt->execute([$notificationId]);
+    }
+
+
+    public function markAllAsRead(int $userId): bool
+    {
+        $stmt = $this->db->prepare("
+        UPDATE notifications
+        SET is_read = 1
+        WHERE user_id = ?
+    ");
+
+        return $stmt->execute([$userId]);
+    }
+
+    public function getUnreadCount(int $userId): int
+    {
+        $stmt = $this->db->prepare("
+        SELECT COUNT(*) as count
+        FROM notifications
+        WHERE user_id = ?
+        AND is_read = 0
+    ");
+
+        $stmt->execute([$userId]);
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return (int)($result['count'] ?? 0);
     }
 }

@@ -1,18 +1,16 @@
 <?php
-require_once __DIR__ . '/../../../Shared/Helpers/Session.php';
-require_once __DIR__ . '/../../../Shared/Infrastructure/Database/Database.php';
 
-use App\Shared\Helpers\Session;
-use App\Shared\Infrastructure\Database\Database;
+require_once __DIR__ . '/../../../../vendor/autoload.php';
 
-// If the Database class is defined in the global namespace (no namespace
-// declaration in Database.php), create an alias so the namespaced reference
-// used below still works and static analyzers won't report an undefined type.
-if (!class_exists('App\\Shared\\Infrastructure\\Database\\Database') && class_exists('Database')) {
-    class_alias('Database', 'App\\Shared\\Infrastructure\\Database\\Database');
+if (!class_exists(\App\Shared\Helpers\Session::class)) {
+    require_once __DIR__ . '/../../../Shared/Helpers/Session.php';
 }
 
-Session::start();
+if (!class_exists(\App\Shared\Infrastructure\Database\Database::class)) {
+    require_once __DIR__ . '/../../../Shared/Infrastructure/Database/Database.php';
+}
+
+\App\Shared\Helpers\Session::start();
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: /BloodConnect/login.php");
@@ -21,44 +19,15 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = $_SESSION['user_id'];
 
-// Obtain a DB connection in a way compatible with different Database implementations
-// Prefer method_exists over is_callable to avoid static analysis errors when
-// the Database class is actually an alias to a global class without static
-// method type hints.
-if (method_exists(Database::class, 'getConnection')) {
-    $db = Database::getConnection();
-} elseif (method_exists(Database::class, 'getInstance')) {
-    $instance = Database::getInstance();
-    if (is_object($instance) && method_exists($instance, 'getConnection')) {
-        $db = $instance->getConnection();
-    } else {
-        // fallback: assume instance is a PDO or has a connect method
-        $db = is_object($instance) ? $instance : null;
-    }
-} else {
-    // Try to construct and get connection from instance
-    try {
-        $dbInstance = new Database();
-        if (method_exists($dbInstance, 'getConnection')) {
-            $db = $dbInstance->getConnection();
-        } elseif (method_exists($dbInstance, 'connect')) {
-            $db = $dbInstance->connect();
-        } else {
-            $db = $dbInstance; // assume it's a PDO-like object
-        }
-    } catch (Throwable $e) {
-        die('Database connection method not found.');
-    }
+// Create a SQL connection through the PSR-4 autoloaded database class.
+$db = new \App\Shared\Infrastructure\Database\Database();
+$pdo = $db->connect();
+
+if (!($pdo instanceof PDO)) {
+    die('Invalid database connection.');
 }
 
-if (!($db instanceof PDO)) {
-    // If $db is not a PDO, but offers prepare, use it; otherwise error
-    if (!is_object($db) || !method_exists($db, 'prepare')) {
-        die('Invalid database connection.');
-    }
-}
-
-$stmt = $db->prepare("
+$stmt = $pdo->prepare("
     SELECT
         name AS full_name,
         phone,
@@ -669,7 +638,7 @@ $profilePhotoUrl = '';
 
             <div class="sidebar-spacer"></div>
 
-            <a class="logout-btn" href="/BloodConnect/App/Authentication/Presentation/View/logout.php">
+            <a class="logout-btn" href="/BloodConnect/logout">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                     <path d="M16 17l5-5-5-5" />

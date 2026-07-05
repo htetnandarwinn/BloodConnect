@@ -3,109 +3,186 @@
 namespace App\Authentication\Infrastructure\Persistence;
 
 use App\Authentication\Domain\Repository\AuthRepositoryInterface;
-
-require_once __DIR__ . '/../../Domain/Repository/AuthRepositoryInterface.php';
+use App\Authentication\Application\DTO\RegisterPatientDTO;
+use App\Shared\Infrastructure\Database\Database;
+use PDO;
 
 class AuthRepository implements AuthRepositoryInterface
 {
+    private PDO $db;
+
+    public function __construct()
+    {
+        $this->db = Database::getConnection();
+    }
+
+    // ================= FIND BY EMAIL =================
     public function findByEmail(string $email)
     {
-        require_once __DIR__ . '/../../../Shared/infrastructure/Database/Database.php';
-        $db = new \Database();
-        $pdo = $db->connect();
+        $stmt = $this->db->prepare("
+            SELECT * FROM users 
+            WHERE email = :email 
+            LIMIT 1
+        ");
 
-        $sql = "SELECT * FROM users WHERE email = :login OR username = :login LIMIT 1";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute(['login' => $email]);
-        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        return $user ?: null;
-    }
-
-    public function create(array $data)
-    {
-        require_once __DIR__ . '/../../../Shared/infrastructure/Database/Database.php';
-        $db = new \Database();
-        $pdo = $db->connect();
-
-        $sql = "INSERT INTO users (name, username, email, phone, password, role, created_at) VALUES (:name, :username, :email, :phone, :password, :role, :created_at)";
-        $stmt = $pdo->prepare($sql);
-
-        try {
-            $stmt->execute([
-                'name' => $data['name'] ?? null,
-                'username' => $data['username'] ?? null,
-                'email' => $data['email'] ?? null,
-                'phone' => $data['phone'] ?? null,
-                'password' => $data['password'] ?? null,
-                'role' => $data['role'] ?? 'user',
-                'created_at' => date('Y-m-d H:i:s'),
-            ]);
-
-            return (int)$pdo->lastInsertId();
-        } catch (\PDOException $e) {
-            if (isset($e->errorInfo[1]) && $e->errorInfo[1] === 1062) {
-                return false;
-            }
-
-            throw $e;
-        }
-    }
-
-    public function registerDonor($data)
-    {
-        // create user first
-        $passwordHash = password_hash($data['password'] ?? bin2hex(random_bytes(4)), PASSWORD_DEFAULT);
-        $userId = $this->create([
-            'name' => $data['name'] ?? null,
-            'email' => $data['email'] ?? null,
-            'password' => $passwordHash,
-            'role' => 'donor',
-        ]);
-
-        if ($userId === false) {
-            return false;
-        }
-
-        require_once __DIR__ . '/../../../Shared/infrastructure/Database/Database.php';
-        $db = new \Database();
-        $pdo = $db->connect();
-
-        $sql = "INSERT INTO donors (user_id, name, dob, email, phone, blood_group, gender, address, weight, last_donation_date, availability, created_at) VALUES (:user_id, :name, :dob, :email, :phone, :blood_group, :gender, :address, :weight, :last_donation_date, :availability, :created_at)";
-        $stmt = $pdo->prepare($sql);
         $stmt->execute([
-            'user_id' => $userId,
-            'name' => $data['name'] ?? null,
-            'dob' => $data['dob'] ?? null,
-            'email' => $data['email'] ?? null,
-            'phone' => $data['phone'] ?? null,
-            'blood_group' => $data['blood_group'] ?? null,
-            'gender' => $data['gender'] ?? null,
-            'address' => $data['address'] ?? null,
-            'weight' => $data['weight'] ?? null,
-            'last_donation_date' => $data['last_donation_date'] ?? null,
-            'availability' => $data['availability'] ?? 1,
-            'created_at' => date('Y-m-d H:i:s'),
+            ':email' => $email
         ]);
 
-        return $userId;
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function registerPatient($data)
+    // ================= FIND BY USERNAME (FIXED - IMPORTANT) =================
+    public function findByUsername(string $username)
     {
-        $passwordHash = password_hash($data['password'] ?? bin2hex(random_bytes(4)), PASSWORD_DEFAULT);
-        $userId = $this->create([
-            'name' => $data['name'] ?? $data['username'] ?? null,
-            'username' => $data['username'] ?? null,
-            'email' => $data['email'] ?? null,
-            'password' => $passwordHash,
-            'role' => $data['role'] ?? 'patient',
+        $stmt = $this->db->prepare("
+            SELECT * FROM users 
+            WHERE username = :username 
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            ':username' => $username
         ]);
 
-        if ($userId === false) {
-            return false;
-        }
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 
-        return $userId;
+    // ================= CREATE PATIENT (CLEAN DTO VERSION) =================
+    public function createPatient(
+        RegisterPatientDTO $dto,
+        int $userTypeId,
+        int $statusId,
+        int $otp,
+        string $expiresAt
+    ): string {
+
+        $sql = "
+        INSERT INTO users (
+            username,
+            email,
+            phone,
+            password,
+            blood_group,
+            address,
+            user_type_id,
+            status_id,
+            available,
+            is_verified,
+            verification_code,
+            verification_expires_at,
+            created_at,
+            updated_at
+        ) VALUES (
+            :username,
+            :email,
+            :phone,
+            :password,
+            :blood_group,
+            :address,
+            :user_type_id,
+            :status_id,
+            1,
+            0,
+            :otp,
+            :expiresAt,
+            NOW(),
+            NOW()
+        )
+    ";
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->execute([
+            ':username' => $dto->username,
+            ':email' => $dto->email,
+            ':phone' => $dto->phone,
+            ':password' => password_hash($dto->password, PASSWORD_BCRYPT),
+            ':blood_group' => $dto->blood_group,
+            ':address' => $dto->address,
+            ':user_type_id' => $userTypeId,
+            ':status_id' => $statusId,
+            ':otp' => $otp,
+            ':expiresAt' => $expiresAt,
+        ]);
+
+        return (string) $this->db->lastInsertId();
+    }
+
+    // ================= CREATE DONOR (FIXED - now uses DTO instead of array) =================
+    public function createDonor(RegisterPatientDTO $dto)
+    {
+        $sql = "
+            INSERT INTO users (
+                username,
+                email,
+                phone,
+                password,
+                blood_group,
+                address,
+                user_type_id,
+                status_id,
+                available,
+                created_at,
+                updated_at
+            ) VALUES (
+                :username,
+                :email,
+                :phone,
+                :password,
+                :blood_group,
+                :address,
+                :user_type_id,
+                :status_id,
+                :available,
+                NOW(),
+                NOW()
+            )
+        ";
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->execute([
+            ':username' => $dto->username,
+            ':email' => $dto->email,
+            ':phone' => $dto->phone,
+            ':password' => password_hash($dto->password, PASSWORD_BCRYPT),
+            ':blood_group' => $dto->blood_group,
+            ':address' => $dto->address,
+            ':user_type_id' => 2,
+            ':status_id' => 1,
+            ':available' => 1
+        ]);
+
+        return $this->db->lastInsertId();
+    }
+
+    public function markAsVerified($userId)
+    {
+        $stmt = $this->db->prepare("
+        UPDATE users 
+        SET is_verified = 1,
+            verification_code = NULL,
+            verification_expires_at = NULL
+        WHERE user_id = :id
+    ");
+
+        $stmt->execute([':id' => $userId]);
+    }
+
+    public function updateVerificationCode($email, $code, $expires)
+    {
+        $stmt = $this->db->prepare("
+        UPDATE users 
+        SET verification_code = :code,
+            verification_expires_at = :expires
+        WHERE email = :email
+    ");
+
+        $stmt->execute([
+            ':code' => $code,
+            ':expires' => $expires,
+            ':email' => $email
+        ]);
     }
 }

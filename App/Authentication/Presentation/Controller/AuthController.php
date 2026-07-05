@@ -2,267 +2,202 @@
 
 namespace App\Authentication\Presentation\Controller;
 
-require_once __DIR__ . '/../../../Shared/Helpers/Session.php';
-require_once __DIR__ . '/../../Application/UseCase/LoginUseCase.php';
-require_once __DIR__ . '/../../Application/UseCase/RegisterPatientUseCase.php';
-require_once __DIR__ . '/../../Application/UseCase/RegisterDonorUseCase.php';
-require_once __DIR__ . '/../../Application/UseCase/LogoutUseCase.php';
-
 use App\Shared\Helpers\Session;
 use App\Authentication\Application\UseCase\LoginUseCase;
 use App\Authentication\Application\UseCase\RegisterPatientUseCase;
-use App\Authentication\Application\UseCase\RegisterDonorUseCase;
 use App\Authentication\Application\UseCase\LogoutUseCase;
+use App\Authentication\Presentation\View\View;
+use App\Authentication\Application\DTO\RegisterPatientDTO;
+use App\Authentication\Infrastructure\Persistence\AuthRepository;
+use App\Authentication\Presentation\Request\RegisterPatientRequest;
+use App\Authentication\Presentation\Request\LoginRequest;
+use App\Shared\Infrastructure\Mail\EmailService;
 
 class AuthController
 {
-    private function getBasePath(): string
-    {
-        $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
-        if ($scriptDir === '/' || $scriptDir === '\\') {
-            return '';
-        }
+    // ================= VIEW =================
 
-        return rtrim($scriptDir, '/');
+    public function showRegister()
+    {
+        View::render('register');
     }
 
-    private function redirect(string $path): void
+    public function showLogin()
     {
-        $basePath = $this->getBasePath();
-        header('Location: ' . $basePath . $path);
-        exit;
+        View::render('login');
     }
 
-    private function setFlash(array $errors = [], array $old = [], string $success = ''): void
+    // ================= REGISTER =================
+    public function registerPatient()
     {
         Session::start();
 
-        if (!empty($errors)) {
-            $_SESSION['errors'] = $errors;
-        }
+        $request = new RegisterPatientRequest();
+        $data = $request->validate($_POST);
 
-        if (!empty($old)) {
-            $_SESSION['old'] = $old;
-        }
+        $role = $data['role'] ?? 'patient';
 
-        if ($success !== '') {
-            $_SESSION['success'] = $success;
-        }
+        $userTypeId = match ($role) {
+            'donor' => 2,
+            'patient' => 3,
+            default => 3,
+        };
+
+        // ✅ HARD CODED STATUS (PENDING)
+        $statusId = 3;
+
+        // OTP logic (allowed in controller)
+        $otp = random_int(100000, 999999);
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
+        $dto = new RegisterPatientDTO(
+            $data['username'],
+            $data['email'],
+            $data['phone'] ?? null,
+            $data['password'],
+            $data['blood_group'] ?? null,
+            $data['address'] ?? null,
+            $role
+        );
+
+        $useCase = new RegisterPatientUseCase(new AuthRepository(), new EmailService());
+
+        $userId = $useCase->execute(
+            $dto,
+            $userTypeId,
+            $statusId,
+            $otp,
+            $expiresAt
+        );
+
+        Session::set('verify_email', $data['email']);
+        Session::set('verify_user_id', $userId);
+
+        $this->redirect('/verify-email');
     }
+
+    // ================= LOGIN =================
 
     public function login()
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/login');
-        }
+        Session::start();
 
-        $login = trim($_POST['login'] ?? '');
-        $password = $_POST['password'] ?? '';
-        $errors = [];
+        try {
 
-        if ($login === '') {
-            $errors[] = 'Email or username is required';
-        }
+            $request = new LoginRequest();
+            $data = $request->validate($_POST);
 
-        if ($password === '') {
-            $errors[] = 'Password is required';
-        }
+            $useCase = new LoginUseCase();
 
-        if (!empty($errors)) {
-            $this->setFlash($errors, ['login' => $login]);
-            $this->redirect('/login');
-        }
+            $result = $useCase->execute($data);
 
-        $useCase = new LoginUseCase();
-        $user = $useCase->execute(['login' => $login, 'password' => $password]);
+            if (!$result['success']) {
 
-        if ($user) {
-            Session::start();
-            $_SESSION['user_id'] = $user['user_id'] ?? $user['id'] ?? null;
-            $_SESSION['role'] = $user['role'] ?? 'user';
-            $_SESSION['name'] = $user['name'] ?: ($user['username'] ?: ($user['email'] ?? ''));
+                $this->setFlash(
+                    $result['errors'],
+                    [
+                        'login' => $data['login'] ?? ''
+                    ]
+                );
 
-            $role = $_SESSION['role'];
-            if ($role === 'admin') {
-                $this->redirect('/admin/dashboard');
-            } elseif ($role === 'donor') {
-                $this->redirect('/donor/dashboard');
-            } else {
-                $this->redirect('/user/dashboard');
+                $this->redirect('/login');
             }
-        }
 
-        $this->setFlash(['Invalid email or username or password'], ['login' => $login]);
-        $this->redirect('/login');
+            $user = $result['user'];
+
+            // ==============================
+            // ❌ CHECK: ACCOUNT ACTIVE
+            // ==============================
+            if ((int)$user['is_active'] === 0) {
+                $this->setFlash(
+                    ['form' => 'Your account has been disabled.'],
+                    ['login' => $data['login'] ?? '']
+                );
+                $this->redirect('/login');
+            }
+
+            // ==============================
+            // ❌ CHECK: EMAIL VERIFIED
+            // ==============================
+            if ((int)$user['is_verified'] === 0) {
+                $this->setFlash(
+                    ['form' => 'Please verify your email first.'],
+                    ['login' => $data['login'] ?? '']
+                );
+                $this->redirect('/login');
+            }
+
+            // ==========================
+            // SAVE LOGIN SESSION
+            // ==========================
+            Session::set('user', $user);
+            Session::set('user_id', $user['user_id']);
+            Session::set('username', $user['username']);
+            Session::set('email', $user['email']);
+            Session::set('user_type_id', $user['user_type_id']);
+
+            // ==============================
+            // OPTIONAL: mark user as online
+            // ==============================
+            $repo = new \App\Authentication\Infrastructure\Persistence\AuthRepository();
+            // setLoginStatus may not exist in all repository implementations
+            $method = 'setLoginStatus';
+            if (method_exists($repo, $method)) {
+                // call dynamically to avoid static analysis errors about undefined method
+                $repo->{$method}($user['user_id'], 1);
+            }
+
+            // ==========================
+            // REDIRECT BY ROLE
+            // ==========================
+            switch ($user['user_type_id']) {
+
+                case 1:
+                    $this->redirect('/admin/dashboard');
+                    break;
+
+                case 2:
+                    $this->redirect('/donor/dashboard');
+                    break;
+
+                case 3:
+                    $this->redirect('/patient/dashboard');
+                    break;
+
+                default:
+
+                    unset($_SESSION['user']);
+                    unset($_SESSION['user_id']);
+                    unset($_SESSION['username']);
+                    unset($_SESSION['email']);
+                    unset($_SESSION['user_type_id']);
+
+                    $this->setFlash([
+                        'form' => 'Unknown user type.'
+                    ]);
+
+                    $this->redirect('/login');
+            }
+        } catch (\DomainException $e) {
+
+            $this->setFlash(
+                ['form' => $e->getMessage()],
+                ['login' => $_POST['login'] ?? '']
+            );
+
+            $this->redirect('/login');
+        } catch (\Exception $e) {
+
+            $this->setFlash(
+                ['form' => 'Something went wrong. Please try again.'],
+                ['login' => $_POST['login'] ?? '']
+            );
+
+            $this->redirect('/login');
+        }
     }
 
-    public function registerPatient()
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/register');
-        }
-
-        $username = trim($_POST['username'] ?? '');
-        $email = trim($_POST['email'] ?? '');
-        $phone = trim($_POST['phone'] ?? '');
-        $password = $_POST['password'] ?? '';
-        $confirmPassword = $_POST['confirm_password'] ?? '';
-        $errors = [];
-
-        if ($username === '') {
-            $errors[] = 'Username is required';
-        }
-
-        if ($email === '') {
-            $errors[] = 'Email is required';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = 'Invalid Email Format';
-        }
-
-        if ($phone === '') {
-            $errors[] = 'Phone Number is required';
-        } elseif (!preg_match('/^\d{11}$/', $phone)) {
-            $errors[] = 'Phone Number must be exactly 11 digits';
-        }
-
-        if ($password === '') {
-            $errors[] = 'Password is required';
-        } elseif (strlen($password) < 8) {
-            $errors[] = 'Password must be at least 8 characters';
-        }
-
-        if ($confirmPassword === '') {
-            $errors[] = 'Confirm Password is required';
-        } elseif ($password !== $confirmPassword) {
-            $errors[] = 'Passwords do not match';
-        }
-
-        if (!empty($errors)) {
-            $this->setFlash($errors, [
-                'username' => $username,
-                'email' => $email,
-                'phone' => $phone,
-            ]);
-            $this->redirect('/register');
-        }
-
-        $data = [
-            'name' => $username,
-            'username' => $username,
-            'email' => $email,
-            'phone' => $phone,
-            'password' => $password,
-            'role' => 'patient',
-        ];
-
-        $useCase = new RegisterPatientUseCase();
-        $userId = $useCase->execute($data);
-
-        if ($userId === false) {
-            $this->setFlash(['Email is already registered'], [
-                'username' => $username,
-                'email' => $email,
-                'phone' => $phone,
-            ]);
-            $this->redirect('/register');
-        }
-
-        $this->setFlash([], [], 'Registration successful. Please log in with your credentials.');
-        $this->redirect('/login');
-    }
-
-    public function registerDonor()
-    {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            $this->redirect('/donor/register');
-        }
-
-        $name = trim($_POST['name'] ?? '');
-        $phone = trim($_POST['phone'] ?? '');
-        $email = trim($_POST['email'] ?? '');
-        $address = trim($_POST['address'] ?? '');
-        $bloodGroup = $_POST['blood_group'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $confirmPassword = $_POST['confirm_password'] ?? '';
-        $errors = [];
-
-        if ($name === '') {
-            $errors[] = 'Full Name is required';
-        }
-
-        if ($phone === '') {
-            $errors[] = 'Phone Number is required';
-        } elseif (!preg_match('/^\d{11}$/', $phone)) {
-            $errors[] = 'Phone Number must be exactly 11 digits';
-        }
-
-        if ($email === '') {
-            $errors[] = 'Email is required';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = 'Invalid Email Format';
-        }
-
-        if ($address === '') {
-            $errors[] = 'Address is required';
-        }
-
-        if ($bloodGroup === '') {
-            $errors[] = 'Blood Group is required';
-        }
-
-        if ($password === '') {
-            $errors[] = 'Password is required';
-        } elseif (strlen($password) < 8) {
-            $errors[] = 'Password must be at least 8 characters';
-        }
-
-        if ($confirmPassword === '') {
-            $errors[] = 'Confirm Password is required';
-        } elseif ($password !== $confirmPassword) {
-            $errors[] = 'Passwords do not match';
-        }
-
-        if (!empty($errors)) {
-            $this->setFlash($errors, [
-                'name' => $name,
-                'phone' => $phone,
-                'email' => $email,
-                'address' => $address,
-                'blood_group' => $bloodGroup,
-            ]);
-            $this->redirect('/donor/register');
-        }
-
-        $data = [
-            'name' => $name,
-            'dob' => $_POST['dob'] ?? null,
-            'email' => $email,
-            'phone' => $phone,
-            'blood_group' => $bloodGroup,
-            'gender' => $_POST['gender'] ?? null,
-            'address' => $address,
-            'weight' => $_POST['weight'] ?? null,
-            'last_donation_date' => $_POST['last_donation_date'] ?? null,
-            'password' => $_POST['password'] ?? null,
-        ];
-
-        $useCase = new RegisterDonorUseCase();
-        $userId = $useCase->execute($data);
-
-        if ($userId === false) {
-            $this->setFlash(['Email is already registered'], [
-                'name' => $name,
-                'phone' => $phone,
-                'email' => $email,
-                'address' => $address,
-                'blood_group' => $bloodGroup,
-            ]);
-            $this->redirect('/donor/register');
-        }
-
-        $this->setFlash([], [], 'Donor registration successful. Please log in with your credentials.');
-        $this->redirect('/login');
-    }
+    // ================= LOGOUT =================
 
     public function logout()
     {
@@ -270,5 +205,27 @@ class AuthController
         $useCase->execute();
 
         $this->redirect('/');
+    }
+
+    // ================= HELPERS =================
+
+    private function redirect(string $path): void
+    {
+        $basePath = '/BloodConnect/public';
+        $normalizedPath = '/' . ltrim($path, '/');
+        header('Location: ' . $basePath . $normalizedPath);
+        exit;
+    }
+
+    private function setFlash(array $errors = [], array $old = [], string $success = ''): void
+    {
+        Session::start();
+
+        $_SESSION['errors'] = $errors;
+        $_SESSION['old'] = $old;
+
+        if ($success !== '') {
+            $_SESSION['success'] = $success;
+        }
     }
 }
