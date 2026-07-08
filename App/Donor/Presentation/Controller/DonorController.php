@@ -69,7 +69,9 @@ class DonorController
         }
 
         $repo = new BloodRequestRepository();
-
+        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $acceptedRequests = $repo->findAcceptedRequestsForDonor((int) Session::get('user_id'), (int) $acceptedStatus);
+        $lastDonation = $acceptedRequests[0] ?? [];
 
 
         donorView::render(
@@ -84,7 +86,11 @@ class DonorController
 
                 'availability' => (($user['available'] ?? 0) ? 'Available' : 'Unavailable'),
 
+                'last_donation_date' => !empty($lastDonation['created_at'])
+                    ? date('d M Y', strtotime($lastDonation['created_at']))
+                    : 'No donation yet',
 
+                'last_donation_location' => $lastDonation['hospital_name'] ?? 'No location saved',
 
                 'blood_requests' =>
 
