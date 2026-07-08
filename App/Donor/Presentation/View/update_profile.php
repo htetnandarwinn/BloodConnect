@@ -8,7 +8,7 @@ Session::start();
 $username  = $user['username'] ?? '';
 $email     = $user['email'] ?? '';
 $contact   = $user['phone'] ?? '';
-$bloodType = $user['blood_group'] ?? '';
+$bloodType = $user['blood_group'] ?? 'Not set';
 $address   = $user['address'] ?? '';
 
 $errorMessage = null;
@@ -23,11 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_profile']
         $errorMessage = "Validation Error: Passwords do not match!";
     } else {
         // Sanitize incoming stream values to protect active parameters (Synced with HTML input names)
-        $_SESSION['username']   = trim(filter_input(INPUT_POST, 'username', FILTER_SANITIZE_SPECIAL_CHARS));
-        $_SESSION['email']      = trim(filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL));
-        $_SESSION['contact']    = trim(filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_SPECIAL_CHARS));
-        $_SESSION['blood_type'] = trim(filter_input(INPUT_POST, 'blood_group', FILTER_SANITIZE_SPECIAL_CHARS));
-        $_SESSION['address']    = trim(filter_input(INPUT_POST, 'address', FILTER_SANITIZE_SPECIAL_CHARS));
+        $_SESSION['username'] = trim(filter_input(INPUT_POST, 'username', FILTER_SANITIZE_SPECIAL_CHARS));
+        $_SESSION['email']    = trim(filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL));
+        $_SESSION['contact']  = trim(filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_SPECIAL_CHARS));
+        $_SESSION['address']  = trim(filter_input(INPUT_POST, 'address', FILTER_SANITIZE_SPECIAL_CHARS));
 
         if (!empty($newPassword)) {
             /* 👉 DATABASE SAVING HOOK PLACEHOLDER:
@@ -145,18 +144,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_profile']
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Blood Group</label>
                         <div class="relative rounded-xl transition-all focus-within:ring-2 focus-within:ring-red-500/20">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-red-500"><i class="fa-solid fa-droplet text-xs"></i></span>
-                            <select name="blood_group" class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-10 py-3 text-sm font-bold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white appearance-none cursor-pointer transition-all">
-                                <?php
-                                foreach (['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'] as $type) {
-                                    $selected = ($bloodType === $type) ? 'selected' : '';
-                                    echo "<option value=\"$type\" $selected>$type</option>";
-                                }
-                                ?>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            <div class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800">
+                                <?= htmlspecialchars($bloodType) ?>
                             </div>
                         </div>
+                        <p class="text-xs text-slate-400">This value is managed by the system and cannot be changed here.</p>
                     </div>
                 </div>
 

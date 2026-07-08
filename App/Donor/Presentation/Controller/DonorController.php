@@ -7,8 +7,10 @@ use App\Shared\Helpers\Session;
 use App\Shared\Presentation\View\donorView;
 use App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository;
 use App\Donor\Infrastructure\Persistence\DonorRepository;
+use App\Notification\Infrastructure\Persistence\NotificationRepository;
 use App\Shared\Helpers\PermissionGuard;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
+use App\User\Infrastructure\Persistence\UserRepository;
 
 
 class DonorController
@@ -126,7 +128,50 @@ class DonorController
             die("Failed to accept request");
         }
 
+        $request = $repo->findById($requestId);
+        $notificationRepo = new NotificationRepository();
+        $userRepo = new UserRepository();
+        $donor = $userRepo->findById((int)($user['user_id'] ?? 0));
+        $patient = $userRepo->findById((int)($request['patient_id'] ?? 0));
+        $admins = $notificationRepo->getAdmins();
 
+        foreach ($admins as $admin) {
+            $notificationRepo->create(
+                (int)$admin['user_id'],
+                'Blood Request Accepted',
+                sprintf(
+                    'Blood request %s has been accepted by donor %s.',
+                    $request['request_code'] ?? 'N/A',
+                    $donor['username'] ?? 'Unknown donor'
+                ),
+                'REQUEST'
+            );
+        }
+
+        if ($donor) {
+            $notificationRepo->create(
+                (int)$donor['user_id'],
+                'Blood Request Accepted',
+                sprintf(
+                    'You accepted blood request %s. The patient will be notified shortly.',
+                    $request['request_code'] ?? 'N/A'
+                ),
+                'REQUEST'
+            );
+        }
+
+        if ($patient) {
+            $notificationRepo->create(
+                (int)$patient['user_id'],
+                'Blood Request Accepted',
+                sprintf(
+                    'Donor %s has accepted your blood request %s.',
+                    $donor['username'] ?? 'A donor',
+                    $request['request_code'] ?? 'N/A'
+                ),
+                'REQUEST'
+            );
+        }
 
         header(
             'Location: /BloodConnect/public/donor/dashboard'
@@ -314,11 +359,18 @@ class DonorController
             die('Passwords do not match.');
         }
 
+        $userSession = Session::get('user');
+        if (!is_array($userSession)) {
+            $userSession = [];
+        }
+
+        $existingBloodGroup = trim((string)($userSession['blood_group'] ?? ''));
+
         $data = [
             'username' => trim($_POST['username'] ?? ''),
             'email' => trim($_POST['email'] ?? ''),
             'phone' => trim($_POST['phone'] ?? ''),
-            'blood_group' => trim($_POST['blood_group'] ?? ''),
+            'blood_group' => $existingBloodGroup,
             'address' => trim($_POST['address'] ?? ''),
         ];
 

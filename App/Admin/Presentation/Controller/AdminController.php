@@ -230,6 +230,20 @@ class AdminController
         $donorRepo = new UserRepository();
         $donor = $donorRepo->findById($donorId);
         $patient = $donorRepo->findById((int)($request['patient_id'] ?? 0));
+        $admins = $notificationRepo->getAdmins();
+
+        foreach ($admins as $admin) {
+            $notificationRepo->create(
+                (int)$admin['user_id'],
+                'Blood Request Accepted',
+                sprintf(
+                    'Blood request %s has been accepted and assigned to donor %s.',
+                    $request['request_code'] ?? 'N/A',
+                    $donor['username'] ?? 'Unknown donor'
+                ),
+                'REQUEST'
+            );
+        }
 
         if ($donor) {
             $notificationRepo->create(

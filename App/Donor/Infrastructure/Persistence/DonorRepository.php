@@ -50,7 +50,6 @@ class DonorRepository implements DonorRepositoryInterface
             'username = ?',
             'email = ?',
             'phone = ?',
-            'blood_group = ?',
             'address = ?',
             'updated_at = NOW()'
         ];
@@ -59,7 +58,6 @@ class DonorRepository implements DonorRepositoryInterface
             trim((string)($data['username'] ?? '')),
             trim((string)($data['email'] ?? '')),
             trim((string)($data['phone'] ?? '')),
-            trim((string)($data['blood_group'] ?? '')),
             trim((string)($data['address'] ?? '')),
         ];
 
