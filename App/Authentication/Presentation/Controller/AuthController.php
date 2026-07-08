@@ -11,6 +11,7 @@ use App\Authentication\Application\DTO\RegisterPatientDTO;
 use App\Authentication\Infrastructure\Persistence\AuthRepository;
 use App\Authentication\Presentation\Request\RegisterPatientRequest;
 use App\Authentication\Presentation\Request\LoginRequest;
+use App\Shared\Helpers\Permission;
 use App\Shared\Infrastructure\Mail\EmailService;
 use App\Shared\Infrastructure\Persistence\PermissionRepository;
 
@@ -421,8 +422,7 @@ class AuthController
     {
         $this->authGuard();
 
-        $permissions = Session::get('permissions') ?? [];
-        if (!in_array('permission.manage', $permissions, true)) {
+        if (!Permission::can('permission.manage')) {
             $this->redirect('/login');
         }
 

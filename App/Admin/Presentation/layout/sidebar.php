@@ -1,3 +1,8 @@
+<?php
+
+use App\Shared\Helpers\Permission;
+?>
+
 <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300 lg:hidden"></div>
 
 <aside id="sidebarDrawer" class="fixed inset-y-0 left-0 w-72 bg-white border-r border-slate-100 p-5 flex flex-col justify-between z-50 -translate-x-full lg:translate-x-0 lg:sticky lg:top-0 h-screen transition-transform duration-300 ease-in-out shrink-0">
@@ -78,11 +83,7 @@
                 <?php endif; ?>
             </a>
 
-            <?php
-            $permissions = $_SESSION['permissions'] ?? [];
-
-            if (in_array('permission.manage', $permissions)):
-            ?>
+            <?php if (Permission::can('permission.manage')): ?>
 
                 <a href="/BloodConnect/public/admin/roles"
                     class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">

@@ -10,20 +10,10 @@ class Permission
     {
         Session::start();
 
-        $permissions = Session::get('permissions', []);
+        $permissions = self::loadPermissions();
 
         if ($permissions === '*') {
             return true;
-        }
-
-        if (!is_array($permissions) || empty($permissions)) {
-            $userTypeId = Session::get('user_type_id');
-
-            if ($userTypeId !== null) {
-                $repo = new AuthRepository();
-                $permissions = $repo->getPermissionsByUserType((int) $userTypeId);
-                Session::set('permissions', $permissions);
-            }
         }
 
         if (!is_array($permissions)) {
@@ -43,6 +33,32 @@ class Permission
         }
 
         return false;
+    }
+
+    private static function loadPermissions(): array|string
+    {
+        $sessionPermissions = Session::get('permissions', []);
+        $userTypeId = Session::get('user_type_id');
+
+        if ($userTypeId === null) {
+            return $sessionPermissions;
+        }
+
+        $repo = new AuthRepository();
+        $freshPermissions = $repo->getPermissionsByUserType((int) $userTypeId);
+
+        if ($freshPermissions === '*') {
+            Session::set('permissions', '*');
+            return '*';
+        }
+
+        $freshPermissions = is_array($freshPermissions) ? array_values(array_unique($freshPermissions)) : [];
+
+        if ($sessionPermissions !== $freshPermissions) {
+            Session::set('permissions', $freshPermissions);
+        }
+
+        return $freshPermissions;
     }
 
     private static function matchesPermission(string $requestedPermission, string $storedPermission): bool
