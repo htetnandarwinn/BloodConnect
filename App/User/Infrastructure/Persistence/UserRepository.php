@@ -28,27 +28,55 @@ class UserRepository implements UserRepositoryInterface
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function update(int $id, array $data)
+    public function update($id, $data)
     {
-        $stmt = $this->db->prepare("
+        $db = Database::getConnection();
+
+        if (!empty($data['password'])) {
+
+            $password = password_hash($data['password'], PASSWORD_DEFAULT);
+
+            $stmt = $db->prepare("
             UPDATE users
-            SET
-                username = ?,
-                email = ?,
-                phone = ?,
-                blood_group = ?,
-                address = ?
-            WHERE user_id = ?
+            SET username=?,
+                email=?,
+                phone=?,
+                blood_group=?,
+                address=?,
+                password=?
+            WHERE user_id=?
         ");
 
-        return $stmt->execute([
-            $data['username'],
-            $data['email'],
-            $data['phone'],
-            $data['blood_group'],
-            $data['address'],
-            $id
-        ]);
+            return $stmt->execute([
+                $data['username'],
+                $data['email'],
+                $data['phone'],
+                $data['blood_group'],
+                $data['address'],
+                $password,
+                $id
+            ]);
+        } else {
+
+            $stmt = $db->prepare("
+            UPDATE users
+            SET username=?,
+                email=?,
+                phone=?,
+                blood_group=?,
+                address=?
+            WHERE user_id=?
+        ");
+
+            return $stmt->execute([
+                $data['username'],
+                $data['email'],
+                $data['phone'],
+                $data['blood_group'],
+                $data['address'],
+                $id
+            ]);
+        }
     }
 
     public function findAll(): array
@@ -59,5 +87,18 @@ class UserRepository implements UserRepositoryInterface
     ");
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function getAdmins(): array
+    {
+        $stmt = $this->db->prepare("
+        SELECT user_id, username
+        FROM users
+        WHERE user_type_id = 1
+    ");
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

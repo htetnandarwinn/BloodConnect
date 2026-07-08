@@ -142,4 +142,17 @@ class NotificationRepository
 
         return (int)($result['count'] ?? 0);
     }
+
+    public function getAdmins(): array
+    {
+        $stmt = $this->db->prepare("
+        SELECT user_id, username
+        FROM users
+        WHERE user_type_id = 1
+    ");
+
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

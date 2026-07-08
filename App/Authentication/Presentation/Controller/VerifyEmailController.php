@@ -32,14 +32,16 @@ class VerifyEmailController
             $this->redirect('/verify-email');
         }
 
+        $expiresAt = $user['verification_expires_at'] ?? null;
+
         // ❌ expired check
-        if (strtotime($user['verification_expires_at']) < time()) {
+        if (empty($expiresAt) || strtotime($expiresAt) < time()) {
             $_SESSION['errors']['form'] = "Code expired. Please resend.";
             $this->redirect('/verify-email');
         }
 
         // ❌ wrong code
-        if ($user['verification_code'] != $code) {
+        if ((string)($user['verification_code'] ?? '') !== trim((string)$code)) {
             $_SESSION['errors']['form'] = "Invalid code.";
             $this->redirect('/verify-email');
         }

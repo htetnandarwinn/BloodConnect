@@ -37,10 +37,10 @@ class LoginUseCase
             ];
         }
 
-        // Find by email first
+        // Find user by email first
         $user = $this->repo->findByEmail($login);
 
-        // If not found, find by username
+        // If not found, try username
         if (!$user) {
             $user = $this->repo->findByUsername($login);
         }
@@ -50,10 +50,12 @@ class LoginUseCase
             return [
                 'success' => false,
                 'errors' => [
-                    'form' => 'Incorrect email/username .'
+                    'form' => 'Incorrect email or username.'
                 ]
             ];
         }
+
+
 
         // Verify password
         if (!password_verify($password, $user['password'])) {
@@ -65,12 +67,22 @@ class LoginUseCase
             ];
         }
 
-        // Check account status
-        if (isset($user['status']) && strtolower(trim($user['status'])) !== 'active') {
+        // Check if account is active
+        if ((int)$user['is_active'] !== 1) {
             return [
                 'success' => false,
                 'errors' => [
                     'form' => 'Your account is inactive.'
+                ]
+            ];
+        }
+
+        // Check if account is verified
+        if ((int)$user['is_verified'] !== 1) {
+            return [
+                'success' => false,
+                'errors' => [
+                    'form' => 'Please verify your account.'
                 ]
             ];
         }

@@ -1,0 +1,99 @@
+<?php
+$request = $request ?? [];
+$statusLabel = htmlspecialchars((string)($request['status_name'] ?? $request['status'] ?? 'Pending'));
+$donorName = htmlspecialchars((string)($request['donor_name'] ?? ''));
+$donorBlood = htmlspecialchars((string)($request['donor_blood_group'] ?? ''));
+$donorPhone = htmlspecialchars((string)($request['donor_phone'] ?? ''));
+$donorEmail = htmlspecialchars((string)($request['donor_email'] ?? ''));
+$donorAddress = htmlspecialchars((string)($request['donor_address'] ?? ''));
+$hasDonor = !empty($donorName);
+?>
+
+<div class="max-w-7xl mx-auto p-6">
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-900">Request Details</h2>
+            <p class="text-sm text-slate-500">View full request information and assigned donor details.</p>
+        </div>
+        <a href="/BloodConnect/public/patient/my-requests" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+            ← Back to My Requests
+        </a>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Request Code</p>
+                    <h3 class="mt-1 text-xl font-black text-slate-900"><?= htmlspecialchars((string)($request['request_code'] ?? 'N/A')) ?></h3>
+                </div>
+                <span class="rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-600"><?= $statusLabel ?></span>
+            </div>
+
+            <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Patient</p>
+                    <p class="mt-2 text-base font-semibold text-slate-800"><?= htmlspecialchars((string)($request['patient_name'] ?? 'Patient')) ?></p>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Blood Group Needed</p>
+                    <p class="mt-2 text-base font-semibold text-slate-800"><?= htmlspecialchars((string)($request['blood_group_needed'] ?? '-')) ?></p>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Units Needed</p>
+                    <p class="mt-2 text-base font-semibold text-slate-800"><?= (int)($request['unit'] ?? 0) ?></p>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Hospital</p>
+                    <p class="mt-2 text-base font-semibold text-slate-800"><?= htmlspecialchars((string)($request['hospital_name'] ?? '-')) ?></p>
+                </div>
+            </div>
+
+            <div class="mt-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Contact</p>
+                <p class="mt-2 text-base font-semibold text-slate-800">Phone: <?= htmlspecialchars((string)($request['contact_phone'] ?? '-')) ?></p>
+                <p class="mt-1 text-sm text-slate-500">Created: <?= htmlspecialchars((string)($request['created_at'] ?? '-')) ?></p>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 class="text-lg font-black text-slate-900">Matched Donor</h3>
+            <p class="mt-1 text-sm text-slate-500">This section appears when a donor is assigned to your request.</p>
+
+            <?php if ($hasDonor): ?>
+                <div class="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-wider text-emerald-600">Assigned Donor</p>
+                            <h4 class="mt-1 text-lg font-black text-slate-900"><?= $donorName ?></h4>
+                        </div>
+                        <span class="rounded-full bg-white px-3 py-1 text-sm font-semibold text-emerald-600">Matched</span>
+                    </div>
+
+                    <div class="mt-4 grid gap-3">
+                        <div class="rounded-lg bg-white/80 p-3">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Blood Group</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-800"><?= $donorBlood ?></p>
+                        </div>
+                        <div class="rounded-lg bg-white/80 p-3">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Phone</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-800"><?= $donorPhone ?></p>
+                        </div>
+                        <div class="rounded-lg bg-white/80 p-3">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Email</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-800"><?= $donorEmail ?></p>
+                        </div>
+                        <div class="rounded-lg bg-white/80 p-3">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Address</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-800"><?= $donorAddress ?></p>
+                        </div>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="mt-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500">
+                    No donor has been assigned to this request yet.
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>

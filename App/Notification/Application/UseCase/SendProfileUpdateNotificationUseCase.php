@@ -3,29 +3,40 @@
 namespace App\Notification\Application\UseCase;
 
 use App\Notification\Infrastructure\Persistence\NotificationRepository;
+use App\User\Infrastructure\Persistence\UserRepository;
 
 class SendProfileUpdateNotificationUseCase
 {
-    private NotificationRepository $repo;
+    private NotificationRepository $notificationRepo;
+    private UserRepository $userRepo;
 
     public function __construct()
     {
-        $this->repo = new NotificationRepository();
+        $this->notificationRepo = new NotificationRepository();
+        $this->userRepo = new UserRepository();
     }
 
-    public function execute(int $userId, string $username): bool
+    public function execute(int $userId, string $username): void
     {
-        $title = "Profile Updated";
-        $message = "Your profile has been updated successfully.";
-
-        // ✅ FIXED
-        $type = "PROFILE_UPDATE";
-
-        return $this->repo->create(
+        // Notification for patient
+        $this->notificationRepo->create(
             $userId,
-            $title,
-            $message,
-            $type
+            "Profile Updated",
+            "Your profile has been updated successfully.",
+            "PROFILE_UPDATE"
         );
+
+        // Notification for admins
+        $admins = $this->userRepo->getAdmins();
+
+        foreach ($admins as $admin) {
+
+            $this->notificationRepo->create(
+                $admin['user_id'],
+                "Patient Profile Updated",
+                $username . " updated their profile information.",
+                "PROFILE_UPDATE"
+            );
+        }
     }
 }

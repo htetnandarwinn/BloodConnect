@@ -20,6 +20,7 @@
                     <th class="py-4 px-5">Hospital / Location</th>
                     <th class="py-4 px-5">Contact Phone</th>
                     <th class="py-4 px-5 text-center">Status</th>
+                    <th class="py-4 px-5 text-center">Action</th>
                     <th class="py-4 px-5 text-right">Date</th>
                 </tr>
             </thead>
@@ -92,6 +93,14 @@
                                         echo '<span class="inline-flex px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-100">Cancelled</span>';
                                 }
                                 ?>
+                            </td>
+
+                            <!-- Action -->
+                            <td class="py-4 px-5 text-center">
+                                <a href="/BloodConnect/public/patient/my-request/view?id=<?= (int)($request['request_id'] ?? 0) ?>"
+                                    class="inline-flex items-center rounded-lg bg-[#ce2424] px-3 py-2 text-sm font-semibold text-white hover:bg-[#a61c1c]">
+                                    View
+                                </a>
                             </td>
 
                             <!-- Date -->

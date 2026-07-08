@@ -1,6 +1,7 @@
 <?php $user = $user ?? []; ?>
 
-<main class="min-h-screen bg-slate-50 p-6">
+<!-- CHANGED: Matches the warm full background color from edited-image.png -->
+<main class="min-h-screen bg-rose-50/40 p-6">
 
     <div class="max-w-5xl mx-auto space-y-6">
 
@@ -17,7 +18,7 @@
             </div>
 
             <a href="/BloodConnect/public/admin/dashboard"
-                class="px-4 py-2 bg-white border rounded-xl text-sm font-semibold hover:bg-slate-100 transition">
+                class="px-4 py-2 bg-white border rounded-xl text-sm font-semibold hover:bg-slate-100 transition shadow-sm">
                 ← Back to Dashboard
             </a>
 

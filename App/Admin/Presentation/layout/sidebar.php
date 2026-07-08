@@ -64,8 +64,10 @@
 
                 <div class="flex items-center gap-3.5">
                     <span class="text-xl">🔔</span>
-                    Notifications & Alerts
+                    Notifications
                 </div>
+
+
 
                 <?php if (!empty($unreadCount) && $unreadCount > 0): ?>
                     <span class="notification-badge w-5 h-5 rounded-full bg-[#ce2424] text-white text-[10px] font-black flex items-center justify-center">
@@ -75,6 +77,21 @@
                     <span class="notification-badge w-5 h-5 rounded-full bg-[#ce2424] text-white text-[10px] font-black hidden"></span>
                 <?php endif; ?>
             </a>
+
+            <?php
+            $permissions = $_SESSION['permissions'] ?? [];
+
+            if (in_array('permission.manage', $permissions)):
+            ?>
+
+                <a href="/BloodConnect/public/admin/roles"
+                    class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
+
+                    <span class="text-xl">🛡️</span>
+                    Roles & Permissions
+                </a>
+
+            <?php endif; ?>
 
         </nav>
     </div>

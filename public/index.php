@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * --------------------------------------------------------
+ * Application Bootstrap
+ * --------------------------------------------------------
+ */
+
+// Set default timezone (Myanmar)
+date_default_timezone_set('Asia/Yangon');
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 session_start();

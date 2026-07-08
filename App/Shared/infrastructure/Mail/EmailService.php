@@ -78,6 +78,64 @@ class EmailService
         }
     }
 
+    public function sendPasswordResetOtp(string $toEmail, string|int $otp): bool
+    {
+        $mail = new PHPMailer(true);
+
+        try {
+            $host = $this->getEnvValue('MAIL_HOST');
+            $username = $this->getEnvValue('MAIL_USERNAME');
+            $password = $this->getEnvValue('MAIL_PASSWORD');
+
+            if ($host && $username && $password) {
+                $mail->isSMTP();
+                $mail->Host = $host;
+                $mail->SMTPAuth = true;
+                $mail->Username = $username;
+                $mail->Password = $password;
+                $mail->SMTPSecure = $this->getEnvValue('MAIL_ENCRYPTION', PHPMailer::ENCRYPTION_STARTTLS);
+                $mail->Port = (int) $this->getEnvValue('MAIL_PORT', 587);
+                $mail->SMTPDebug = 0;
+                $mail->SMTPOptions = [
+                    'ssl' => [
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                        'allow_self_signed' => true,
+                    ],
+                ];
+            } else {
+                $mail->isMail();
+            }
+
+            $mail->setFrom($this->fromAddress, $this->fromName);
+            $mail->addAddress($toEmail);
+            $mail->isHTML(true);
+            $mail->Subject = 'BloodConnect Password Reset Code';
+            $mail->Body = "
+                <div style='font-family:Arial, sans-serif; line-height:1.6;'>
+                    <h2>Password Reset</h2>
+                    <p>You requested a password reset for your BloodConnect account.</p>
+                    <p>Your reset code is:</p>
+                    <h1 style='color:#e63946'>{$otp}</h1>
+                    <p>Please enter this code to continue resetting your password.</p>
+                    <p>This code will expire in 10 minutes.</p>
+                </div>
+            ";
+            $mail->AltBody = "Your BloodConnect password reset code is {$otp}. This code will expire in 10 minutes.";
+
+            $sent = $mail->send();
+
+            if (!$sent) {
+                error_log('Password reset mail send failed: ' . $mail->ErrorInfo);
+            }
+
+            return $sent;
+        } catch (Exception $e) {
+            error_log('Password reset mail error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
     private function getEnvValue(string $key, mixed $default = null): mixed
     {
         $value = getenv($key);

@@ -9,6 +9,7 @@ use App\Shared\Helpers\Validator;
 use App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository;
 use App\Notification\Application\UseCase\SendProfileUpdateNotificationUseCase;
 use App\Notification\Infrastructure\Persistence\NotificationRepository;
+use App\Shared\Helpers\PermissionGuard;
 
 class PatientController
 {
@@ -32,10 +33,13 @@ class PatientController
             exit;
         }
     }
-
     public function patient_dashboard()
     {
+
+
         $this->authGuard();
+        PermissionGuard::check('dashboard.view');
+
 
         $repo = new BloodRequestRepository();
         $patientId = $this->getUserId();
@@ -51,6 +55,8 @@ class PatientController
     public function myRequests()
     {
         $this->authGuard();
+        PermissionGuard::check('blood_request.view_own');
+
 
         $repo = new BloodRequestRepository();
 
@@ -61,9 +67,38 @@ class PatientController
         ]);
     }
 
+    public function viewMyRequest()
+    {
+        $this->authGuard();
+        PermissionGuard::check('blood_request.view_own');
+
+        $requestId = (int)($_GET['id'] ?? 0);
+
+        if (!$requestId) {
+            header('Location: /BloodConnect/public/patient/my-requests');
+            exit;
+        }
+
+        $repo = new BloodRequestRepository();
+        $request = $repo->findPatientRequestDetail($requestId, $this->getUserId());
+
+        if (empty($request)) {
+            header('Location: /BloodConnect/public/patient/my-requests');
+            exit;
+        }
+
+        return patientView::render('request_detail', [
+            'username'    => Session::get('username'),
+            'request'     => $request,
+            'unreadCount' => $this->getUnreadCount()
+        ]);
+    }
+
     public function profile()
     {
         $this->authGuard();
+        PermissionGuard::check('profile.view');
+
 
         $repo = new UserRepository();
 
@@ -76,15 +111,21 @@ class PatientController
     public function updateProfile()
     {
         $this->authGuard();
+        PermissionGuard::check('profile.update');
 
         $userId = $this->getUserId();
 
+        $password = trim($_POST['password'] ?? $_POST['new_password'] ?? '');
+        $confirmPassword = trim($_POST['confirm_password'] ?? '');
+
         $data = [
-            'username'    => trim($_POST['username'] ?? ''),
-            'email'       => trim($_POST['email'] ?? ''),
-            'phone'       => trim($_POST['phone'] ?? ''),
-            'blood_group' => trim($_POST['blood_group'] ?? ''),
-            'address'     => trim($_POST['address'] ?? ''),
+            'username'         => trim($_POST['username'] ?? ''),
+            'email'            => trim($_POST['email'] ?? ''),
+            'phone'            => trim($_POST['phone'] ?? ''),
+            'blood_group'      => trim($_POST['blood_group'] ?? ''),
+            'address'          => trim($_POST['address'] ?? ''),
+            'password'         => $password,
+            'confirm_password' => $confirmPassword,
         ];
 
         $validator = new Validator();
@@ -105,6 +146,21 @@ class PatientController
             exit;
         }
 
+        // Password is optional
+        if (!empty($data['password'])) {
+
+            if ($data['password'] !== $data['confirm_password']) {
+                die("Passwords do not match.");
+            }
+
+            $data['password'] = password_hash(
+                $data['password'],
+                PASSWORD_BCRYPT
+            );
+        } else {
+            unset($data['password']);
+        }
+
         $repo = new UserRepository();
 
         if (!$repo->update($userId, $data)) {
@@ -112,9 +168,15 @@ class PatientController
         }
 
         Session::set('username', $data['username']);
-        Session::set('user_email', $data['email']);
+        Session::set('email', $data['email']);
 
-        // notification
+        $userSession = Session::get('user');
+        if (is_array($userSession)) {
+            $userSession['username'] = $data['username'];
+            $userSession['email'] = $data['email'];
+            Session::set('user', $userSession);
+        }
+
         $notificationUseCase = new SendProfileUpdateNotificationUseCase();
         $notificationUseCase->execute($userId, $data['username']);
 
@@ -125,6 +187,8 @@ class PatientController
     public function searchDonors()
     {
         $this->authGuard();
+        PermissionGuard::check('donor.search');
+
 
         return patientView::render('search_donors', [
             'username'    => Session::get('username'),
@@ -135,6 +199,8 @@ class PatientController
     public function notifications()
     {
         $this->authGuard();
+        PermissionGuard::check('notification.view');
+
 
         $repo = new NotificationRepository();
         $patientId = $this->getUserId();
@@ -149,6 +215,7 @@ class PatientController
     public function updateProfilePage()
     {
         $this->authGuard();
+        PermissionGuard::check('profile.view');
 
         $repo = new UserRepository();
 
@@ -161,6 +228,7 @@ class PatientController
     public function markNotificationRead()
     {
         $this->authGuard();
+        PermissionGuard::check('notification.view');
 
         $id = (int)($_POST['notification_id'] ?? 0);
 
@@ -181,6 +249,7 @@ class PatientController
     public function markAllNotificationsRead()
     {
         $this->authGuard();
+        PermissionGuard::check('notification.view');
 
         $repo = new NotificationRepository();
 
@@ -199,6 +268,7 @@ class PatientController
     public function unreadCount()
     {
         $this->authGuard();
+        PermissionGuard::check('notifications');
 
         $repo = new NotificationRepository();
 
@@ -209,5 +279,11 @@ class PatientController
         ]);
 
         exit;
+    }
+    public function getPatientStats(int $patientId): array
+    {
+        // Delegate to BloodRequestRepository to avoid direct DB access here
+        $repo = new \App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository();
+        return $repo->getPatientStats($patientId);
     }
 }

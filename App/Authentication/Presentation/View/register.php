@@ -165,7 +165,7 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
                             </div>
                         </div>
 
-                        <div class="space-y-1.5 group">
+                        <!-- <div class="space-y-1.5 group">
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide transition-colors group-focus-within:text-red-600">Address / Location</label>
                             <div class="relative">
                                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-base transition-colors group-focus-within:text-red-500">
@@ -178,7 +178,7 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
                             <p id="regAddressFieldError" class="text-red-600 text-xs font-semibold mt-1 items-center gap-1.5 animate-fade-in <?= empty($errors['address']) ? 'hidden' : 'flex' ?>">
                                 <i class="fa-solid fa-circle-exclamation"></i> <?= htmlspecialchars($errors['address'] ?? '', ENT_QUOTES) ?>
                             </p>
-                        </div>
+                        </div> -->
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div class="space-y-1.5 group">
@@ -310,7 +310,7 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
             const email = document.getElementById("regEmail");
             const phone = document.getElementById("regPhone");
             const bloodGroup = document.getElementById("regBloodGroup");
-            const address = document.getElementById("regAddress");
+            // const address = document.getElementById("regAddress");
             const password = document.getElementById("regPassword");
             const confirmPassword = document.getElementById("regConfirmPassword");
 
@@ -320,7 +320,7 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
                 email: document.getElementById("regEmailFieldError"),
                 phone: document.getElementById("regPhoneFieldError"),
                 bloodGroup: document.getElementById("regBloodGroupFieldError"),
-                address: document.getElementById("regAddressFieldError"),
+                // address: document.getElementById("regAddressFieldError"),
                 password: document.getElementById("regPasswordFieldError"),
                 confirmPassword: document.getElementById("regConfirmPasswordFieldError")
             };
@@ -349,7 +349,7 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
             formIsValid = !setError(email, errors.email, (!email.value.trim() || !email.value.includes('@')), "Please enter a valid email address.") && formIsValid;
             formIsValid = !setError(phone, errors.phone, !phone.value.trim(), "Phone number is required.") && formIsValid;
             formIsValid = !setError(bloodGroup, errors.bloodGroup, !bloodGroup.value, "Please select your blood group.") && formIsValid;
-            formIsValid = !setError(address, errors.address, !address.value.trim(), "Address is required.") && formIsValid;
+            // formIsValid = !setError(address, errors.address, !address.value.trim(), "Address is required.") && formIsValid;
             formIsValid = !setError(password, errors.password, password.value.length < 6, "Password must be at least 6 characters.") && formIsValid;
             formIsValid = !setError(confirmPassword, errors.confirmPassword, (password.value !== confirmPassword.value || !confirmPassword.value), "Passwords do not match.") && formIsValid;
 

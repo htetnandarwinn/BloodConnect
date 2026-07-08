@@ -1,2 +1,2 @@
 <?php
-echo password_hash('admin', PASSWORD_BCRYPT);
+echo password_hash('bloodconnect@admin', PASSWORD_DEFAULT);

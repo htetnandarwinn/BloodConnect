@@ -5,6 +5,7 @@ namespace Routes;
 class Router
 {
     private array $routes = [];
+    private array $patterns = [];
 
     public function get($uri, $action)
     {
@@ -19,11 +20,29 @@ class Router
     private function addRoute($method, $uri, $action)
     {
         $this->routes[$method][$uri] = $action;
+        $this->patterns[$method][$uri] = $this->buildPattern($uri);
+    }
+
+    private function buildPattern(string $uri): string
+    {
+        return '#^' . preg_replace('#\{([^/]+)\}#', '([^/]+)', str_replace('/', '\/', $uri)) . '$#';
     }
 
     public function dispatch($uri, $method)
     {
         $action = $this->routes[$method][$uri] ?? null;
+        $params = [];
+
+        if (!$action) {
+            foreach ($this->routes[$method] ?? [] as $routeUri => $routeAction) {
+                if (preg_match($this->patterns[$method][$routeUri], $uri, $matches)) {
+                    $action = $routeAction;
+                    array_shift($matches);
+                    $params = $matches;
+                    break;
+                }
+            }
+        }
 
         if (!$action) {
             http_response_code(404);
@@ -48,6 +67,10 @@ class Router
 
             if (!method_exists($instance, $function)) {
                 throw new \Exception("Method not found: $function in $controller");
+            }
+
+            if (!empty($params)) {
+                return $instance->$function(...$params);
             }
 
             return $instance->$function();

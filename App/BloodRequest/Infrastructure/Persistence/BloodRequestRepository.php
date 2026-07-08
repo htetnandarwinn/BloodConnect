@@ -10,106 +10,501 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 {
     private PDO $db;
 
+
     public function __construct()
     {
         $this->db = Database::getConnection();
     }
 
-    public function findById(int $id)
-    {
-        $stmt = $this->db->prepare(
-            "SELECT * FROM blood_requests WHERE request_id = ?"
-        );
 
-        $stmt->execute([$id]);
+    // ================= FIND REQUESTS BY PATIENT =================
 
-        return $stmt->fetch();
-    }
-
-    public function findByPatientId(int $patientId)
-    {
-        $stmt = $this->db->prepare("
-   SELECT
-    br.request_id,
-    br.request_code,
-    br.patient_id,
-    br.patient_name,
-    br.blood_group_needed,
-    br.unit,
-    br.hospital_name,
-    br.urgency,
-    br.contact_phone,
-    br.created_at,
-    md.label AS status
-FROM blood_requests br
-INNER JOIN master_data md
-    ON br.status = md.id
-WHERE br.patient_id = ?
-ORDER BY br.created_at DESC
-");
-
-        $stmt->execute([$patientId]);
-
-        return $stmt->fetchAll();
-    }
-    public function create(array $data)
+    public function findByPatientId(int $patientId): array
     {
         $sql = "
-INSERT INTO blood_requests (
-    request_code,
-    patient_id,
-    patient_name,
-    blood_group_needed,
-    unit,
-    hospital_name,
-    urgency,
-    contact_phone,
-    status
-)
-VALUES (
-    :request_code,
-    :patient_id,
-    :patient_name,
-    :blood_group_needed,
-    :unit,
-    :hospital_name,
-    :urgency,
-    :contact_phone,
-    :status
-)
+        SELECT
+            br.request_id,
+            br.request_code,
+            br.patient_id,
+            br.patient_name,
+            br.blood_group_needed,
+            br.unit,
+            br.hospital_name,
+            br.urgency,
+            br.contact_phone,
+            br.created_at,
+            md.label AS status
+
+        FROM blood_requests br
+
+        LEFT JOIN master_data md
+            ON br.status = md.id
+
+        WHERE br.patient_id = ?
+
+        ORDER BY br.created_at DESC
     ";
 
         $stmt = $this->db->prepare($sql);
 
+        $stmt->execute([
+            $patientId
+        ]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // ================= FIND BY ID =================
+
+    public function findById(int $id)
+    {
+        $stmt = $this->db->prepare(
+            "
+            SELECT *
+            FROM blood_requests
+            WHERE request_id = ?
+            "
+        );
+
+
+        $stmt->execute([$id]);
+
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function findPatientRequestDetail(int $requestId, int $patientId): array
+    {
+        $stmt = $this->db->prepare(
+            "
+            SELECT
+                br.request_id,
+                br.request_code,
+                br.patient_id,
+                br.patient_name,
+                br.blood_group_needed,
+                br.unit,
+                br.hospital_name,
+                br.urgency,
+                br.contact_phone,
+                br.created_at,
+                br.donor_id,
+                br.status,
+                md.label AS status_name,
+                donor.user_id AS donor_user_id,
+                donor.username AS donor_name,
+                donor.email AS donor_email,
+                donor.phone AS donor_phone,
+                donor.blood_group AS donor_blood_group,
+                donor.address AS donor_address
+            FROM blood_requests br
+            LEFT JOIN master_data md ON md.id = br.status
+            LEFT JOIN users donor ON donor.user_id = br.donor_id
+            WHERE br.request_id = ?
+              AND br.patient_id = ?
+            LIMIT 1
+            "
+        );
+
+        $stmt->execute([$requestId, $patientId]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    }
+
+
+
+
+
+
+
+    public function findAcceptedRequestsForDonor(int $donorId, int $acceptedStatus): array
+    {
+        $stmt = $this->db->prepare(
+            "
+            SELECT
+                br.request_id,
+                br.request_code,
+                br.patient_id,
+                br.patient_name,
+                br.blood_group_needed,
+                br.unit,
+                br.hospital_name,
+                br.urgency,
+                br.contact_phone,
+                br.created_at,
+                br.donor_id,
+                br.status,
+                md.label AS status_name,
+                patient.user_id AS patient_user_id,
+                patient.username AS patient_username,
+                patient.email AS patient_email,
+                patient.phone AS patient_phone,
+                patient.address AS patient_address
+            FROM blood_requests br
+            LEFT JOIN master_data md ON md.id = br.status
+            LEFT JOIN users patient ON patient.user_id = br.patient_id
+            WHERE br.donor_id = ?
+              AND br.status = ?
+            ORDER BY br.created_at DESC
+            "
+        );
+
+        $stmt->execute([$donorId, $acceptedStatus]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function findDonorRequestDetail(int $requestId, int $donorId, int $acceptedStatus): array
+    {
+        $stmt = $this->db->prepare(
+            "
+            SELECT
+                br.request_id,
+                br.request_code,
+                br.patient_id,
+                br.patient_name,
+                br.blood_group_needed,
+                br.unit,
+                br.hospital_name,
+                br.urgency,
+                br.contact_phone,
+                br.created_at,
+                br.donor_id,
+                br.status,
+                md.label AS status_name,
+                patient.user_id AS patient_user_id,
+                patient.username AS patient_username,
+                patient.email AS patient_email,
+                patient.phone AS patient_phone,
+                patient.address AS patient_address
+            FROM blood_requests br
+            LEFT JOIN master_data md ON md.id = br.status
+            LEFT JOIN users patient ON patient.user_id = br.patient_id
+            WHERE br.request_id = ?
+              AND br.donor_id = ?
+              AND br.status = ?
+            LIMIT 1
+            "
+        );
+
+        $stmt->execute([$requestId, $donorId, $acceptedStatus]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    // ================= CREATE BLOOD REQUEST =================
+
+    public function create(array $data): bool
+    {
+
+        $sql = "
+            INSERT INTO blood_requests
+            (
+                request_code,
+                patient_id,
+                patient_name,
+                blood_group_needed,
+                unit,
+                hospital_name,
+                urgency,
+                contact_phone,
+                status
+            )
+
+            VALUES
+            (
+                :request_code,
+                :patient_id,
+                :patient_name,
+                :blood_group_needed,
+                :unit,
+                :hospital_name,
+                :urgency,
+                :contact_phone,
+                :status
+            )
+        ";
+
+
+        $stmt = $this->db->prepare($sql);
+
+
         return $stmt->execute([
-            ':request_code'       => $data['request_code'],
-            ':patient_id'         => $data['patient_id'],
-            ':patient_name'       => $data['patient_name'],
-            ':blood_group_needed' => $data['blood_group_needed'],
-            ':unit'               => $data['unit'],
-            ':hospital_name'      => $data['hospital_name'],
-            ':urgency'            => $data['urgency'],
-            ':contact_phone'      => $data['contact_phone'],
-            ':status'             => $data['status'],
+
+            ':request_code' =>
+            $data['request_code'],
+
+
+            ':patient_id' =>
+            $data['patient_id'],
+
+
+            ':patient_name' =>
+            $data['patient_name'],
+
+
+            ':blood_group_needed' =>
+            $data['blood_group_needed'],
+
+
+            ':unit' =>
+            $data['unit'],
+
+
+            ':hospital_name' =>
+            $data['hospital_name'],
+
+
+            ':urgency' =>
+            $data['urgency'],
+
+
+            ':contact_phone' =>
+            $data['contact_phone'],
+
+
+            ':status' =>
+            $data['status']
+
         ]);
     }
 
-    public function getPatientStats(int $patientId)
+
+
+
+
+
+
+    // ================= FIND ALL REQUESTS =================
+
+    public function findAll(): array
     {
+
+        $sql = "
+            SELECT
+                br.*,
+                md.label AS status_name
+
+            FROM blood_requests br
+
+            LEFT JOIN master_data md
+
+                ON br.status = md.id
+
+            ORDER BY br.created_at DESC
+        ";
+
+
+        $stmt = $this->db->prepare($sql);
+
+        $stmt->execute();
+
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+
+
+
+
+
+
+    // ================= FIND DONOR MATCHING REQUESTS =================
+
+    public function findPendingRequestsForDonor(
+        string $bloodGroup
+    ): array {
+
+        if ($bloodGroup === '') {
+            return [];
+        }
+
+        $sql = "
+            SELECT
+                br.request_id,
+                br.request_code,
+                br.patient_name,
+                br.blood_group_needed,
+                br.unit,
+                br.hospital_name,
+                br.urgency,
+                br.contact_phone,
+                br.created_at,
+                br.status,
+                md.label AS status_name
+
+            FROM blood_requests br
+
+            LEFT JOIN master_data md
+
+                ON br.status = md.id
+
+
+            WHERE
+
+                br.blood_group_needed = :blood_group
+
+            ORDER BY br.created_at DESC
+        ";
+
+
+
+        $stmt = $this->db->prepare($sql);
+
+
+
+        $stmt->execute([
+
+            ':blood_group' => $bloodGroup
+
+        ]);
+
+
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+
+    public function getMatchingDonors(string $bloodGroup): array
+    {
+        if ($bloodGroup === '') {
+            return [];
+        }
+
+        $stmt = $this->db->prepare(
+            "
+            SELECT
+                u.user_id,
+                u.username,
+                u.email,
+                u.phone,
+                u.blood_group,
+                u.address,
+                u.available
+            FROM users u
+            WHERE u.user_type_id = 2
+              AND u.is_active = 1
+              AND u.blood_group = ?
+            ORDER BY u.username ASC
+            "
+        );
+
+        $stmt->execute([$bloodGroup]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function acceptByAdmin(int $requestId, int $donorId, int $statusId): bool
+    {
+        $stmt = $this->db->prepare(
+            "
+            UPDATE blood_requests
+            SET status = ?, donor_id = ?
+            WHERE request_id = ?
+            "
+        );
+
+        return $stmt->execute([$statusId, $donorId, $requestId]);
+    }
+
+    public function getPatientStats(int $patientId): array
+    {
+        // Total requests
         $stmt = $this->db->prepare("
-        SELECT 
-            COUNT(*) AS total_requests,
-
-            SUM(CASE WHEN br.status = 28 THEN 1 ELSE 0 END) AS pending_requests,
-            SUM(CASE WHEN br.status = 29 THEN 1 ELSE 0 END) AS accepted_requests,
-            SUM(CASE WHEN br.status = 30 THEN 1 ELSE 0 END) AS completed_requests
-
-        FROM blood_requests br
-        WHERE br.patient_id = ?
+        SELECT COUNT(*)
+        FROM blood_requests
+        WHERE patient_id = ?
     ");
-
         $stmt->execute([$patientId]);
+        $total = (int)$stmt->fetchColumn();
 
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        // Pending requests
+        $stmt = $this->db->prepare("
+        SELECT COUNT(*)
+        FROM blood_requests
+        WHERE patient_id = ?
+        AND status = 7
+    ");
+        $stmt->execute([$patientId]);
+        $pending = (int)$stmt->fetchColumn();
+
+        // Accepted requests
+        $stmt = $this->db->prepare("
+        SELECT COUNT(*)
+        FROM blood_requests
+        WHERE patient_id = ?
+        AND status = 8
+    ");
+        $stmt->execute([$patientId]);
+        $accepted = (int)$stmt->fetchColumn();
+
+        // Completed requests
+        $stmt = $this->db->prepare("
+        SELECT COUNT(*)
+        FROM blood_requests
+        WHERE patient_id = ?
+        AND status = 9
+    ");
+        $stmt->execute([$patientId]);
+        $completed = (int)$stmt->fetchColumn();
+
+        return [
+            'total_requests'     => $total,
+            'pending_requests'   => $pending,
+            'accepted_requests'  => $accepted,
+            'completed_requests' => $completed
+        ];
+    }
+
+
+
+
+
+
+
+
+    // ================= UPDATE DONOR ACCEPT / DECLINE =================
+
+    public function updateDonorDecision(
+
+        int $requestId,
+
+        int $donorId,
+
+        int $statusId
+
+    ): bool {
+
+
+        $sql = "
+
+            UPDATE blood_requests
+
+            SET
+
+                status = :status,
+
+                donor_id = :donor_id
+
+
+            WHERE request_id = :request_id
+
+        ";
+
+
+        $stmt = $this->db->prepare($sql);
+
+
+
+        return $stmt->execute([
+
+            ':status' => $statusId,
+
+            ':donor_id' => $donorId,
+
+            ':request_id' => $requestId
+
+        ]);
     }
 }

@@ -132,7 +132,7 @@ unset($_SESSION['errors'], $_SESSION['success'], $_SESSION['old']);
 
                         <!-- Action Items: Right aligned -->
                         <div class="flex justify-end pt-0.5">
-                            <a href="#" id="forgotLink" class="text-base font-bold text-red-600 hover:text-red-700 transition">
+                            <a href="<?= $basePath ?? '' ?>/forgot-password" id="forgotLink" class="text-base font-bold text-red-600 hover:text-red-700 transition">
                                 Forgot password?
                             </a>
                         </div>
@@ -212,10 +212,5 @@ unset($_SESSION['errors'], $_SESSION['success'], $_SESSION['old']);
                 e.preventDefault();
             }
         });
-    }
-
-    const forgotLink = document.getElementById("forgotLink");
-    if (forgotLink) {
-        forgotLink.addEventListener("click", (e) => e.preventDefault());
     }
 </script>
