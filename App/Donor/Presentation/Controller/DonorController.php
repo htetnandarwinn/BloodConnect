@@ -33,6 +33,17 @@ class DonorController
         }
     }
 
+    private function getUserId(): int
+    {
+        return (int) Session::get('user_id');
+    }
+
+    private function getUnreadCount(): int
+    {
+        $repo = new NotificationRepository();
+        return $repo->getUnreadCount($this->getUserId());
+    }
+
 
 
 
@@ -344,6 +355,66 @@ class DonorController
         ]);
     }
 
+    public function notifications()
+    {
+        $this->authGuard();
+        PermissionGuard::check('notification.view');
+
+        $repo = new NotificationRepository();
+
+        donorView::render('notification', [
+            'notifications' => $repo->findByUserId($this->getUserId()),
+            'unreadCount' => $this->getUnreadCount()
+        ]);
+    }
+
+    public function markNotificationRead()
+    {
+        $this->authGuard();
+        PermissionGuard::check('notification.view');
+
+        $id = (int)($_POST['notification_id'] ?? 0);
+        $repo = new NotificationRepository();
+        $success = $repo->markAsRead($id);
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => $success,
+            'count' => $repo->getUnreadCount($this->getUserId())
+        ]);
+        exit;
+    }
+
+    public function markAllNotificationsRead()
+    {
+        $this->authGuard();
+        PermissionGuard::check('notification.view');
+
+        $repo = new NotificationRepository();
+        $success = $repo->markAllAsRead($this->getUserId());
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => $success,
+            'count' => 0
+        ]);
+        exit;
+    }
+
+    public function unreadCount()
+    {
+        $this->authGuard();
+        PermissionGuard::check('notifications');
+
+        $repo = new NotificationRepository();
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'count' => $repo->getUnreadCount($this->getUserId())
+        ]);
+        exit;
+    }
+
     public function updateProfile()
     {
         $this->authGuard();
@@ -382,6 +453,24 @@ class DonorController
 
         if (!$repo->updateProfile($userId, $data)) {
             die('Update failed!');
+        }
+
+        $notificationRepo = new NotificationRepository();
+        $notificationRepo->create(
+            $userId,
+            'Profile Updated',
+            'Your donor profile has been updated successfully.',
+            'PROFILE_UPDATE'
+        );
+
+        $admins = (new UserRepository())->getAdmins();
+        foreach ($admins as $admin) {
+            $notificationRepo->create(
+                (int)$admin['user_id'],
+                'Donor Profile Updated',
+                sprintf('%s updated their donor profile information.', $data['username']),
+                'PROFILE_UPDATE'
+            );
         }
 
         Session::set('username', $data['username']);

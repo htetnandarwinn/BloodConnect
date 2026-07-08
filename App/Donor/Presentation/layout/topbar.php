@@ -98,39 +98,55 @@ $unreadCount = $unreadCount ?? 0;
 </header>
 
 <script>
-    async function updateNotificationBadges() {
+    function syncNotificationBadges(count) {
+        const topbarBadge = document.getElementById("topbarNotificationBadge");
+        const safeCount = Number(count || 0);
+
+        if (topbarBadge) {
+            if (safeCount > 0) {
+                topbarBadge.textContent = safeCount;
+                topbarBadge.classList.remove("hidden");
+            } else {
+                topbarBadge.textContent = "";
+                topbarBadge.classList.add("hidden");
+            }
+        }
+
+        document.querySelectorAll(".notification-badge").forEach(badge => {
+            if (safeCount > 0) {
+                badge.textContent = safeCount;
+                badge.style.display = "flex";
+            } else {
+                badge.textContent = "";
+                badge.style.display = "none";
+            }
+        });
+    }
+
+    async function updateNotificationBadges(countOverride = null) {
         try {
-            // Reaches out to your unified notification service
-            const res = await fetch("/BloodConnect/public/notification/unread-count");
-            const data = await res.json();
-
-            const count = data.count || 0;
-            const topbarBadge = document.getElementById("topbarNotificationBadge");
-
-            if (topbarBadge) {
-                if (count > 0) {
-                    topbarBadge.textContent = count;
-                    topbarBadge.classList.remove("hidden");
-                } else {
-                    topbarBadge.classList.add("hidden");
-                }
+            if (countOverride !== null) {
+                syncNotificationBadges(countOverride);
+                return;
             }
 
-            document.querySelectorAll(".notification-badge").forEach(badge => {
-                if (count > 0) {
-                    badge.textContent = count;
-                    badge.style.display = "flex";
-                } else {
-                    badge.style.display = "none";
-                }
-            });
-
+            const res = await fetch("/BloodConnect/public/notification/unread-count");
+            const data = await res.json();
+            syncNotificationBadges(data.count || 0);
         } catch (error) {
             console.log("Notification update failed", error);
         }
     }
 
-    // Initialize tracking cycles
+    window.syncNotificationBadges = syncNotificationBadges;
+    window.updateNotificationBadges = updateNotificationBadges;
+
     updateNotificationBadges();
     setInterval(updateNotificationBadges, 10000);
+
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+            updateNotificationBadges();
+        }
+    });
 </script>

@@ -155,6 +155,21 @@ class BloodRequestController
 
         $admins = $userRepo->getAdmins();
 
+        $matchingDonors = $this->repository->getMatchingDonors($data['blood_group_needed']);
+
+        foreach ($matchingDonors as $donor) {
+            $notificationRepo->create(
+                (int)$donor['user_id'],
+                'New Blood Request',
+                sprintf(
+                    'Patient %s has requested %s blood. Please review the request.',
+                    $data['patient_name'],
+                    $data['blood_group_needed']
+                ),
+                'REQUEST'
+            );
+        }
+
 
 
         foreach ($admins as $admin) {

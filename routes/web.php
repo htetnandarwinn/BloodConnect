@@ -129,6 +129,11 @@ $router->get('/donor/history/view', [DonorController::class, 'viewHistory']);
 $router->get('/donor/profile/update', [DonorController::class, 'updateProfilePage']);
 $router->post('/donor/profile/update', [DonorController::class, 'updateProfile']);
 
+$router->get('/donor/notifications', [DonorController::class, 'notifications']);
+$router->post('/notification/mark-read', [DonorController::class, 'markNotificationRead']);
+$router->post('/notification/mark-all-read', [DonorController::class, 'markAllNotificationsRead']);
+$router->get('/notification/unread-count', [DonorController::class, 'unreadCount']);
+
 $router->post('/donor/request/accept', [DonorController::class, 'acceptRequest']);
 
 
