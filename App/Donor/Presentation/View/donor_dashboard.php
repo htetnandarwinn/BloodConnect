@@ -5,6 +5,8 @@ $short_name = $short_name ?? '';
 $blood_group = $user['blood_group'] ?? '';
 $blood_type_status = $blood_type_status ?? '';
 $availability = $availability ?? '';
+$availability_message = $availability_message ?? 'You are ready to donate';
+$next_eligible_date = $next_eligible_date ?? '';
 $last_donation_date = $last_donation_date ?? '';
 $last_donation_location = $last_donation_location ?? '';
 $blood_requests = $blood_requests ?? [];
@@ -75,8 +77,11 @@ $pending_requests_count = $pending_requests_count ?? count($blood_requests);
                     </div>
                     <div>
                         <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Availability Status</p>
-                        <h4 class="text-xl font-bold text-emerald-600 mt-0.5"><?= ($user['available'] ?? 0) ? 'Available' : 'Unavailable'; ?></h4>
-                        <p class="text-xs text-slate-400 mt-0.5">You are ready to donate</p>
+                        <h4 class="text-xl font-bold <?= ($availability === 'Available' ? 'text-emerald-600' : 'text-amber-600') ?> mt-0.5"><?= htmlspecialchars($availability); ?></h4>
+                        <p class="text-xs text-slate-400 mt-0.5"><?= htmlspecialchars($availability_message); ?></p>
+                        <?php if (!empty($next_eligible_date)): ?>
+                            <p class="text-xs font-semibold text-amber-600 mt-1">Next eligible date: <?= htmlspecialchars(date('d M Y', strtotime($next_eligible_date))) ?></p>
+                        <?php endif; ?>
                     </div>
                 </div>
 

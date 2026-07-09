@@ -377,6 +377,9 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
             return [];
         }
 
+        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $eligibilityService = new \App\Donor\Application\UseCase\DonorDonationEligibilityService();
+
         $stmt = $this->db->prepare(
             "
             SELECT
@@ -386,8 +389,17 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                 u.phone,
                 u.blood_group,
                 u.address,
-                u.available
+                u.available,
+                u.is_active,
+                latest_request.created_at AS last_donation_date
             FROM users u
+            LEFT JOIN (
+                SELECT donor_id, MAX(created_at) AS created_at
+                FROM blood_requests
+                WHERE donor_id IS NOT NULL
+                  AND status = ?
+                GROUP BY donor_id
+            ) latest_request ON latest_request.donor_id = u.user_id
             WHERE u.user_type_id = 2
               AND u.is_active = 1
               AND u.blood_group = ?
@@ -395,9 +407,14 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
             "
         );
 
-        $stmt->execute([$bloodGroup]);
+        $stmt->execute([$acceptedStatus, $bloodGroup]);
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $donors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_values(array_filter($donors, function (array $donor) use ($eligibilityService): bool {
+            $eligibility = $eligibilityService->evaluate((string)($donor['last_donation_date'] ?? ''));
+            return $eligibility['is_available'];
+        }));
     }
 
     public function acceptByAdmin(int $requestId, int $donorId, int $statusId): bool

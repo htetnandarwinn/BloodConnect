@@ -11,6 +11,7 @@ use App\Notification\Infrastructure\Persistence\NotificationRepository;
 use App\Shared\Helpers\PermissionGuard;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
 use App\User\Infrastructure\Persistence\UserRepository;
+use App\Donor\Application\UseCase\DonorDonationEligibilityService;
 
 
 class DonorController
@@ -74,7 +75,9 @@ class DonorController
         $acceptedRequests = $repo->findAcceptedRequestsForDonor((int) Session::get('user_id'), (int) $acceptedStatus);
         $lastDonation = $acceptedRequests[0] ?? [];
         $combinedRequests = array_merge($pendingRequests, $acceptedRequests);
-
+        $eligibilityService = new DonorDonationEligibilityService();
+        $lastDonationDate = !empty($lastDonation['created_at']) ? (string) $lastDonation['created_at'] : '';
+        $eligibility = $eligibilityService->evaluate($lastDonationDate);
 
         donorView::render(
             'donor_dashboard',
@@ -86,10 +89,12 @@ class DonorController
                 'blood_group' => $bloodGroup,
 
 
-                'availability' => (($user['available'] ?? 0) ? 'Available' : 'Unavailable'),
+                'availability' => $eligibility['is_available'] ? 'Available' : 'Unavailable',
+                'availability_message' => $eligibility['message'],
+                'next_eligible_date' => $eligibility['next_eligible_date'],
 
-                'last_donation_date' => !empty($lastDonation['created_at'])
-                    ? date('d M Y', strtotime($lastDonation['created_at']))
+                'last_donation_date' => !empty($lastDonationDate)
+                    ? date('d M Y', strtotime($lastDonationDate))
                     : 'No donation yet',
 
                 'last_donation_location' => $lastDonation['hospital_name'] ?? 'No location saved',

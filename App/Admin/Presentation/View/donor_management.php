@@ -16,12 +16,23 @@ $stmt = $db->prepare("
         u.email,
         u.phone,
         u.is_active,
-        -- fallback dummy values mapped if schema isolates these fields to a profile table
-        'O+' AS blood_group, 
+        u.blood_group,
         CONCAT('DNR-', u.user_id + 4200) AS donor_id,
-        CASE WHEN u.is_active = 1 THEN 'AVAILABLE' ELSE 'INACTIVE' END AS availability_status
+        CASE
+            WHEN u.is_active != 1 THEN 'INACTIVE'
+            WHEN latest_request.created_at IS NULL THEN 'AVAILABLE'
+            WHEN DATE_SUB(CURDATE(), INTERVAL 3 MONTH) <= latest_request.created_at THEN 'UNAVAILABLE'
+            ELSE 'AVAILABLE'
+        END AS availability_status
     FROM users u
-    WHERE u.user_type_id = 2 -- Assuming 2 is Donor from your Role Helper
+    LEFT JOIN (
+        SELECT donor_id, MAX(created_at) AS created_at
+        FROM blood_requests
+        WHERE donor_id IS NOT NULL
+          AND status = 8
+        GROUP BY donor_id
+    ) latest_request ON latest_request.donor_id = u.user_id
+    WHERE u.user_type_id = 2
     ORDER BY u.user_id DESC
 ");
 
@@ -122,7 +133,11 @@ $donors = $stmt->fetchAll();
                     <div class="col-span-2 flex justify-start pl-4">
                         <?php if ($donor['availability_status'] === 'AVAILABLE'): ?>
                             <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-emerald-50 text-emerald-600 border-emerald-200/50">
-                                DONOR
+                                AVAILABLE
+                            </span>
+                        <?php elseif ($donor['availability_status'] === 'UNAVAILABLE'): ?>
+                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-amber-50 text-amber-600 border-amber-200/50">
+                                UNAVAILABLE
                             </span>
                         <?php else: ?>
                             <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-rose-50 text-rose-600 border-rose-200/50">
