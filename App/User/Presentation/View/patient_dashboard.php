@@ -2,8 +2,6 @@
 
 use App\Shared\Helpers\Session;
 
-
-
 Session::start();
 $username = $username ?? 'Patient';
 $patientName = $_SESSION['username'] ?? 'Patient';
@@ -27,19 +25,18 @@ $metrics = $metrics ?? [
 
     <style>
         body {
-            background-color: #FFF8F8;
+            background-color: #FFF9F9;
         }
 
         .animate-fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(12px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -50,197 +47,197 @@ $metrics = $metrics ?? [
 
 <body class="min-h-screen text-slate-800 font-sans antialiased">
 
-    <main class="w-full px-6 md:px-12 lg:px-16 py-10 space-y-10">
+    <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
             <div>
-                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                    Welcome,
-                    <?= htmlspecialchars($username) ?>!
-                    <span class="animate-bounce inline-block">👋</span>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                    Welcome, <span class="text-[#E63946]"><?= htmlspecialchars($username) ?></span> 
+                    <span class="inline-block origin-bottom animate-[wave_2s_infinite]">👋</span>
                 </h1>
-                <p class="text-sm text-slate-500 mt-1">Monitor your requests or initiate a new blood drive.</p>
+                <p class="text-sm text-slate-500 mt-0.5">Manage your blood requests status dynamically.</p>
             </div>
-            <div>
-                <!-- <button onclick="openModal()" class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0">
-                    <i class="fa-solid fa-plus text-sm"></i>
+            <!-- <div>
+                <button onclick="openModal()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#E63946] hover:bg-[#D62839] text-white font-semibold px-5 py-3 rounded-xl shadow-sm transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0">
+                    <i class="fa-solid fa-plus text-xs"></i>
                     <span>New Blood Request</span>
-                </button> -->
-            </div>
+                </button>
+            </div> -->
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in" style="animation-delay: 100ms;">
-
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 hover:shadow-md transition-shadow duration-300">
-                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-droplet"></i>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 animate-fade-in" style="animation-delay: 100ms;">
+            
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm">
+                <div class="w-12 h-12 rounded-xl bg-red-50 text-[#E63946] flex items-center justify-center text-xl shrink-0">
+                    <i class="fa-solid fa-droplet animate-pulse"></i>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-slate-900"><?php echo $metrics['total_requests']; ?></p>
-                    <p class="text-xs font-medium text-slate-400 tracking-wider uppercase">Total Requests</p>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Blood Group / Total</p>
+                    <p class="text-xl font-black text-slate-900 mt-0.5"><?php echo $metrics['total_requests']; ?> <span class="text-sm font-medium text-slate-400">Requests</span></p>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 hover:shadow-md transition-shadow duration-300">
-                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl">
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm">
+                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl shrink-0">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-slate-900"><?php echo $metrics['pending_requests']; ?></p>
-                    <p class="text-xs font-medium text-slate-400 tracking-wider uppercase">Pending Requests</p>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Availability Status</p>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <span class="text-xl font-black text-slate-900"><?php echo $metrics['pending_requests']; ?> Pending</span>
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 hover:shadow-md transition-shadow duration-300">
-                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl">
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm">
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl shrink-0">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <div>
-                    <p class="text-2xl font-bold text-slate-900"><?php echo $metrics['accepted_requests']; ?></p>
-                    <p class="text-xs font-medium text-slate-400 tracking-wider uppercase">Accepted Requests</p>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 hover:shadow-md transition-shadow duration-300">
-                <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-flag-checkered"></i>
-                </div>
-                <div>
-                    <p class="text-2xl font-bold text-slate-900"><?php echo $metrics['completed_requests']; ?></p>
-                    <p class="text-xs font-medium text-slate-400 tracking-wider uppercase">Completed Requests</p>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Accepted Requests</p>
+                    <p class="text-xl font-black text-emerald-600 mt-0.5"><?php echo $metrics['accepted_requests']; ?> Approved</p>
                 </div>
             </div>
 
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden animate-fade-in" style="animation-delay: 200ms;">
-            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
-                <h2 class="text-lg font-bold text-slate-900">My Requests</h2>
-                <!-- <a href="#" class="text-sm font-semibold text-red-600 hover:text-red-700 transition-colors flex items-center gap-1 group">
-                    View All -->
-                <!-- <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i> -->
-                </a>
+        <div class="space-y-4 animate-fade-in" style="animation-delay: 200ms;">
+            <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-slate-900">Blood Requests</h2>
+                <span class="bg-[#E63946] text-white text-xs font-bold px-2 py-0.5 rounded-full"><?= !empty($requests) ? count($requests) : 0 ?></span>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50/70 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                            <th class="py-4 px-6">Request ID</th>
-                            <th class="py-4 px-6">Patient Name</th>
-                            <th class="py-4 px-6 text-center">Urgency Level</th>
-                            <th class="py-4 px-6 text-center">Blood</th>
-                            <th class="py-4 px-6 text-center">Unit</th>
-                            <th class="py-4 px-6">Hospital / Location</th>
-                            <th class="py-4 px-6">Contact Phone</th>
-                            <th class="py-4 px-6 text-center">Status</th>
-                            <th class="py-4 px-6 text-right">Date</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-sm font-medium text-slate-700">
-                        <?php if (!empty($requests)): ?>
-                            <?php foreach ($requests as $request): ?>
-                                <tr class="hover:bg-slate-50/50 transition-colors duration-200">
-
-                                    <!-- Request ID -->
-                                    <td class="py-4 px-6 font-semibold text-slate-900">
-                                        <?= htmlspecialchars($request['request_code']) ?>
-                                    </td>
-
-                                    <!-- Patient Name -->
-                                    <td class="py-4 px-6">
-                                        <?= htmlspecialchars($request['patient_name']) ?>
-                                    </td>
-
-                                    <!-- Urgency -->
-                                    <td class="py-4 px-6 text-center">
-                                        <?php
-                                        $urgency = strtolower(trim($request['urgency'] ?? ''));
-
-                                        if ($urgency == 'critical (immediate)' || $urgency == 'critical') {
-                                            echo '<span class="inline-block px-2 py-1 rounded bg-red-100 text-red-700">Critical (Immediate)</span>';
-                                        } elseif ($urgency == 'urgent') {
-                                            echo '<span class="inline-block px-2 py-1 rounded bg-orange-100 text-orange-700">Urgent</span>';
-                                        } else {
-                                            echo '<span class="inline-block px-2 py-1 rounded bg-slate-100 text-slate-700">Within 24 Hrs</span>';
-                                        }
-                                        ?>
-                                    </td>
-
-                                    <!-- Blood -->
-                                    <td class="py-4 px-6 text-center">
-                                        <span class="inline-block bg-red-50 text-red-600 text-xs font-bold px-2.5 py-1 rounded-lg border border-red-100">
-                                            <?= htmlspecialchars($request['blood_group_needed']) ?>
-                                        </span>
-                                    </td>
-
-                                    <!-- Unit -->
-                                    <td class="py-4 px-6 text-center">
-                                        <?= htmlspecialchars($request['unit']) ?>
-                                    </td>
-
-                                    <!-- Hospital -->
-                                    <td class="py-4 px-6">
-                                        <?= htmlspecialchars($request['hospital_name']) ?>
-                                    </td>
-
-                                    <!-- Contact Phone -->
-                                    <td class="py-4 px-6">
-                                        <?= htmlspecialchars($request['contact_phone']) ?>
-                                    </td>
-
-                                    <!-- Status -->
-                                    <td class="py-4 px-6 text-center">
-                                        <?php
-                                        switch (strtolower($request['status'])) {
-                                            case 'pending':
-                                                echo '<span class="inline-flex px-3 py-1 rounded-full bg-amber-50 text-amber-700">Pending</span>';
-                                                break;
-
-                                            case 'accepted':
-                                                echo '<span class="inline-flex px-3 py-1 rounded-full bg-emerald-50 text-emerald-700">Accepted</span>';
-                                                break;
-
-                                            case 'completed':
-                                                echo '<span class="inline-flex px-3 py-1 rounded-full bg-blue-50 text-blue-700">Completed</span>';
-                                                break;
-
-                                            default:
-                                                echo '<span class="inline-flex px-3 py-1 rounded-full bg-red-50 text-red-700">Cancelled</span>';
-                                        }
-                                        ?>
-                                    </td>
-
-                                    <!-- Date -->
-                                    <td class="py-4 px-6 text-right">
-                                        <?= date('d M Y', strtotime($request['created_at'])) ?>
-                                    </td>
-
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="5" class="py-8 text-center text-slate-400">No requests found.</td>
+            <div class="hidden lg:block bg-white rounded-2xl border border-slate-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/70 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                                <th class="py-4 px-6">Request ID</th>
+                                <th class="py-4 px-6">Patient Name</th>
+                                <th class="py-4 px-6 text-center">Urgency Level</th>
+                                <th class="py-4 px-6 text-center">Blood</th>
+                                <th class="py-4 px-6 text-center">Unit</th>
+                                <th class="py-4 px-6">Hospital / Location</th>
+                                <th class="py-4 px-6">Contact Phone</th>
+                                <th class="py-4 px-6 text-center">Status</th>
+                                <th class="py-4 px-6 text-right">Date</th>
                             </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm font-medium text-slate-600">
+                            <?php if (!empty($requests)): ?>
+                                <?php foreach ($requests as $request): ?>
+                                    <tr class="hover:bg-slate-50/50 transition-colors duration-200">
+                                        <td class="py-4 px-6 font-semibold text-slate-900"><?= htmlspecialchars($request['request_code']) ?></td>
+                                        <td class="py-4 px-6"><?= htmlspecialchars($request['patient_name']) ?></td>
+                                        <td class="py-4 px-6 text-center">
+                                            <?php
+                                            $urgency = strtolower(trim($request['urgency'] ?? ''));
+                                            if (in_array($urgency, ['critical (immediate)', 'critical'])) {
+                                                echo '<span class="inline-block text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded bg-red-50 text-red-600">Urgent Urgency</span>';
+                                            } elseif ($urgency == 'urgent') {
+                                                echo '<span class="inline-block text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded bg-orange-50 text-orange-600">Urgent</span>';
+                                            } else {
+                                                echo '<span class="inline-block text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded bg-slate-100 text-slate-600">Standard</span>';
+                                            }
+                                            ?>
+                                        </td>
+                                        <td class="py-4 px-6 text-center">
+                                            <span class="inline-block bg-red-50 text-[#E63946] text-xs font-bold px-2.5 py-1 rounded-lg border border-red-100">
+                                                <?= htmlspecialchars($request['blood_group_needed']) ?>
+                                            </span>
+                                        </td>
+                                        <td class="py-4 px-6 text-center"><?= htmlspecialchars($request['unit']) ?> Units</td>
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center gap-1.5 text-slate-700">
+                                                <i class="fa-solid fa-hospital text-slate-400 text-xs"></i>
+                                                <span><?= htmlspecialchars($request['hospital_name']) ?></span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-6"><?= htmlspecialchars($request['contact_phone']) ?></td>
+                                        <td class="py-4 px-6 text-center">
+                                            <?php
+                                            switch (strtolower($request['status'])) {
+                                                case 'pending':
+                                                    echo '<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600">Pending</span>';
+                                                    break;
+                                                case 'accepted':
+                                                    echo '<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600">Accepted</span>';
+                                                    break;
+                                                case 'completed':
+                                                    echo '<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600">Completed</span>';
+                                                    break;
+                                                default:
+                                                    echo '<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600">Cancelled</span>';
+                                            }
+                                            ?>
+                                        </td>
+                                        <td class="py-4 px-6 text-right text-slate-400 text-xs"><?= date('d M Y', strtotime($request['created_at'])) ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="9" class="py-12 text-center text-slate-400 font-normal">No active blood requests found.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="lg:hidden space-y-4">
+                <?php if (!empty($requests)): ?>
+                    <?php foreach ($requests as $request): ?>
+                        <div class="bg-white rounded-2xl border-l-4 border-[#E63946] border-y border-r border-slate-100 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative transition-all duration-200 active:scale-[0.99]">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 rounded-full bg-red-50 border border-red-100 text-[#E63946] flex items-center justify-center font-black text-sm shrink-0">
+                                    <?= htmlspecialchars($request['blood_group_needed']) ?>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="font-bold text-slate-900 text-base">Request from: <?= htmlspecialchars($request['patient_name']) ?></span>
+                                        <?php if (in_array(strtolower(trim($request['urgency'] ?? '')), ['critical (immediate)', 'critical', 'urgent'])): ?>
+                                            <span class="bg-orange-50 text-orange-600 text-[10px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded">Urgent Urgency</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <p class="text-sm text-slate-500 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-hospital text-slate-400 text-xs"></i>
+                                        <?= htmlspecialchars($request['hospital_name']) ?>
+                                    </p>
+                                    <p class="text-xs text-slate-400">
+                                        <?= htmlspecialchars($request['unit']) ?> Units &bull; Requested on <?= date('d M Y', strtotime($request['created_at'])) ?>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="sm:text-right flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-50">
+                                <span class="text-xs text-slate-400 font-medium sm:hidden">Current Status:</span>
+                                <span class="bg-amber-50 text-amber-700 px-4 py-1.5 text-xs font-bold rounded-xl">
+                                    <?= ucfirst(htmlspecialchars($request['status'])) ?>
+                                </span>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="bg-white rounded-2xl p-8 border border-slate-100 text-center text-slate-400">
+                        No active requests found.
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </main>
 
-    <div id="modalBackdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
-        <div id="modalBox" class="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-100 scale-95 transform transition-transform duration-300">
+    <div id="modalBackdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300 px-4">
+        <div id="modalBox" class="bg-white w-full max-w-md p-6 rounded-2xl shadow-xl border border-slate-50 scale-95 transform transition-transform duration-300">
             <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
                 <h3 class="text-lg font-bold text-slate-900">Create New Request</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-50">
+                    <i class="fa-solid fa-xmark text-base"></i>
                 </button>
             </div>
             <form action="" method="POST" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Blood Type</label>
-                    <select name="blood_type" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-red-500 transition-colors">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Blood Type</label>
+                    <select name="blood_type" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#E63946] focus:bg-white transition-all">
                         <option value="A+">A+</option>
                         <option value="A-">A-</option>
                         <option value="B+">B+</option>
@@ -252,10 +249,10 @@ $metrics = $metrics ?? [
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Hospital / Target Location</label>
-                    <input type="text" name="location" placeholder="e.g. City General Hospital" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-red-500 transition-colors" required>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hospital / Target Location</label>
+                    <input type="text" name="location" placeholder="e.g. Grand Hospital, Yangon" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[#E63946] focus:bg-white transition-all" required>
                 </div>
-                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-xl transition-colors shadow-sm mt-2">
+                <button type="submit" class="w-full bg-[#E63946] hover:bg-[#D62839] text-white font-semibold py-3 rounded-xl transition-colors shadow-sm mt-2">
                     Submit Request
                 </button>
             </form>
@@ -289,5 +286,4 @@ $metrics = $metrics ?? [
         });
     </script>
 </body>
-
 </html>

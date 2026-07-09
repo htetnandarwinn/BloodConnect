@@ -16,13 +16,12 @@
                 </div>
                 <div>
                     <span class="block font-black text-[#0b1325] text-lg tracking-tight leading-tight">BloodConnect</span>
-                    <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Donate Blood, Save Lives</span>
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Patient Dashboard</span>
                 </div>
             </div>
             <button id="closeSidebarBtn" class="lg:hidden p-2 rounded-xl hover:bg-slate-50 text-slate-400 hover:text-slate-600 transition-colors">✕</button>
         </div>
 
-        <!-- Navigation Links -->
         <nav class="space-y-1.5" id="sidebarNav">
 
             <a href="/BloodConnect/public/patient/dashboard"
@@ -31,23 +30,31 @@
                 Dashboard
             </a>
 
+            <div class="pt-4 pb-1 px-4">
+                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Activities</span>
+            </div>
+
             <a href="/BloodConnect/public/patient/request-blood"
                 class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
                 <span class="text-xl">🩸</span>
                 Request Blood
             </a>
 
-            <a href="/BloodConnect/public/patient/search-donors"
+            <!-- <a href="/BloodConnect/public/patient/search-donors"
                 class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
                 <span class="text-xl">🔍</span>
                 Search Donors
-            </a>
+            </a> -->
 
             <a href="/BloodConnect/public/patient/my-requests"
                 class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
                 <span class="text-xl">📋</span>
                 My Requests
             </a>
+
+            <div class="pt-4 pb-1 px-4">
+                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Communication</span>
+            </div>
 
             <a href="/BloodConnect/public/patient/notifications"
                 class="nav-link flex items-center justify-between px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">

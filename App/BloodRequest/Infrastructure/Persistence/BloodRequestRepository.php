@@ -465,21 +465,11 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         $stmt->execute([$patientId]);
         $accepted = (int)$stmt->fetchColumn();
 
-        // Completed requests
-        $stmt = $this->db->prepare("
-        SELECT COUNT(*)
-        FROM blood_requests
-        WHERE patient_id = ?
-        AND status = 9
-    ");
-        $stmt->execute([$patientId]);
-        $completed = (int)$stmt->fetchColumn();
 
         return [
             'total_requests'     => $total,
             'pending_requests'   => $pending,
-            'accepted_requests'  => $accepted,
-            'completed_requests' => $completed
+            'accepted_requests'  => $accepted
         ];
     }
 

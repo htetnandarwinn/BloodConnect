@@ -4,6 +4,7 @@ namespace App\Notification\Infrastructure\Persistence;
 
 use App\Shared\Infrastructure\Database\Database;
 use PDO;
+use PDOException;
 use Exception;
 
 class NotificationRepository
@@ -25,34 +26,60 @@ class NotificationRepository
         string $type
     ): bool {
 
+        if ($userId <= 0) {
+            return false;
+        }
+
+        if (!$this->userExists($userId)) {
+            error_log("Skipping notification for missing user_id={$userId}");
+            return false;
+        }
+
         $typeId = $this->getTypeId($type);
 
-        $stmt = $this->db->prepare("
-            INSERT INTO notifications
-            (
-                user_id,
-                notification_type_id,
-                title,
-                message,
-                type
-            )
-            VALUES
-            (
-                :user_id,
-                :notification_type_id,
-                :title,
-                :message,
-                :type
-            )
-        ");
+        try {
+            $stmt = $this->db->prepare("
+                INSERT INTO notifications
+                (
+                    user_id,
+                    notification_type_id,
+                    title,
+                    message,
+                    type
+                )
+                VALUES
+                (
+                    :user_id,
+                    :notification_type_id,
+                    :title,
+                    :message,
+                    :type
+                )
+            ");
 
-        return $stmt->execute([
-            ':user_id' => $userId,
-            ':notification_type_id' => $typeId,
-            ':title' => $title,
-            ':message' => $message,
-            ':type' => strtolower($type)
-        ]);
+            return $stmt->execute([
+                ':user_id' => $userId,
+                ':notification_type_id' => $typeId,
+                ':title' => $title,
+                ':message' => $message,
+                ':type' => strtolower($type)
+            ]);
+        } catch (PDOException $e) {
+            if (str_contains($e->getMessage(), 'foreign key constraint fails')) {
+                error_log("Skipping notification for invalid user_id={$userId}: {$e->getMessage()}");
+                return false;
+            }
+
+            throw $e;
+        }
+    }
+
+    private function userExists(int $userId): bool
+    {
+        $stmt = $this->db->prepare("SELECT 1 FROM users WHERE user_id = ? LIMIT 1");
+        $stmt->execute([$userId]);
+
+        return (bool)$stmt->fetchColumn();
     }
 
     /**

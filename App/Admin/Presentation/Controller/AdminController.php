@@ -6,6 +6,7 @@ use App\Shared\Helpers\Session;
 use App\User\Infrastructure\Persistence\UserRepository;
 use App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository;
 use App\Notification\Infrastructure\Persistence\NotificationRepository;
+use App\Donation\Infrastructure\Persistence\DonationRepository;
 use App\Shared\Helpers\PermissionGuard;
 use App\Shared\Infrastructure\Persistence\RoleRepository;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
@@ -42,6 +43,7 @@ class AdminController
 
         $userRepo = new UserRepository();
         $requestRepo = new BloodRequestRepository();
+        $donationRepo = new DonationRepository();
 
         $users = method_exists($userRepo, 'findAll') ? $userRepo->findAll() : [];
         $requests = method_exists($requestRepo, 'findAll') ? $requestRepo->findAll() : [];
@@ -57,13 +59,12 @@ class AdminController
         }
 
         $pendingRequests = 0;
-        $completedRequests = 0;
+        $completedRequests = $donationRepo->countSuccessfulDonations();
 
         foreach ($requests as $request) {
             $status = strtolower(trim($request['status'] ?? ''));
 
             if ($status === 'pending') $pendingRequests++;
-            elseif ($status === 'completed') $completedRequests++;
         }
 
         $data = [
@@ -415,6 +416,18 @@ class AdminController
             "UPDATE blood_requests SET status = ? WHERE request_id = ?"
         );
         $stmt->execute([$completedStatus, $requestId]);
+
+        $donationRepo = new DonationRepository();
+        $donorId = (int)($request['donor_id'] ?? 0);
+        if ($donorId > 0) {
+            $donationRepo->create([
+                'request_id' => $requestId,
+                'donor_id' => $donorId,
+                'donation_date' => date('Y-m-d'),
+                'status' => (int)$completedStatus,
+                'remarks' => 'Donation completed successfully'
+            ]);
+        }
 
         $notificationRepo = new \App\Notification\Infrastructure\Persistence\NotificationRepository();
 

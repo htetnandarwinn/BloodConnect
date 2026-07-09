@@ -37,14 +37,12 @@ $pending_requests_count = $pending_requests_count ?? count($blood_requests);
 
         <main class="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto space-y-8">
 
-            <div class="mb-2">
-                <h5 class="text-xl sm:text-2xl font-black text-slate-950 tracking-tight flex items-center gap-2">
-                    Welcome,
-                    <span class="text-red-600">
-                        <?= htmlspecialchars($user['username'] ?? 'Donor') ?>
-                    </span>
-                    <span class="animate-bounce inline-block [animation-duration:2s]">👋</span>
-                </h5>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                    Welcome, <span class="text-[#E63946]"> <?= htmlspecialchars($user['username'] ?? 'Donor') ?></span>
+                    <span class="inline-block origin-bottom animate-[wave_2s_infinite]">👋</span>
+                </h1>
+                <p class="text-sm text-slate-500 mt-0.5">Here's your donor dashboard overview.</p>  
             </div>
 
             <!-- Summary Cards Section -->
