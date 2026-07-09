@@ -7,6 +7,9 @@ $donorPhone = htmlspecialchars((string)($request['donor_phone'] ?? ''));
 $donorEmail = htmlspecialchars((string)($request['donor_email'] ?? ''));
 $donorAddress = htmlspecialchars((string)($request['donor_address'] ?? ''));
 $hasDonor = !empty($donorName);
+$isAccepted = (stripos((string)($request['status_name'] ?? $request['status'] ?? 'Pending'), 'accepted') !== false)
+    || (int)($request['status'] ?? 0) === 8;
+$showPendingAssignment = $hasDonor && !$isAccepted;
 ?>
 
 <div class="max-w-7xl mx-auto p-6">
@@ -60,15 +63,45 @@ $hasDonor = !empty($donorName);
             <h3 class="text-lg font-black text-slate-900">Matched Donor</h3>
             <p class="mt-1 text-sm text-slate-500">This section appears when a donor is assigned to your request.</p>
 
-            <?php if ($hasDonor): ?>
+            <?php if ($isAccepted && $hasDonor): ?>
                 <div class="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
                     <div class="flex items-center justify-between gap-3">
                         <div>
                             <p class="text-xs font-bold uppercase tracking-wider text-emerald-600">Assigned Donor</p>
                             <h4 class="mt-1 text-lg font-black text-slate-900"><?= $donorName ?></h4>
                         </div>
-                        <span class="rounded-full bg-white px-3 py-1 text-sm font-semibold text-emerald-600">Matched</span>
+                        <span class="rounded-full bg-white px-3 py-1 text-sm font-semibold text-emerald-600">Accepted</span>
                     </div>
+
+                    <div class="mt-4 grid gap-3">
+                        <div class="rounded-lg bg-white/80 p-3">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Blood Group</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-800"><?= $donorBlood ?></p>
+                        </div>
+                        <div class="rounded-lg bg-white/80 p-3">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Phone</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-800"><?= $donorPhone ?></p>
+                        </div>
+                        <div class="rounded-lg bg-white/80 p-3">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Email</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-800"><?= $donorEmail ?></p>
+                        </div>
+                        <div class="rounded-lg bg-white/80 p-3">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Address</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-800"><?= $donorAddress ?></p>
+                        </div>
+                    </div>
+                </div>
+            <?php elseif ($showPendingAssignment): ?>
+                <div class="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-wider text-amber-600">Assigned Donor</p>
+                            <h4 class="mt-1 text-lg font-black text-slate-900"><?= $donorName ?></h4>
+                        </div>
+                        <span class="rounded-full bg-white px-3 py-1 text-sm font-semibold text-amber-600">Pending</span>
+                    </div>
+                    <p class="mt-3 text-sm text-amber-700">This donor has been assigned but has not accepted the request yet.</p>
 
                     <div class="mt-4 grid gap-3">
                         <div class="rounded-lg bg-white/80 p-3">

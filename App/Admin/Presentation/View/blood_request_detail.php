@@ -4,6 +4,9 @@ $request = $request ?? [];
 $donors = $donors ?? [];
 $isAccepted = $isAccepted ?? false;
 $acceptedDonor = $acceptedDonor ?? null;
+$assignedDonor = $assignedDonor ?? null;
+$hasAssignedDonor = !empty($request['donor_id']) || !empty($assignedDonor);
+$isPendingAssignment = $hasAssignedDonor && !$isAccepted;
 
 $bloodGroup = trim((string)($request['blood_group_needed'] ?? ''));
 $patientName = htmlspecialchars((string)($request['patient_name'] ?? 'Patient'));
@@ -104,6 +107,41 @@ $createdAt = htmlspecialchars((string)($request['created_at'] ?? '-'));
                         </div>
                     </div>
                 </div>
+            <?php elseif ($isPendingAssignment && $assignedDonor): ?>
+                <div class="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-wider text-amber-600">Assigned Donor</p>
+                            <h4 class="mt-1 text-lg font-black text-slate-900">
+                                <?= htmlspecialchars((string)($assignedDonor['username'] ?? 'Donor')) ?>
+                            </h4>
+                        </div>
+                        <span class="rounded-full bg-white px-3 py-1 text-sm font-semibold text-amber-600">Pending</span>
+                    </div>
+
+                    <p class="mt-3 text-sm text-amber-700">This donor has been assigned but has not accepted the request yet.</p>
+
+                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                        <div class="rounded-lg bg-white/80 p-3">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Blood Group</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-800">
+                                <?= htmlspecialchars((string)($assignedDonor['blood_group'] ?? '-')) ?>
+                            </p>
+                        </div>
+                        <div class="rounded-lg bg-white/80 p-3">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Phone</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-800">
+                                <?= htmlspecialchars((string)($assignedDonor['phone'] ?? '-')) ?>
+                            </p>
+                        </div>
+                        <div class="rounded-lg bg-white/80 p-3 sm:col-span-2">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Email</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-800">
+                                <?= htmlspecialchars((string)($assignedDonor['email'] ?? '-')) ?>
+                            </p>
+                        </div>
+                    </div>
+                </div>
             <?php elseif (empty($donors)): ?>
                 <div class="mt-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500">
                     No active donors match this blood group yet.
@@ -125,7 +163,7 @@ $createdAt = htmlspecialchars((string)($request['created_at'] ?? '-'));
                     </select>
 
                     <button type="submit" class="w-full rounded-xl bg-[#ce2424] px-4 py-3 text-sm font-semibold text-white hover:bg-[#a61c1c]">
-                        Accept Blood Request
+                        Assign Donor
                     </button>
                 </form>
             <?php endif; ?>

@@ -4,6 +4,7 @@ namespace App\BloodRequest\Infrastructure\Persistence;
 
 use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
 use App\Shared\Infrastructure\Database\Database;
+use App\Shared\Infrastructure\Persistence\MasterDataRepository;
 use PDO;
 
 class BloodRequestRepository implements BloodRequestRepositoryInterface
@@ -320,6 +321,8 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
             return [];
         }
 
+        $pendingStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'PENDING') ?? 7;
+
         $sql = "
             SELECT
                 br.request_id,
@@ -344,6 +347,7 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
             WHERE
 
                 br.blood_group_needed = :blood_group
+                AND br.status = :status
 
             ORDER BY br.created_at DESC
         ";
@@ -356,7 +360,8 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 
         $stmt->execute([
 
-            ':blood_group' => $bloodGroup
+            ':blood_group' => $bloodGroup,
+            ':status' => $pendingStatus
 
         ]);
 

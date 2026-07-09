@@ -184,9 +184,12 @@ class AdminController
 
         $donors = $repo->getMatchingDonors((string)($request['blood_group_needed'] ?? ''));
         $acceptedDonor = null;
+        $assignedDonor = null;
 
         if ($isAccepted && !empty($request['donor_id'])) {
             $acceptedDonor = (new UserRepository())->findById((int)$request['donor_id']);
+        } elseif (!empty($request['donor_id'])) {
+            $assignedDonor = (new UserRepository())->findById((int)$request['donor_id']);
         }
 
         ob_start();
@@ -217,9 +220,9 @@ class AdminController
             exit;
         }
 
-        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $pendingStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'PENDING') ?? 7;
 
-        $updated = $repo->acceptByAdmin($requestId, $donorId, $acceptedStatus);
+        $updated = $repo->acceptByAdmin($requestId, $donorId, $pendingStatus);
 
         if (!$updated) {
             header('Location: /BloodConnect/public/admin/blood-requests');
@@ -235,9 +238,9 @@ class AdminController
         foreach ($admins as $admin) {
             $notificationRepo->create(
                 (int)$admin['user_id'],
-                'Blood Request Accepted',
+                'Blood Request Assigned',
                 sprintf(
-                    'Blood request %s has been accepted and assigned to donor %s.',
+                    'Blood request %s has been assigned to donor %s and is waiting for donor acceptance.',
                     $request['request_code'] ?? 'N/A',
                     $donor['username'] ?? 'Unknown donor'
                 ),
@@ -250,7 +253,7 @@ class AdminController
                 (int)$donor['user_id'],
                 'Blood Request Assigned',
                 sprintf(
-                    'You have been selected for blood request %s. Please contact the hospital or patient coordinator.',
+                    'You have been assigned to blood request %s. Please review and accept it when ready.',
                     $request['request_code'] ?? 'N/A'
                 ),
                 'REQUEST'
@@ -262,7 +265,7 @@ class AdminController
                 (int)$patient['user_id'],
                 'Blood Request Matched',
                 sprintf(
-                    'A donor has been assigned for your blood request %s.',
+                    'A donor has been assigned for your blood request %s and is pending acceptance.',
                     $request['request_code'] ?? 'N/A'
                 ),
                 'REQUEST'
