@@ -30,7 +30,8 @@ class AdminController
 
         if ((int)Session::get('user_type_id') !== 1) {
             http_response_code(403);
-            exit('Access denied.');
+            require __DIR__ . '/../../Shared/Presentation/View/403.php';
+            exit;
         }
     }
     /**

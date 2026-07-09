@@ -310,11 +310,15 @@ class DonorController
         }
 
         $repo = new BloodRequestRepository();
+        $pendingRequests = $repo->findPendingRequestsForDonor($bloodGroup);
+        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $acceptedRequests = $repo->findAcceptedRequestsForDonor((int) Session::get('user_id'), $acceptedStatus);
+        $combinedRequests = array_merge($pendingRequests, $acceptedRequests);
 
         donorView::render('blood_requests', [
             'user' => $user,
             'blood_group' => $bloodGroup,
-            'requests' => $repo->findPendingRequestsForDonor($bloodGroup),
+            'requests' => $combinedRequests,
         ]);
     }
 
@@ -339,7 +343,7 @@ class DonorController
     public function history()
     {
         $this->authGuard();
-        PermissionGuard::check('donation_history');
+        PermissionGuard::check('donation_history.view');
 
         $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
         $repo = new BloodRequestRepository();
@@ -353,7 +357,7 @@ class DonorController
     public function viewHistory()
     {
         $this->authGuard();
-        PermissionGuard::check('donation_history');
+        PermissionGuard::check('donation_history.view');
 
         $requestId = (int)($_GET['id'] ?? 0);
 
@@ -439,7 +443,7 @@ class DonorController
     public function unreadCount()
     {
         $this->authGuard();
-        PermissionGuard::check('notifications');
+        PermissionGuard::check('notification.view');
 
         $repo = new NotificationRepository();
 

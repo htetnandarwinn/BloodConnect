@@ -2,10 +2,17 @@
 
 namespace App\Shared\Middleware;
 
+use App\Shared\Helpers\Session;
+
 class AuthMiddleware
 {
     public function handle()
     {
-        // TODO: check auth
+        Session::start();
+
+        if (!Session::has('user_id')) {
+            header('Location: /BloodConnect/public/login');
+            exit;
+        }
     }
 }

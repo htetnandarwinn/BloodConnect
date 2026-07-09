@@ -7,7 +7,7 @@ use App\Shared\Helpers\Session;
 
 $pendingRequestsCount = 0;
 
-if (Permission::can('blood_requests')) {
+if (Permission::can('blood_request.view_matching')) {
     $user = Session::get('user');
     $bloodGroup = '';
 
@@ -50,7 +50,7 @@ if (Permission::can('blood_requests')) {
 
         <nav class="space-y-1.5" id="sidebarNav">
 
-            <?php if (Permission::can('dashboard')): ?>
+            <?php if (Permission::can('dashboard.view')): ?>
 
                 <a href="/BloodConnect/public/donor/dashboard"
                     class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
@@ -72,7 +72,7 @@ if (Permission::can('blood_requests')) {
                 </a>
             <?php endif; ?>
 
-            <?php if (Permission::can('blood_requests')): ?>
+            <?php if (Permission::can('blood_request.view_matching')): ?>
                 <a href="/BloodConnect/public/donor/blood-requests"
                     class="nav-link flex items-center justify-between px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
                     <div class="flex items-center gap-3.5">
@@ -90,7 +90,7 @@ if (Permission::can('blood_requests')) {
                 </a>
             <?php endif; ?>
 
-            <?php if (Permission::can('donation_history')): ?>
+            <?php if (Permission::can('donation_history.view')): ?>
 
                 <a href="/BloodConnect/public/donor/history"
                     class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
@@ -101,7 +101,7 @@ if (Permission::can('blood_requests')) {
             <?php endif; ?>
 
 
-            <?php if (Permission::can('notifications')): ?>
+            <?php if (Permission::can('notification.view')): ?>
                 <div class="pt-4 pb-1 px-4">
                     <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Communication</span>
                 </div>

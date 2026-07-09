@@ -268,7 +268,7 @@ class PatientController
     public function unreadCount()
     {
         $this->authGuard();
-        PermissionGuard::check('notifications');
+        PermissionGuard::check('notification.view');
 
         $repo = new NotificationRepository();
 

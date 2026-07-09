@@ -61,37 +61,14 @@ class Permission
         return $freshPermissions;
     }
 
-    private static function matchesPermission(string $requestedPermission, string $storedPermission): bool
-    {
-        $requested = self::normalizeToken($requestedPermission);
-        $stored = self::normalizeToken($storedPermission);
-
-        if ($requested === '' || $stored === '') {
-            return false;
-        }
-
-        if ($requested === $stored) {
-            return true;
-        }
-
-        if (str_contains($requested, $stored) || str_contains($stored, $requested)) {
-            return true;
-        }
-
-        $requestedParts = array_filter(array_map('trim', explode('.', str_replace(['_', '-'], '.', $requestedPermission))), 'strlen');
-        $storedParts = array_filter(array_map('trim', explode('.', str_replace(['_', '-'], '.', $storedPermission))), 'strlen');
-
-        foreach ($requestedParts as $requestedPart) {
-            foreach ($storedParts as $storedPart) {
-                if (self::normalizeToken($requestedPart) === self::normalizeToken($storedPart)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+    private static function matchesPermission(
+        string $requestedPermission,
+        string $storedPermission
+    ): bool {
+        return $requestedPermission === self::normalizeToken($storedPermission);
     }
 
+    
     private static function normalizeToken(string $value): string
     {
         $value = strtolower(trim($value));

@@ -12,6 +12,7 @@ class PermissionGuard
 
         http_response_code(403);
 
-        die("403 - Access Denied");
+        require __DIR__ . '/../Presentation/View/403.php';
+        exit;
     }
 }

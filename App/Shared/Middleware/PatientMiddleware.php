@@ -4,7 +4,7 @@ namespace App\Shared\Middleware;
 
 use App\Shared\Helpers\Session;
 
-class DonorMiddleware
+class PatientMiddleware
 {
     public function handle()
     {
@@ -15,7 +15,7 @@ class DonorMiddleware
             exit;
         }
 
-        if ((int)Session::get('user_type_id') !== 2) {
+        if ((int)Session::get('user_type_id') !== 3) {
             http_response_code(403);
             http_response_code(403);
             require __DIR__ . '/../Presentation/View/403.php';

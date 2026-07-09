@@ -6,6 +6,14 @@ class Router
 {
     private array $routes = [];
     private array $patterns = [];
+    private array $middlewareAliases = [];
+    private string $groupPrefix = '';
+    private array $groupMiddleware = [];
+
+    public function aliasMiddleware(string $name, string $class): void
+    {
+        $this->middlewareAliases[$name] = $class;
+    }
 
     public function get($uri, $action)
     {
@@ -17,10 +25,44 @@ class Router
         $this->addRoute('POST', $uri, $action);
     }
 
+    public function group(array $attributes, callable $callback): void
+    {
+        $prefix = $attributes['prefix'] ?? '';
+        $middleware = $attributes['middleware'] ?? [];
+
+        $previousPrefix = $this->groupPrefix;
+        $previousMiddleware = $this->groupMiddleware;
+
+        $this->groupPrefix = $previousPrefix . $prefix;
+        $this->groupMiddleware = array_merge($previousMiddleware, (array)$middleware);
+
+        $callback($this);
+
+        $this->groupPrefix = $previousPrefix;
+        $this->groupMiddleware = $previousMiddleware;
+    }
+
+    public function middleware($name, callable $callback): void
+    {
+        $previousMiddleware = $this->groupMiddleware;
+
+        $this->groupMiddleware = array_merge($previousMiddleware, (array)$name);
+
+        $callback($this);
+
+        $this->groupMiddleware = $previousMiddleware;
+    }
+
     private function addRoute($method, $uri, $action)
     {
-        $this->routes[$method][$uri] = $action;
-        $this->patterns[$method][$uri] = $this->buildPattern($uri);
+        $fullUri = $this->groupPrefix . $uri;
+
+        $this->routes[$method][$fullUri] = [
+            'action'     => $action,
+            'middleware' => $this->groupMiddleware,
+        ];
+
+        $this->patterns[$method][$fullUri] = $this->buildPattern($fullUri);
     }
 
     private function buildPattern(string $uri): string
@@ -30,13 +72,13 @@ class Router
 
     public function dispatch($uri, $method)
     {
-        $action = $this->routes[$method][$uri] ?? null;
+        $routeEntry = $this->routes[$method][$uri] ?? null;
         $params = [];
 
-        if (!$action) {
-            foreach ($this->routes[$method] ?? [] as $routeUri => $routeAction) {
+        if (!$routeEntry) {
+            foreach ($this->routes[$method] ?? [] as $routeUri => $entry) {
                 if (preg_match($this->patterns[$method][$routeUri], $uri, $matches)) {
-                    $action = $routeAction;
+                    $routeEntry = $entry;
                     array_shift($matches);
                     $params = $matches;
                     break;
@@ -44,11 +86,16 @@ class Router
             }
         }
 
-        if (!$action) {
+        if (!$routeEntry) {
             http_response_code(404);
             require __DIR__ . '/../App/Shared/Presentation/View/404.php';
             exit;
         }
+
+        $action = $routeEntry['action'];
+        $middleware = $routeEntry['middleware'] ?? [];
+
+        $this->runMiddleware($middleware);
 
         // Callable routes
         if (is_callable($action)) {
@@ -83,5 +130,28 @@ class Router
         }
 
         return null;
+    }
+
+    private function runMiddleware(array $middlewareList): void
+    {
+        foreach ($middlewareList as $name) {
+            $class = $this->middlewareAliases[$name] ?? null;
+
+            if (!$class) {
+                throw new \Exception("Middleware alias '$name' is not registered.");
+            }
+
+            if (!class_exists($class)) {
+                throw new \Exception("Middleware class not found: $class");
+            }
+
+            $instance = new $class();
+
+            if (!method_exists($instance, 'handle')) {
+                throw new \Exception("Middleware $class must have a handle() method.");
+            }
+
+            $instance->handle();
+        }
     }
 }

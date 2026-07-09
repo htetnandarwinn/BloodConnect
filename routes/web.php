@@ -14,7 +14,17 @@ $router = new Router();
 
 /*
 |--------------------------------------------------------------------------
-| HOME ROUTES
+| REGISTER MIDDLEWARE ALIASES
+|--------------------------------------------------------------------------
+*/
+$router->aliasMiddleware('auth', \App\Shared\Middleware\AuthMiddleware::class);
+$router->aliasMiddleware('admin', \App\Shared\Middleware\AdminMiddleware::class);
+$router->aliasMiddleware('donor', \App\Shared\Middleware\DonorMiddleware::class);
+$router->aliasMiddleware('patient', \App\Shared\Middleware\PatientMiddleware::class);
+
+/*
+|--------------------------------------------------------------------------
+| HOME ROUTES (public)
 |--------------------------------------------------------------------------
 */
 $router->get('/', [HomeController::class, 'home']);
@@ -22,10 +32,9 @@ $router->get('/about', [HomeController::class, 'about']);
 $router->get('/contact', [HomeController::class, 'contact']);
 $router->get('/search', [HomeController::class, 'search']);
 
-
 /*
 |--------------------------------------------------------------------------
-| AUTH ROUTES
+| AUTH ROUTES (guest only)
 |--------------------------------------------------------------------------
 */
 $router->get('/register', [AuthController::class, 'showRegister']);
@@ -46,108 +55,80 @@ $router->get('/logout', [AuthController::class, 'logout']);
 
 /*
 |--------------------------------------------------------------------------
-| BLOOD REQUEST ROUTES
+| EMAIL VERIFICATION ROUTES (public)
 |--------------------------------------------------------------------------
 */
-$router->get('/patient/request-blood', [BloodRequestController::class, 'create']);
-$router->post('/patient/request-blood', [BloodRequestController::class, 'store']);
-
-$router->get('/patient/search-donors', [PatientController::class, 'searchDonors']);
-
-/*
-|--------------------------------------------------------------------------
-| PATIENT ROUTES
-|--------------------------------------------------------------------------
-*/
-$router->get('/patient/dashboard', [PatientController::class, 'patient_dashboard']);
-$router->get('/patient/my-requests', [PatientController::class, 'myRequests']);
-$router->get('/patient/my-request/view', [PatientController::class, 'viewMyRequest']);
-
-$router->get('/patient/profile', [PatientController::class, 'profile']);
-
-$router->get('/patient/profile/update', [PatientController::class, 'updateProfilePage']);
-
-$router->post('/patient/profile/update', [PatientController::class, 'updateProfile']);
-
-
-/*
-|--------------------------------------------------------
-| PROFILE UPDATE (FIXED CLEAN DESIGN)
-|--------------------------------------------------------
-| NO updateProfilePage anymore (removed completely)
-| profile = view page
-| updateProfile = POST update only
-*/
-$router->post('/patient/profile/update', [PatientController::class, 'updateProfile']);
-
-$router->get('/patient/notifications', [PatientController::class, 'notifications']);
-
-$router->post('/notification/mark-read', [PatientController::class, 'markNotificationRead']);
-
-$router->post('/notification/mark-all-read', [PatientController::class, 'markAllNotificationsRead']);
-
-$router->get('/notification/unread-count', [PatientController::class, 'getUnreadCount']);
-
-$router->get('/notification/unread-count', [PatientController::class, 'unreadCount']);
-
-
-// =======================
-// ADMIN ROUTES
-// =======================
-
-$router->get('/admin/dashboard', [AdminController::class, 'admin_dashboard']);
-
-$router->get('/admin/profile', [AdminController::class, 'profile']);
-$router->get('/admin/user-management', [AdminController::class, 'userManagement']);
-$router->get('/admin/user/view', [AdminController::class, 'viewUser']);
-$router->get('/admin/donor-management', [AdminController::class, 'donorManagement']);
-$router->get('/admin/blood-requests', [AdminController::class, 'bloodRequests']);
-$router->get('/admin/blood-request/view', [AdminController::class, 'viewBloodRequest']);
-$router->post('/admin/blood-request/accept', [AdminController::class, 'acceptBloodRequest']);
-$router->get('/admin/notifications', [AdminController::class, 'notifications']);
-
 $router->get('/verify-email', [VerifyEmailController::class, 'show']);
 $router->post('/verify-email', [VerifyEmailController::class, 'verify']);
 $router->post('/resend-code', [VerifyEmailController::class, 'resend']);
-$router->get('/admin/user/edit', [AdminController::class, 'editUser']);
-$router->get('/admin/user/delete', [AdminController::class, 'deleteUser']);
-$router->post('/admin/user/update', [AdminController::class, 'updateUser']);
 
-$router->get('/admin/request/complete', [AdminController::class, 'completeRequest']);
+/*
+|--------------------------------------------------------------------------
+| PATIENT ROUTES (auth + patient)
+|--------------------------------------------------------------------------
+*/
+$router->group(['middleware' => ['auth', 'patient']], function (Router $router) {
+    $router->get('/patient/dashboard', [PatientController::class, 'patient_dashboard']);
+    $router->get('/patient/my-requests', [PatientController::class, 'myRequests']);
+    $router->get('/patient/my-request/view', [PatientController::class, 'viewMyRequest']);
+    $router->get('/patient/request-blood', [BloodRequestController::class, 'create']);
+    $router->post('/patient/request-blood', [BloodRequestController::class, 'store']);
+    $router->get('/patient/search-donors', [PatientController::class, 'searchDonors']);
+    $router->get('/patient/profile', [PatientController::class, 'profile']);
+    $router->get('/patient/profile/update', [PatientController::class, 'updateProfilePage']);
+    $router->post('/patient/profile/update', [PatientController::class, 'updateProfile']);
+    $router->get('/patient/notifications', [PatientController::class, 'notifications']);
+    $router->post('/notification/mark-read', [PatientController::class, 'markNotificationRead']);
+    $router->post('/notification/mark-all-read', [PatientController::class, 'markAllNotificationsRead']);
+    $router->get('/notification/unread-count', [PatientController::class, 'getUnreadCount']);
+    $router->get('/notification/unread-count', [PatientController::class, 'unreadCount']);
+});
 
-// =======================
-// DONOR ROUTES
-// =======================
+/*
+|--------------------------------------------------------------------------
+| ADMIN ROUTES (auth + admin)
+|--------------------------------------------------------------------------
+*/
+$router->group(['middleware' => ['auth', 'admin']], function (Router $router) {
+    $router->get('/admin/dashboard', [AdminController::class, 'admin_dashboard']);
+    $router->get('/admin/profile', [AdminController::class, 'profile']);
+    $router->get('/admin/user-management', [AdminController::class, 'userManagement']);
+    $router->get('/admin/user/view', [AdminController::class, 'viewUser']);
+    $router->get('/admin/user/edit', [AdminController::class, 'editUser']);
+    $router->get('/admin/user/delete', [AdminController::class, 'deleteUser']);
+    $router->post('/admin/user/update', [AdminController::class, 'updateUser']);
+    $router->get('/admin/donor-management', [AdminController::class, 'donorManagement']);
+    $router->get('/admin/blood-requests', [AdminController::class, 'bloodRequests']);
+    $router->get('/admin/blood-request/view', [AdminController::class, 'viewBloodRequest']);
+    $router->post('/admin/blood-request/accept', [AdminController::class, 'acceptBloodRequest']);
+    $router->get('/admin/request/complete', [AdminController::class, 'completeRequest']);
+    $router->get('/admin/notifications', [AdminController::class, 'notifications']);
+    $router->get('/admin/roles', [AdminController::class, 'roles']);
+    $router->get('/admin/roles/{id}', [AdminController::class, 'editRole']);
+    $router->post('/admin/roles/{id}', [AdminController::class, 'updateRolePermissions']);
+    $router->post('/admin/roles/update-permissions', [AdminController::class, 'updateRolePermissions']);
+});
 
-$router->get('/donor/dashboard', [DonorController::class, 'donor_dashboard']);
-$router->get('/donor/profile', [DonorController::class, 'profile']);
-$router->get('/donor/blood-requests', [DonorController::class, 'bloodRequests']);
-$router->get('/donor/blood-request/{id}', [DonorController::class, 'bloodRequestDetails']);
-$router->get('/donor/history', [DonorController::class, 'history']);
-$router->get('/donor/history/view', [DonorController::class, 'viewHistory']);
-
-$router->get('/donor/profile/update', [DonorController::class, 'updateProfilePage']);
-$router->post('/donor/profile/update', [DonorController::class, 'updateProfile']);
-
-$router->get('/donor/notifications', [DonorController::class, 'notifications']);
-$router->post('/notification/mark-read', [DonorController::class, 'markNotificationRead']);
-$router->post('/notification/mark-all-read', [DonorController::class, 'markAllNotificationsRead']);
-$router->get('/notification/unread-count', [DonorController::class, 'unreadCount']);
-
-$router->post('/donor/request/accept', [DonorController::class, 'acceptRequest']);
-
-
-$router->post('/donor/request/decline', [DonorController::class, 'declineRequest']);
-
-
-$router->get('/admin/roles', [AdminController::class, 'roles']);
-
-$router->get('/admin/roles', [AdminController::class, 'roles']);
-
-$router->get('/admin/roles/{id}', [AdminController::class, 'editRole']);
-
-$router->post('/admin/roles/{id}', [AdminController::class, 'updateRolePermissions']);
-
-$router->post('/admin/roles/update-permissions', [AdminController::class, 'updateRolePermissions']);
+/*
+|--------------------------------------------------------------------------
+| DONOR ROUTES (auth + donor)
+|--------------------------------------------------------------------------
+*/
+$router->group(['middleware' => ['auth', 'donor']], function (Router $router) {
+    $router->get('/donor/dashboard', [DonorController::class, 'donor_dashboard']);
+    $router->get('/donor/profile', [DonorController::class, 'profile']);
+    $router->get('/donor/blood-requests', [DonorController::class, 'bloodRequests']);
+    $router->get('/donor/blood-request/{id}', [DonorController::class, 'bloodRequestDetails']);
+    $router->get('/donor/history', [DonorController::class, 'history']);
+    $router->get('/donor/history/view', [DonorController::class, 'viewHistory']);
+    $router->get('/donor/profile/update', [DonorController::class, 'updateProfilePage']);
+    $router->post('/donor/profile/update', [DonorController::class, 'updateProfile']);
+    $router->get('/donor/notifications', [DonorController::class, 'notifications']);
+    $router->post('/notification/mark-read', [DonorController::class, 'markNotificationRead']);
+    $router->post('/notification/mark-all-read', [DonorController::class, 'markAllNotificationsRead']);
+    $router->get('/notification/unread-count', [DonorController::class, 'unreadCount']);
+    $router->post('/donor/request/accept', [DonorController::class, 'acceptRequest']);
+    $router->post('/donor/request/decline', [DonorController::class, 'declineRequest']);
+});
 
 return $router;
