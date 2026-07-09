@@ -532,6 +532,7 @@ CREATE TABLE `users` (
   `address` text DEFAULT NULL,
   `status_id` int(11) NOT NULL,
   `available` tinyint(1) DEFAULT 1,
+  `next_available_date` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `username` varchar(100) DEFAULT NULL,
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),

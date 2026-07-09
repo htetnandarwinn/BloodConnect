@@ -1,4 +1,13 @@
-<?php $user = $user ?? []; ?>
+<?php
+$user = $user ?? [];
+$availability = $availability ?? 'Available';
+$availability_message = $availability_message ?? 'You are ready to donate';
+$next_eligible_date = $next_eligible_date ?? '';
+$availabilityBadgeClass = ($availability === 'Available')
+    ? 'bg-emerald-50 border-emerald-100 text-emerald-700'
+    : 'bg-red-50 border-red-100 text-red-700';
+$availabilityDotClass = ($availability === 'Available') ? 'bg-emerald-500' : 'bg-red-500';
+?>
 
 <style>
     @keyframes fadeInUp {
@@ -55,10 +64,18 @@
                     <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Registered Blood Donor</p>
                 </div>
 
-                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-xs font-bold text-emerald-700 shadow-sm">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Verified Account
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border shadow-sm <?= htmlspecialchars($availabilityBadgeClass, ENT_QUOTES, 'UTF-8') ?>">
+                    <span class="w-1.5 h-1.5 rounded-full <?= htmlspecialchars($availabilityDotClass, ENT_QUOTES, 'UTF-8') ?> animate-pulse"></span>
+                    <?= htmlspecialchars($availability === 'Available' ? 'Available to Donate' : 'Unavailable to Donate') ?>
                 </div>
+                <p class="text-xs text-slate-500 font-medium">
+                    <?= htmlspecialchars($availability_message) ?>
+                    <?php if (!empty($next_eligible_date)): ?>
+                        <span class="block mt-1 font-semibold <?= $availability === 'Available' ? 'text-emerald-600' : 'text-red-600' ?>">
+                            Next eligible: <?= htmlspecialchars(date('d M Y', strtotime($next_eligible_date))) ?>
+                        </span>
+                    <?php endif; ?>
+                </p>
             </div>
 
             <hr class="my-6 border-slate-100">

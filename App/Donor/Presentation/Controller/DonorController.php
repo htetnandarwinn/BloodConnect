@@ -70,6 +70,7 @@ class DonorController
         }
 
         $repo = new BloodRequestRepository();
+        $donorRepo = new DonorRepository();
         $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
         $pendingRequests = $repo->findPendingRequestsForDonor($bloodGroup);
         $acceptedRequests = $repo->findAcceptedRequestsForDonor((int) Session::get('user_id'), (int) $acceptedStatus);
@@ -77,7 +78,8 @@ class DonorController
         $combinedRequests = array_merge($pendingRequests, $acceptedRequests);
         $eligibilityService = new DonorDonationEligibilityService();
         $lastDonationDate = !empty($lastDonation['created_at']) ? (string) $lastDonation['created_at'] : '';
-        $eligibility = $eligibilityService->evaluate($lastDonationDate);
+        $availabilityState = $donorRepo->syncAvailabilityStatus((int) Session::get('user_id'));
+        $eligibility = $eligibilityService->evaluate($lastDonationDate, $availabilityState['next_available_date']);
 
         donorView::render(
             'donor_dashboard',
@@ -89,9 +91,11 @@ class DonorController
                 'blood_group' => $bloodGroup,
 
 
-                'availability' => $eligibility['is_available'] ? 'Available' : 'Unavailable',
-                'availability_message' => $eligibility['message'],
-                'next_eligible_date' => $eligibility['next_eligible_date'],
+                'availability' => $availabilityState['available'] ? 'Available' : 'Unavailable',
+                'availability_message' => $availabilityState['available']
+                    ? $eligibility['message']
+                    : ($availabilityState['next_available_date'] ? 'You will be eligible again after the waiting period.' : $eligibility['message']),
+                'next_eligible_date' => $availabilityState['available'] ? '' : ($availabilityState['next_available_date'] ?? $eligibility['next_eligible_date']),
 
                 'last_donation_date' => !empty($lastDonationDate)
                     ? date('d M Y', strtotime($lastDonationDate))
@@ -140,6 +144,15 @@ class DonorController
             8   // Accepted
 
         );
+
+        if ($updated) {
+            $nextAvailableDate = (new \DateTime('now', new \DateTimeZone('Asia/Yangon')))
+                ->modify('+3 months')
+                ->format('Y-m-d H:i:s');
+
+            $donorRepo = new DonorRepository();
+            $donorRepo->saveNextAvailableDate((int)($user['user_id'] ?? 0), $nextAvailableDate);
+        }
 
 
 
@@ -258,9 +271,22 @@ class DonorController
 
 
         $user = Session::get('user');
+        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $repo = new BloodRequestRepository();
+        $donorRepo = new DonorRepository();
+        $acceptedRequests = $repo->findAcceptedRequestsForDonor((int) Session::get('user_id'), (int) $acceptedStatus);
+        $lastDonationDate = !empty($acceptedRequests[0]['created_at']) ? (string) $acceptedRequests[0]['created_at'] : '';
+        $eligibilityService = new DonorDonationEligibilityService();
+        $availabilityState = $donorRepo->syncAvailabilityStatus((int) Session::get('user_id'));
+        $eligibility = $eligibilityService->evaluate($lastDonationDate, $availabilityState['next_available_date']);
 
         donorView::render('donor_profile', [
-            'user' => $user
+            'user' => $user,
+            'availability' => $availabilityState['available'] ? 'Available' : 'Unavailable',
+            'availability_message' => $availabilityState['available']
+                ? $eligibility['message']
+                : ($availabilityState['next_available_date'] ? 'You will be eligible again after the waiting period.' : $eligibility['message']),
+            'next_eligible_date' => $availabilityState['available'] ? '' : ($availabilityState['next_available_date'] ?? $eligibility['next_eligible_date'])
         ]);
     }
 

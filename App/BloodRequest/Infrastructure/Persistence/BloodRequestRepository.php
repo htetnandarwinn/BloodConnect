@@ -391,6 +391,7 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                 u.address,
                 u.available,
                 u.is_active,
+                u.next_available_date,
                 latest_request.created_at AS last_donation_date
             FROM users u
             LEFT JOIN (
@@ -412,7 +413,10 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         $donors = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return array_values(array_filter($donors, function (array $donor) use ($eligibilityService): bool {
-            $eligibility = $eligibilityService->evaluate((string)($donor['last_donation_date'] ?? ''));
+            $eligibility = $eligibilityService->evaluate(
+                (string)($donor['last_donation_date'] ?? ''),
+                (string)($donor['next_available_date'] ?? '')
+            );
             return $eligibility['is_available'];
         }));
     }

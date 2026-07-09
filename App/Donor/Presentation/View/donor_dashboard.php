@@ -69,7 +69,7 @@ $pending_requests_count = $pending_requests_count ?? count($blood_requests);
 
                 <!-- Availability Status Card -->
                 <div class="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm hover:shadow-xl hover:shadow-slate-100 hover:-translate-y-1 transition-all duration-300 flex items-center gap-5 group">
-                    <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-300 shrink-0">
+                    <div class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 <?= ($availability === 'Available' ? 'bg-emerald-50 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white' : 'bg-red-50 text-red-500 group-hover:bg-red-500 group-hover:text-white') ?>">
                         <!-- Inline SVG Verification Check Shield Icon -->
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
@@ -77,10 +77,10 @@ $pending_requests_count = $pending_requests_count ?? count($blood_requests);
                     </div>
                     <div>
                         <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Availability Status</p>
-                        <h4 class="text-xl font-bold <?= ($availability === 'Available' ? 'text-emerald-600' : 'text-amber-600') ?> mt-0.5"><?= htmlspecialchars($availability); ?></h4>
+                        <h4 class="text-xl font-bold <?= ($availability === 'Available' ? 'text-emerald-600' : 'text-red-600') ?> mt-0.5"><?= htmlspecialchars($availability); ?></h4>
                         <p class="text-xs text-slate-400 mt-0.5"><?= htmlspecialchars($availability_message); ?></p>
                         <?php if (!empty($next_eligible_date)): ?>
-                            <p class="text-xs font-semibold text-amber-600 mt-1">Next eligible date: <?= htmlspecialchars(date('d M Y', strtotime($next_eligible_date))) ?></p>
+                            <p class="text-xs font-semibold text-red-600 mt-1">Next eligible date: <?= htmlspecialchars(date('d M Y', strtotime($next_eligible_date))) ?></p>
                         <?php endif; ?>
                     </div>
                 </div>

@@ -1,4 +1,4 @@
-<?php  
+<?php
 
 class CreateUsersTable
 {
@@ -15,6 +15,7 @@ class CreateUsersTable
                 user_type_id INT,
                 status ENUM('active','inactive') DEFAULT 'active',
                 available TINYINT(1) DEFAULT NULL,
+                next_available_date DATETIME DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         ");
