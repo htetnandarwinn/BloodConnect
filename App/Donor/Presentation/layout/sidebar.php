@@ -1,6 +1,31 @@
 <?php
 
+use App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository;
+use App\Donor\Infrastructure\Persistence\DonorRepository;
 use App\Shared\Helpers\Permission;
+use App\Shared\Helpers\Session;
+
+$pendingRequestsCount = 0;
+
+if (Permission::can('blood_requests')) {
+    $user = Session::get('user');
+    $bloodGroup = '';
+
+    if (is_array($user)) {
+        $bloodGroup = trim((string)($user['blood_group'] ?? ''));
+    }
+
+    if ($bloodGroup === '') {
+        $donorRepo = new DonorRepository();
+        $donor = $donorRepo->findById((int) Session::get('user_id'));
+        $bloodGroup = trim((string)($donor['blood_group'] ?? ''));
+    }
+
+    if ($bloodGroup !== '') {
+        $repo = new BloodRequestRepository();
+        $pendingRequestsCount = count($repo->findPendingRequestsForDonor($bloodGroup));
+    }
+}
 
 ?>
 <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300 lg:hidden"></div>
@@ -49,9 +74,19 @@ use App\Shared\Helpers\Permission;
 
             <?php if (Permission::can('blood_requests')): ?>
                 <a href="/BloodConnect/public/donor/blood-requests"
-                    class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
-                    <span class="text-xl">🩸</span>
-                    Blood Requests
+                    class="nav-link flex items-center justify-between px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
+                    <div class="flex items-center gap-3.5">
+                        <span class="text-xl">🩸</span>
+                        Blood Requests
+                    </div>
+
+                    <?php if ($pendingRequestsCount > 0): ?>
+                        <span class="request-badge inline-flex min-w-6 h-6 px-1.5 items-center justify-center rounded-full bg-red-50 text-[#ce2424] text-[10px] font-bold border border-red-100 shadow-sm">
+                            <?= $pendingRequestsCount ?>
+                        </span>
+                    <?php else: ?>
+                        <span class="request-badge inline-flex min-w-6 h-6 px-1.5 items-center justify-center rounded-full bg-red-50 text-[#ce2424] text-[10px] font-bold border border-red-100 shadow-sm hidden"></span>
+                    <?php endif; ?>
                 </a>
             <?php endif; ?>
 
@@ -91,14 +126,14 @@ use App\Shared\Helpers\Permission;
         </nav>
     </div>
 
-    <div class="border-t border-slate-100 pt-4">
+    <!-- <div class="border-t border-slate-100 pt-4">
         <a href="/BloodConnect/public/logout" class="block">
             <button class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
                 <span class="text-xl">🚪</span>
                 Logout
             </button>
         </a>
-    </div>
+    </div> -->
 </aside>
 
 <script>
@@ -135,6 +170,17 @@ use App\Shared\Helpers\Permission;
         // --- 2. ACTIVE ROUTE CHECKER ---
         const currentPath = window.location.pathname;
         const navLinks = document.querySelectorAll('.nav-link');
+        const requestBadge = document.querySelector('.request-badge');
+        const viewedKey = 'donorBloodRequestsViewed';
+
+        if (currentPath.includes('/donor/blood-requests')) {
+            sessionStorage.setItem(viewedKey, '1');
+        }
+
+        if (sessionStorage.getItem(viewedKey) === '1' && requestBadge) {
+            requestBadge.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => requestBadge.classList.add('hidden'), 180);
+        }
 
         navLinks.forEach(link => {
             const linkHref = link.getAttribute('href');

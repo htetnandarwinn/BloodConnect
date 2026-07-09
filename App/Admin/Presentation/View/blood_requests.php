@@ -31,20 +31,20 @@ try {
 function getSeverityClass($level)
 {
     return match (strtoupper((string) $level)) {
-        'CRITICAL' => 'bg-rose-50 text-rose-500 font-bold',
-        'URGENT' => 'bg-orange-50 text-orange-400 font-bold',
-        default => 'bg-slate-50 text-slate-500 font-bold',
+        'CRITICAL' => 'bg-rose-50 text-rose-600 border-rose-200/50',
+        'URGENT' => 'bg-orange-50 text-orange-600 border-orange-200/50',
+        default => 'bg-slate-50 text-slate-500 border-slate-200/50',
     };
 }
 
 function getFulfillmentClass($status)
 {
     return match (strtolower((string) $status)) {
-        'pending' => 'bg-amber-50 text-amber-600 font-semibold',
-        'in progress' => 'bg-blue-50 text-blue-600 font-semibold',
-        'matched' => 'bg-green-50 text-green-600 font-semibold',
-        'unfulfilled' => 'bg-rose-50 text-rose-600 font-semibold',
-        default => 'bg-slate-50 text-slate-600 font-semibold',
+        'pending' => 'bg-amber-50 text-amber-700 border-amber-200/50',
+        'in progress' => 'bg-blue-50 text-blue-700 border-blue-200/50',
+        'matched' => 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
+        'unfulfilled' => 'bg-rose-50 text-rose-700 border-rose-200/50',
+        default => 'bg-slate-50 text-slate-600 border-slate-200/50',
     };
 }
 
@@ -52,186 +52,200 @@ function getBloodTypeClass($type)
 {
     $type = strtolower((string) $type);
 
-    if (strpos($type, 'negative') !== false) {
-        return 'text-red-600';
+    if (strpos($type, 'negative') !== false || strpos($type, '-') !== false) {
+        return 'text-rose-600 bg-rose-50 border-rose-200/40';
     }
-
-    if (strpos($type, 'ab') !== false || strpos($type, 'a-') !== false || strpos($type, 'b-') !== false) {
-        return 'text-blue-600';
-    }
-
-    return 'text-green-600';
+    return 'text-emerald-600 bg-emerald-50 border-emerald-200/40';
 }
 ?>
 
-<!-- MAIN VIEW CONTAINER WITH SMOOTH INTERFACE ENTRY LAYER -->
-<div class="max-w-7xl mx-auto p-4 sm:p-6 bg-[#faf8f8] opacity-0 translate-y-4 transition-all duration-700 ease-out" id="bloodRequestsContainer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-    <!-- COMPACT TITLE BAR MODULE -->
-    <div class="mb-6">
-        <h1 class="text-2xl font-extrabold text-[#1e293b] tracking-tight">Blood Requests</h1>
+<style>
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #faf8f8;
+    }
+
+    .mono {
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Premium Smooth Entrance Physics */
+    @keyframes springReveal {
+        0% {
+            opacity: 0;
+            transform: translateY(20px) scale(0.99);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .animate-spring-in {
+        opacity: 0;
+        animation: springReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Interactive Hover Glow Ring effect */
+    .glow-row:hover {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02), 0 8px 16px -6px rgba(0, 0, 0, 0.01);
+        border-color: rgba(220, 38, 38, 0.12);
+    }
+</style>
+
+<div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 min-h-screen transition-all opacity-0 translate-y-6 ease-out duration-700" id="bloodRequestsContainer">
+
+    <div class="relative bg-white border border-slate-200/60 rounded-2xl p-6 mb-8 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-[#ce2424] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-red-600/10 transform hover:scale-105 transition-transform duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-none">Blood Requests</h1>
+                <p class="text-xs sm:text-sm text-slate-400 font-medium mt-1.5">Direct system registry controls for live incoming hospital requests.</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-lg border border-slate-800 self-start md:self-auto">
+            <div class="flex flex-col">
+                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Active Tickets</span>
+                <span class="text-lg font-extrabold tracking-tight mt-0.5 mono">
+                    <?= sprintf('%02d', count($requests)) ?> <span class="text-xs text-slate-500 font-normal">nodes</span>
+                </span>
+            </div>
+            <div class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-pulse"></div>
+        </div>
     </div>
 
-    <!-- WRAPPER COMPONENT -->
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-[0_12px_34px_rgba(0,0,0,0.01)] overflow-hidden transition-all duration-300">
+    <div class="space-y-3">
 
         <?php if (empty($requests)): ?>
-            <div class="p-8 text-center text-slate-500">No blood requests found.</div>
-        <?php else: ?>
-            <div class="hidden lg:block overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-rose-50/40 border-b border-rose-100/30 text-[11px] font-bold tracking-wider text-slate-500 uppercase select-none">
-                            <th class="px-6 py-4.5 text-center w-12">#</th>
-                            <th class="px-6 py-4.5">Hospital Base / Patient</th>
-                            <th class="px-6 py-4.5">Blood Type</th>
-                            <th class="px-6 py-4.5">Units Req</th>
-                            <th class="px-6 py-4.5 text-center">Severity Level</th>
-                            <th class="px-6 py-4.5 text-center">Fulfillment</th>
-                            <th class="px-6 py-4.5">Required Date</th>
-                            <th class="px-6 py-4.5 text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100/70">
-                        <?php foreach ($requests as $index => $req): ?>
-                            <tr class="group hover:bg-slate-50/30 transition-all duration-150">
-                                <!-- INDEX COUNTER -->
-                                <td class="px-6 py-5 text-center text-sm font-medium text-slate-400 select-none">
-                                    <?= $index + 1 ?>
-                                </td>
-
-                                <!-- HOSPITAL DETAILS -->
-                                <td class="px-6 py-5">
-                                    <div class="flex flex-col">
-                                        <span class="font-bold text-slate-800 text-sm leading-snug tracking-tight group-hover:text-red-600 transition-colors duration-150">
-                                            <?= htmlspecialchars($req['hospital_name']) ?>
-                                        </span>
-                                        <span class="text-xs text-slate-400 font-medium mt-0.5">
-                                            Patient: <?= htmlspecialchars($req['patient_name']) ?>
-                                        </span>
-                                    </div>
-                                </td>
-
-                                <!-- BLOOD TYPE CLASSIFICATION -->
-                                <td class="px-6 py-5 whitespace-nowrap">
-                                    <span class="text-sm font-bold tracking-tight <?= getBloodTypeClass($req['blood_type']) ?>">
-                                        <?= htmlspecialchars($req['blood_type']) ?>
-                                    </span>
-                                </td>
-
-                                <!-- UNITS REQUESTED -->
-                                <td class="px-6 py-5 whitespace-nowrap">
-                                    <span class="text-sm font-bold text-slate-800">
-                                        <?= htmlspecialchars($req['units_requested']) ?> <?= $req['units_requested'] > 1 ? 'Units' : 'Unit' ?>
-                                    </span>
-                                </td>
-
-                                <!-- SEVERITY PILL BADGES -->
-                                <td class="px-6 py-5 text-center whitespace-nowrap">
-                                    <span class="inline-flex px-3 py-1 text-[10px] tracking-wider rounded-md uppercase select-none <?= getSeverityClass($req['severity_level']) ?>">
-                                        <?= htmlspecialchars($req['severity_level']) ?>
-                                    </span>
-                                </td>
-
-                                <!-- FULFILLMENT MATRIX STATUS -->
-                                <td class="px-6 py-5 text-center whitespace-nowrap">
-                                    <span class="inline-flex px-4 py-1 text-[11px] rounded-md tracking-tight capitalize select-none <?= getFulfillmentClass($req['fulfillment_status']) ?>">
-                                        <?= htmlspecialchars($req['fulfillment_status']) ?>
-                                    </span>
-                                </td>
-
-                                <!-- DATE TARGET -->
-                                <td class="px-6 py-5 whitespace-nowrap">
-                                    <span class="text-sm font-bold text-slate-700 font-sans tracking-tight">
-                                        <?= htmlspecialchars($req['required_date']) ?>
-                                    </span>
-                                </td>
-
-                                <td class="px-6 py-5 text-center whitespace-nowrap">
-                                    <a href="/BloodConnect/public/admin/blood-request/view?id=<?= (int)($req['request_id'] ?? 0) ?>"
-                                        class="inline-flex items-center rounded-lg bg-[#ce2424] px-3 py-2 text-sm font-semibold text-white hover:bg-[#a61c1c]">
-                                        View
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+            <div class="bg-white border border-slate-200/70 rounded-2xl p-12 text-center text-slate-400 font-medium animate-spring-in">
+                No active blood requests found in the live ledger pool.
             </div>
+        <?php else: ?>
 
-            <!-- ==================================================================== -->
-            <!-- MOBILE RESPONSIVE BLOCK STACKS                                       -->
-            <!-- ==================================================================== -->
-            <div class="block lg:hidden divide-y divide-slate-100">
+            <div class="hidden lg:block space-y-3">
                 <?php foreach ($requests as $index => $req): ?>
-                    <div class="p-5 flex flex-col gap-4 hover:bg-slate-50/20 transition-colors duration-150">
+                    <div class="glow-row bg-white border border-slate-200/70 rounded-2xl p-4 grid grid-cols-12 items-center gap-4 transition-all duration-300 transform animate-spring-in shadow-2xs"
+                        style="animation-delay: <?= $index * 0.03 ?>s;">
 
-                        <!-- Row 1: Index Counter & Hospital Info -->
-                        <div class="flex items-start justify-between">
-                            <div class="flex gap-3">
-                                <span class="text-xs font-bold text-slate-300 select-none mt-0.5">#<?= $index + 1 ?></span>
-                                <div>
-                                    <h4 class="font-bold text-slate-800 text-sm leading-tight"><?= htmlspecialchars($req['hospital_name']) ?></h4>
-                                    <p class="text-xs text-slate-400 mt-0.5 font-medium">Patient: <?= htmlspecialchars($req['patient_name']) ?></p>
+                        <div class="col-span-3 flex items-center gap-4 min-w-0">
+                            <div class="relative shrink-0">
+                                <div class="w-11 h-11 rounded-xl bg-red-50 border border-red-100 text-red-500 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                                        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                                    </svg>
                                 </div>
                             </div>
+                            <div class="truncate">
+                                <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mono block">REQ___<?= str_pad($req['request_id'], 4, '0', STR_PAD_LEFT) ?></span>
+                                <span class="font-bold text-slate-800 text-sm tracking-tight truncate block mt-0.5"><?= htmlspecialchars($req['hospital_name']) ?></span>
+                                <span class="text-xs text-slate-400 font-medium block truncate">Pt: <?= htmlspecialchars($req['patient_name']) ?></span>
+                            </div>
+                        </div>
 
-                            <!-- Blood Group Label Block -->
-                            <span class="text-xs font-extrabold tracking-tight shrink-0 <?= getBloodTypeClass($req['blood_type']) ?>">
+                        <div class="col-span-2 min-w-0 pl-2">
+                            <span class="text-slate-800 font-extrabold tracking-tight text-sm block truncate"><?= htmlspecialchars($req['units_requested']) ?> Units</span>
+                            <span class="text-[10px] text-slate-400 font-bold tracking-wider uppercase block mt-0.5">Volume Demand</span>
+                        </div>
+
+                        <div class="col-span-2 flex justify-start pl-2">
+                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs <?= getSeverityClass($req['severity_level']) ?>">
+                                <?= htmlspecialchars($req['severity_level']) ?>
+                            </span>
+                        </div>
+
+                        <div class="col-span-2 flex justify-start pl-2">
+                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs <?= getFulfillmentClass($req['fulfillment_status']) ?>">
+                                <?= htmlspecialchars($req['fulfillment_status']) ?>
+                            </span>
+                        </div>
+
+                        <div class="col-span-1 flex justify-center">
+                            <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg border font-black text-xs shadow-3xs font-mono <?= getBloodTypeClass($req['blood_type']) ?>">
                                 <?= htmlspecialchars($req['blood_type']) ?>
                             </span>
                         </div>
 
-                        <!-- Row 2: Secondary Attributes Config Grid -->
-                        <div class="grid grid-cols-2 gap-3 bg-slate-50/60 p-3 rounded-xl border border-slate-100/80 text-xs">
-                            <div>
-                                <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider select-none">Volume Requested</span>
-                                <span class="font-bold text-slate-800 mt-0.5 block"><?= htmlspecialchars($req['units_requested']) ?> <?= $req['units_requested'] > 1 ? 'Units' : 'Unit' ?></span>
-                            </div>
-                            <div>
-                                <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider select-none">Required Target Date</span>
-                                <span class="font-bold text-slate-700 mt-0.5 block"><?= htmlspecialchars($req['required_date']) ?></span>
-                            </div>
+                        <div class="col-span-1 text-right text-slate-500 pr-2">
+                            <span class="text-xs font-semibold block truncate"><?= date('M d, Y', strtotime($req['required_date'])) ?></span>
+                            <span class="text-[10px] text-slate-400 block mt-0.5 mono"><?= date('H:i', strtotime($req['required_date'])) ?></span>
                         </div>
 
-                        <!-- Row 3: Dual Pill Badge Control Matrix -->
-                        <div class="flex items-center justify-between gap-2 pt-1">
-                            <div>
-                                <span class="inline-flex px-2.5 py-0.5 text-[9px] tracking-wider rounded uppercase select-none <?= getSeverityClass($req['severity_level']) ?>">
-                                    <?= htmlspecialchars($req['severity_level']) ?>
-                                </span>
-                            </div>
-                            <div>
-                                <span class="inline-flex px-3 py-0.5 text-[10px] rounded tracking-tight capitalize select-none <?= getFulfillmentClass($req['fulfillment_status']) ?>">
-                                    <?= htmlspecialchars($req['fulfillment_status']) ?>
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="pt-1">
-                            <a href="/BloodConnect/public/admin/blood-request/view?id=<?= (int)($req['request_id'] ?? 0) ?>"
-                                class="inline-flex items-center rounded-lg bg-[#ce2424] px-3 py-2 text-sm font-semibold text-white hover:bg-[#a61c1c]">
-                                View
+                        <div class="col-span-1 flex items-center justify-end pr-2">
+                            <a href="/BloodConnect/public/admin/blood-request/view?id=<?= (int)$req['request_id'] ?>"
+                                title="Inspect Ticket Node"
+                                class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-50 border border-transparent hover:border-slate-200 rounded-xl transition-all active:scale-90">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.3" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5M10.5 13.5L20.25 3.75M20.25 3.75H15.75M20.25 3.75v4.5" />
+                                </svg>
                             </a>
                         </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
 
+            <div class="block lg:hidden space-y-3.5">
+                <?php foreach ($requests as $index => $req): ?>
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-3xs transform transition-all duration-300 hover:shadow-2xs active:scale-[0.99] animate-spring-in"
+                        style="animation-delay: <?= $index * 0.03 ?>s;">
+
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div class="flex items-center gap-2.5">
+                                <span class="px-2 py-0.5 text-[9px] font-extrabold rounded-md uppercase tracking-widest border <?= getSeverityClass($req['severity_level']) ?>">
+                                    <?= htmlspecialchars($req['severity_level']) ?>
+                                </span>
+                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400 mono">
+                                    REQ_ID: <?= htmlspecialchars($req['request_id']) ?>
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] text-slate-400 mono"><?= date('Y-m-d', strtotime($req['required_date'])) ?></span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="space-y-1 truncate">
+                                <h4 class="font-extrabold text-slate-900 text-base tracking-tight truncate leading-tight"><?= htmlspecialchars($req['hospital_name']) ?></h4>
+                                <p class="text-xs font-medium text-slate-600 truncate">Patient: <?= htmlspecialchars($req['patient_name']) ?></p>
+                                <p class="text-xs text-slate-400 font-bold pt-1"><?= htmlspecialchars($req['units_requested']) ?> Units Required</p>
+                            </div>
+                            <div class="w-11 h-11 rounded-xl border font-black text-sm flex items-center justify-center font-mono shrink-0 <?= getBloodTypeClass($req['blood_type']) ?>">
+                                <?= htmlspecialchars($req['blood_type']) ?>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-2 pt-1">
+                            <span class="inline-block px-2.5 py-1 text-[9px] font-extrabold rounded-md uppercase tracking-widest border <?= getFulfillmentClass($req['fulfillment_status']) ?>">
+                                <?= htmlspecialchars($req['fulfillment_status']) ?>
+                            </span>
+                            <a href="/BloodConnect/public/admin/blood-request/view?id=<?= (int)$req['request_id'] ?>"
+                                class="flex items-center justify-center gap-2 py-2 px-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all active:scale-95">
+                                Inspect Request
+                            </a>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
-
     </div>
 </div>
 
-<!-- MODULE ENTRANCE MICRO-ANIMATION JAVASCRIPT -->
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const container = document.getElementById('bloodRequestsContainer');
-        if (container) {
-            // Fires animation trigger immediately following window configuration parse
-            setTimeout(() => {
-                container.classList.remove('opacity-0', 'translate-y-4');
-            }, 50);
+    document.addEventListener('DOMContentLoaded', () => {
+        const viewport = document.getElementById('bloodRequestsContainer');
+        if (viewport) {
+            requestAnimationFrame(() => {
+                viewport.classList.remove('opacity-0', 'translate-y-6');
+            });
         }
     });
 </script>

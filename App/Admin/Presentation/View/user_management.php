@@ -30,228 +30,231 @@ $stmt = $db->prepare("
 
 $stmt->execute();
 $users = $stmt->fetchAll();
-
-// /*
-// |--------------------------------------------------------
-// | ROLE HELPER
-// |--------------------------------------------------------
-// */
-// function getRole($typeId)
-// {
-//     return match ((int)$typeId) {
-//         1 => 'Admin',
-//         2 => 'Donor',
-//         3 => 'Patient',
-//         default => 'Unknown'
-//     };
-// }
-
 ?>
 
-<!-- VIEW WRAPPER CONTAINER -->
-<div class="max-w-7xl mx-auto p-4 sm:p-6 bg-[#faf8f8] opacity-0 translate-y-2 transition-all duration-500 ease-out" id="userManagementContainer">
+<!-- LINK INTERNET FONTS FOR ADVANCED TYPOGRAPHY -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-    <!-- HEADER BLOCK -->
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-slate-900">User Management</h1>
-        <p class="text-sm text-slate-500">Manage all donors, patients, and administrative accounts</p>
-    </div>
+<style>
+    body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #faf8f8;
+    }
 
-    <!-- MAIN TABLE/CARD WRAPPER CONTAINER -->
-    <div class="bg-white rounded-xl shadow border border-slate-200/80 overflow-hidden">
+    .mono {
+        font-family: 'JetBrains Mono', monospace;
+    }
 
-        <!-- DESKTOP SCREEN RESOLUTION VIEW (HIDDEN ON MOBILE BLOCKS) -->
-        <div class="hidden md:block overflow-x-auto">
-            <table class="w-full text-sm text-left">
+    /* Premium Smooth Entrance Physics */
+    @keyframes springReveal {
+        0% {
+            opacity: 0;
+            transform: translateY(20px) scale(0.99);
+        }
 
-                <!-- TABLE HEADER -->
-                <thead class="bg-slate-50 border-b border-slate-100 text-[11px] uppercase font-bold tracking-wider text-slate-500">
-                    <tr>
-                        <th class="px-6 py-4.5">Name</th>
-                        <th class="px-6 py-4.5">Email</th>
-                        <th class="px-6 py-4.5">Phone</th>
-                        <th class="px-6 py-4.5 text-center">Blood Group</th>
-                        <th class="px-6 py-4.5 text-center">Role</th>
-                        <th class="px-6 py-4.5 text-center">Status</th>
-                        <th class="px-6 py-4.5">Created</th>
-                        <th class="px-6 py-4.5 text-right pr-8">Actions</th>
-                    </tr>
-                </thead>
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
 
-                <!-- TABLE BODY -->
-                <tbody class="divide-y divide-slate-100/80">
-                    <?php foreach ($users as $user): ?>
-                        <tr class="group hover:bg-slate-50/40 transition-colors duration-150">
+    .animate-spring-in {
+        opacity: 0;
+        animation: springReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
 
-                            <!-- NAME -->
-                            <td class="px-6 py-4 font-bold text-slate-800">
-                                <?= htmlspecialchars($user['username']) ?>
-                            </td>
+    /* Interactive Hover Glow Ring effect */
+    .glow-row:hover {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02), 0 8px 16px -6px rgba(0, 0, 0, 0.01);
+        border-color: rgba(220, 38, 38, 0.12);
+    }
+</style>
 
-                            <!-- EMAIL -->
-                            <td class="px-6 py-4 text-slate-600">
-                                <?= htmlspecialchars($user['email']) ?>
-                            </td>
+<!-- MAIN APP VIEW PORTWRAPPER -->
+<div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 min-h-screen transition-all opacity-0 translate-y-6 ease-out duration-700" id="userManagementContainer">
 
-                            <!-- PHONE NUMBER -->
-                            <!-- PHONE -->
-                            <td class="px-6 py-4 text-slate-600 font-medium">
-                                Tel: <?= htmlspecialchars($user['phone'] ?? '—') ?>
-                            </td>
-
-                            <td class="px-6 py-4 text-center font-semibold text-red-600">
-                                <?= htmlspecialchars($user['blood_group'] ?? 'N/A') ?>
-                            </td>
-
-                            <!-- ROLE PILL ACCENTS -->
-                            <td class="px-6 py-4 text-center whitespace-nowrap">
-                                <?php $role = $user['role'] ?? 'Unknown'; ?>
-
-                                <span class="inline-block px-3 py-1 text-[11px] font-bold rounded-full uppercase tracking-wider
-        <?= strtolower($role) === 'admin' ? 'bg-purple-50 text-purple-600 border border-purple-100/60' : '' ?>
-        <?= strtolower($role) === 'donor' ? 'bg-green-50 text-green-600 border border-green-100/60' : '' ?>
-        <?= strtolower($role) === 'patient' ? 'bg-blue-50 text-blue-600 border border-blue-100/60' : '' ?>
-    ">
-                                    <?= htmlspecialchars($role) ?>
-                                </span>
-                            </td>
-
-                            <!-- STATUS SCREENSHOT REPLICATED ACCENTS -->
-                            <td class="px-6 py-4 text-center whitespace-nowrap">
-                                <?php if ($user['is_active'] == 1): ?>
-                                    <span class="inline-flex items-center px-4 py-1 text-[11px] font-bold tracking-wider text-green-700 bg-green-50 rounded-full border border-green-100/40">
-                                        ACTIVE
-                                    </span>
-                                <?php else: ?>
-                                    <span class="inline-flex items-center px-4 py-1 text-[11px] font-bold tracking-wider text-rose-600 bg-rose-50 rounded-full border border-rose-100/60">
-                                        DISABLED
-                                    </span>
-                                <?php endif; ?>
-                            </td>
-
-                            <!-- CREATED AT -->
-                            <td class="px-6 py-4 text-xs font-medium text-slate-400 font-mono whitespace-nowrap">
-                                <?= date('Y-m-d H:i', strtotime($user['created_at'])) ?>
-                            </td>
-                            <!-- 
-                            <td class="px-6 py-4 text-center font-semibold text-red-600">
-                                <?= htmlspecialchars($user['blood_group'] ?? 'N/A') ?>
-                            </td> -->
-
-                            <!-- INTERACTIVE SYSTEM ACTION KEYS -->
-                            <td class="px-6 py-4 text-right pr-8 whitespace-nowrap">
-                                <div class="inline-flex items-center gap-2">
-                                    <!-- VIEW ICON -->
-                                    <a href="/BloodConnect/public/admin/user/view?id=<?= $user['user_id'] ?>"
-                                        title="View Profile Details"
-                                        class="p-2 bg-slate-50 border border-slate-200/60 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg active:scale-95 transition-all duration-150">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                    </a>
-
-                                    <!-- EDIT ICON -->
-                                    <!-- <a href="/BloodConnect/public/admin/user/edit?id=<?= $user['user_id'] ?>"
-                                        title="Edit Credentials"
-                                        class="p-2 bg-blue-50/50 border border-blue-200/40 text-blue-500 hover:text-white hover:bg-blue-500 rounded-lg active:scale-95 transition-all duration-150">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                                        </svg>
-                                    </a> -->
-
-                                    <!-- DELETE ICON -->
-                                    <a href="/BloodConnect/public/admin/user/delete?id=<?= $user['user_id'] ?>"
-                                        onclick="return confirm('Are you sure you want to permanently remove this user?')"
-                                        title="Delete Account Entry"
-                                        class="p-2 bg-red-50 text-red-400 hover:text-white hover:bg-red-500 rounded-lg active:scale-95 transition-all duration-150">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                        </svg>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+    <!-- FUTURISTIC GLASS CORE HEADER -->
+    <div class="relative bg-white border border-slate-200/60 rounded-2xl p-6 mb-8 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-[#ce2424] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-red-600/10 transform hover:scale-105 transition-transform duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-white">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-none">User Management Panel</h1>
+                <p class="text-xs sm:text-sm text-slate-400 font-medium mt-1.5">Direct system registry controls for live user entities.</p>
+            </div>
         </div>
 
-        <!-- ==================================================================== -->
-        <!-- MOBILE BREAKPOINT DISPLAY: Renders fluid card-stack lists             -->
-        <!-- ==================================================================== -->
-        <div class="block md:hidden divide-y divide-slate-100">
-            <?php foreach ($users as $user): ?>
-                <div class="p-5 space-y-4 hover:bg-slate-50/20 transition-colors duration-150">
+        <!-- LIVE STREAM COUNTER NODE -->
+        <div class="flex items-center gap-4 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-lg border border-slate-800 self-start md:self-auto">
+            <div class="flex flex-col">
+                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Active Pool</span>
+                <span class="text-lg font-extrabold tracking-tight mt-0.5 mono">
+                    <?= sprintf('%02d', count($users)) ?> <span class="text-xs text-slate-500 font-normal">nodes</span>
+                </span>
+            </div>
+            <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)] animate-pulse"></div>
+        </div>
+    </div>
 
-                    <!-- Top Summary Layout Row -->
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h4 class="font-bold text-slate-800 text-base"><?= htmlspecialchars($user['username']) ?></h4>
-                            <p class="text-xs text-slate-400 mt-0.5 font-medium"><?= htmlspecialchars($user['email']) ?></p>
-                            <p class="text-xs text-slate-500 mt-1 font-mono bg-slate-100 px-2 py-0.5 rounded inline-block">
-                                Tel: <?= htmlspecialchars($user['phone'] ?? '—') ?>
-                            </p>
+    <!-- MAIN INTERACTIVE DATA SHEET BLOCK -->
+    <div class="space-y-3">
 
-                            <!-- Role Layout Pill -->
-                            <?php $role = $user['role'] ?? 'Unknown'; ?>
-                            <span class="px-2.5 py-1 text-[10px] font-bold rounded-md tracking-wider uppercase
-    <?= strtolower($role) === 'admin' ? 'bg-purple-50 text-purple-600 border border-purple-100' : '' ?>
-    <?= strtolower($role) === 'donor' ? 'bg-green-50 text-green-600 border border-green-100' : '' ?>
-    <?= strtolower($role) === 'patient' ? 'bg-blue-50 text-blue-600 border border-blue-100' : '' ?>
-">
-                                <?= htmlspecialchars($role) ?>
+        <!-- DESKTOP CONTINUOUS LIST (STRICT GRID ALIGNMENT ARCHITECTURE) -->
+        <div class="hidden lg:block space-y-3">
+            <?php foreach ($users as $index => $user): ?>
+                <?php
+                $role = strtolower($user['role'] ?? 'unknown');
+                $accentColor = match ($role) {
+                    'admin' => 'purple',
+                    'donor' => 'emerald',
+                    'patient' => 'blue',
+                    default => 'slate'
+                };
+                ?>
+                <div class="glow-row bg-white border border-slate-200/70 rounded-2xl p-4 grid grid-cols-12 items-center gap-4 transition-all duration-300 transform animate-spring-in shadow-2xs"
+                    style="animation-delay: <?= $index * 0.03 ?>s;">
+
+                    <!-- 1. IDENTITY BLOCK (col-span-3) -->
+                    <div class="col-span-3 flex items-center gap-4 min-w-0">
+                        <div class="relative shrink-0">
+                            <div class="w-11 h-11 rounded-xl bg-<?= $accentColor ?>-50 border border-<?= $accentColor ?>-200/60 text-<?= $accentColor ?>-600 flex items-center justify-center font-bold text-xs uppercase tracking-wider">
+                                <?= mb_substr($user['username'], 0, 2) ?>
+                            </div>
+                            <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white <?= $user['is_active'] == 1 ? 'bg-emerald-500' : 'bg-slate-300' ?>"></span>
+                        </div>
+                        <div class="truncate">
+                            <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mono block">UID_<?= str_pad($user['user_id'], 4, '0', STR_PAD_LEFT) ?></span>
+                            <span class="font-bold text-slate-800 text-sm tracking-tight truncate block mt-0.5"><?= htmlspecialchars($user['username']) ?></span>
+                        </div>
+                    </div>
+
+                    <!-- 2. CONTACT NODE (col-span-3) -->
+                    <div class="col-span-3 min-w-0">
+                        <span class="text-slate-700 font-semibold tracking-tight text-sm block truncate"><?= htmlspecialchars($user['email']) ?></span>
+                        <span class="text-xs text-slate-400 font-medium block mt-0.5 mono truncate"><?= htmlspecialchars($user['phone'] ?? '—') ?></span>
+                    </div>
+
+                    <!-- 3. SYSTEM ROLE BADGE (col-span-2) -->
+                    <div class="col-span-2 flex justify-start pl-4">
+                        <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-<?= $accentColor ?>-50/60 text-<?= $accentColor ?>-600 border-<?= $accentColor ?>-200/50">
+                            <?= htmlspecialchars($user['role'] ?? 'Unknown') ?>
+                        </span>
+                    </div>
+
+                    <!-- 4. BLOOD COMPONENT FACTOR (col-span-1) -->
+                    <div class="col-span-1 flex justify-center">
+                        <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-red-500/5 text-red-500 border border-red-500/10 font-black text-xs shadow-3xs font-mono">
+                            <?= htmlspecialchars($user['blood_group'] ?? 'N/A') ?>
+                        </span>
+                    </div>
+
+                    <!-- 5. DATETIME STRUCT (col-span-2) -->
+                    <div class="col-span-2 text-right text-slate-500 pr-2">
+                        <span class="text-xs font-semibold block"><?= date('M d, Y', strtotime($user['created_at'])) ?></span>
+                        <span class="text-[10px] text-slate-400 block mt-0.5 mono"><?= date('H:i', strtotime($user['created_at'])) ?> UTC</span>
+                    </div>
+
+                    <!-- 6. INTERACTIVE ACTIONS DRAWER (col-span-1) -->
+                    <div class="col-span-1 flex items-center justify-end gap-1.5 pr-2">
+                        <?php $isAdmin = $role === 'admin'; ?>
+                        <a href="/BloodConnect/public/admin/user/view?id=<?= $user['user_id'] ?>"
+                            title="Inspect Node"
+                            class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-50 border border-transparent hover:border-slate-200 rounded-xl transition-all active:scale-90">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.3" stroke="currentColor" class="w-4 h-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5M10.5 13.5L20.25 3.75M20.25 3.75H15.75M20.25 3.75v4.5" />
+                            </svg>
+                        </a>
+                        <?php if (!$isAdmin): ?>
+                            <a href="/BloodConnect/public/admin/user/delete?id=<?= $user['user_id'] ?>"
+                                onclick="return confirm('Purge account entry data?')"
+                                title="Terminate Entry"
+                                class="p-2 text-slate-400 hover:text-red-500 hover:bg-rose-50/50 border border-transparent hover:border-rose-100 rounded-xl transition-all active:scale-90">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.3" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79" />
+                                </svg>
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- MOBILE / TABLET DISPLAY (FLUID DASHBOARD GRIDS) -->
+        <div class="block lg:hidden space-y-3.5">
+            <?php foreach ($users as $index => $user): ?>
+                <?php
+                $role = strtolower($user['role'] ?? 'unknown');
+                $accentColor = match ($role) {
+                    'admin' => 'purple',
+                    'donor' => 'emerald',
+                    'patient' => 'blue',
+                    default => 'slate'
+                };
+                $isAdmin = $role === 'admin';
+                ?>
+                <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-3xs transform transition-all duration-300 hover:shadow-2xs active:scale-[0.99] animate-spring-in"
+                    style="animation-delay: <?= $index * 0.03 ?>s;">
+
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <span class="px-2 py-0.5 text-[9px] font-extrabold rounded-md uppercase tracking-widest border bg-<?= $accentColor ?>-50 text-<?= $accentColor ?>-600 border-<?= $accentColor ?>-200/50">
+                                <?= htmlspecialchars($user['role'] ?? 'Unknown') ?>
+                            </span>
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-400 mono">
+                                UID_<?= str_pad($user['user_id'], 4, '0', STR_PAD_LEFT) ?>
                             </span>
                         </div>
-
-                        <!-- Bottom Action Control Module Footer -->
-                        <div class="flex items-center justify-between pt-3 border-t border-slate-50">
-                            <div>
-                                <?php if ($user['is_active'] == 1): ?>
-                                    <span class="px-3 py-1 text-[10px] font-bold text-green-700 bg-green-50 rounded-full border border-green-100">ACTIVE</span>
-                                <?php else: ?>
-                                    <span class="px-3 py-1 text-[10px] font-bold text-rose-600 bg-rose-50 rounded-full border border-rose-100">DISABLED</span>
-                                <?php endif; ?>
-                            </div>
-
-                            <!-- Touch Target Mobile Sized System Links -->
-                            <div class="flex items-center gap-2">
-                                <!-- VIEW -->
-                                <a href="/BloodConnect/public/admin/user/view?id=<?= $user['user_id'] ?>" class="p-2.5 bg-slate-50 border border-slate-200/70 text-slate-400 rounded-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                    </svg>
-                                </a>
-                                <!-- EDIT -->
-                                <a href="/BloodConnect/public/admin/user/edit?id=<?= $user['user_id'] ?>" class="p-2.5 bg-blue-50 border border-blue-100 text-blue-500 rounded-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
-                                    </svg>
-                                </a>
-                                <!-- DELETE -->
-                                <a href="/BloodConnect/public/admin/user/delete?id=<?= $user['user_id'] ?>" onclick="return confirm('Remove user account?')" class="p-2.5 bg-red-50 border border-red-100 text-red-400 rounded-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79" />
-                                    </svg>
-                                </a>
-                            </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-slate-400 mono"><?= date('Y-m-d', strtotime($user['created_at'])) ?></span>
+                            <span class="w-1.5 h-1.5 rounded-full <?= $user['is_active'] == 1 ? 'bg-emerald-500' : 'bg-slate-300' ?>"></span>
                         </div>
-
                     </div>
-                <?php endforeach; ?>
-                </div>
 
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="space-y-1 truncate">
+                            <h4 class="font-extrabold text-slate-900 text-base tracking-tight truncate leading-tight"><?= htmlspecialchars($user['username']) ?></h4>
+                            <p class="text-xs font-medium text-slate-600 truncate"><?= htmlspecialchars($user['email']) ?></p>
+                            <p class="text-xs text-slate-400 mono pt-0.5"><?= htmlspecialchars($user['phone'] ?? '—') ?></p>
+                        </div>
+                        <div class="w-11 h-11 rounded-xl bg-red-500/5 text-red-500 border border-red-500/10 font-black text-sm flex items-center justify-center font-mono shrink-0">
+                            <?= htmlspecialchars($user['blood_group'] ?? 'N/A') ?>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 pt-1">
+                        <a href="/BloodConnect/public/admin/user/view?id=<?= $user['user_id'] ?>"
+                            class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all active:scale-95">
+                            Inspect Profile
+                        </a>
+                        <?php if (!$isAdmin): ?>
+                            <a href="/BloodConnect/public/admin/user/delete?id=<?= $user['user_id'] ?>"
+                                onclick="return confirm('Purge data account?')"
+                                class="py-2.5 px-3.5 bg-rose-50 border border-rose-100 text-rose-500 rounded-xl transition-all active:scale-95 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.3" stroke="currentColor" class="w-3.5 h-3.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79" />
+                                </svg>
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
     </div>
+</div>
 
-    <!-- CONTAINER DEPLOYMENT MICRO-INTERACTION STYLING JS -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const container = document.getElementById('userManagementContainer');
-            if (container) {
-                setTimeout(() => {
-                    container.classList.remove('opacity-0', 'translate-y-2');
-                }, 50);
-            }
-        });
-    </script>
+<!-- PAGE STRUCTURAL MOUNT ANIMATION SCRIPT -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const viewport = document.getElementById('userManagementContainer');
+        if (viewport) {
+            requestAnimationFrame(() => {
+                viewport.classList.remove('opacity-0', 'translate-y-6');
+            });
+        }
+    });
+</script>

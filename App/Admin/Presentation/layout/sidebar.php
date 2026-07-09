@@ -49,7 +49,7 @@ use App\Shared\Helpers\Permission;
 
             <a href="/BloodConnect/public/admin/donor-management"
                 class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
-                <span class="text-xl">💧</span>
+                <span class="text-xl">🩸</span>
                 Donor Management
             </a>
 
@@ -83,29 +83,40 @@ use App\Shared\Helpers\Permission;
                 <?php endif; ?>
             </a>
 
-            <?php if (Permission::can('permission.manage')): ?>
+            <details class="group">
+                <summary class="nav-link flex items-center justify-between px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200 cursor-pointer list-none">
+                    <div class="flex items-center gap-3.5">
+                        <span class="text-xl">⚙️</span>
+                        Settings
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 transition-transform duration-200 group-open:rotate-180">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </summary>
 
-                <a href="/BloodConnect/public/admin/roles"
-                    class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
-
-                    <span class="text-xl">🛡️</span>
-                    Roles & Permissions
-                </a>
-
-            <?php endif; ?>
+                <div class="ml-6 mt-1 space-y-1">
+                    <?php if (Permission::can('permission.manage')): ?>
+                        <a href="/BloodConnect/public/admin/roles"
+                            class="nav-link flex items-center gap-3.5 px-4 py-2 rounded-lg font-semibold text-sm text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
+                            <span class="text-base">🛡️</span>
+                            Roles & Permissions
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </details>
 
         </nav>
     </div>
 
     <!-- Footer Actions -->
-    <div class="border-t border-slate-100 pt-4">
+    <!-- <div class="border-t border-slate-100 pt-4">
         <a href="/BloodConnect/public/logout" class="block">
             <button class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
                 <span class="text-xl">🚪</span>
                 Logout
             </button>
         </a>
-    </div>
+    </div> -->
 </aside>
 
 <!-- Active Route & Sidebar Toggle JavaScript -->

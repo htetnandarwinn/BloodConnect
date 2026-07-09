@@ -70,8 +70,10 @@ class DonorController
 
         $repo = new BloodRequestRepository();
         $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $pendingRequests = $repo->findPendingRequestsForDonor($bloodGroup);
         $acceptedRequests = $repo->findAcceptedRequestsForDonor((int) Session::get('user_id'), (int) $acceptedStatus);
         $lastDonation = $acceptedRequests[0] ?? [];
+        $combinedRequests = array_merge($pendingRequests, $acceptedRequests);
 
 
         donorView::render(
@@ -92,13 +94,9 @@ class DonorController
 
                 'last_donation_location' => $lastDonation['hospital_name'] ?? 'No location saved',
 
-                'blood_requests' =>
+                'blood_requests' => $combinedRequests,
 
-                $repo->findPendingRequestsForDonor(
-
-                    $bloodGroup
-
-                )
+                'pending_requests_count' => count($pendingRequests)
 
             ]
         );

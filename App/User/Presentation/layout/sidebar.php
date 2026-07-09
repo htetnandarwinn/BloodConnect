@@ -71,14 +71,14 @@
     </div>
 
     <!-- Footer Actions -->
-    <div class="border-t border-slate-100 pt-4">
+    <!-- <div class="border-t border-slate-100 pt-4">
         <a href="/BloodConnect/public/logout" class="block">
             <button class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
                 <span class="text-xl">🚪</span>
                 Logout
             </button>
         </a>
-    </div>
+    </div> -->
 </aside>
 
 <!-- Active Route & Sidebar Toggle JavaScript -->
