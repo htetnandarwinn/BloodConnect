@@ -7,6 +7,7 @@ if (!isset($data) || !is_array($data)) {
         'totalDonors' => 0,
         'totalRequests' => 0,
         'completedRequests' => 0,
+        'acceptedRequests' => 0,
     ];
 }
 
@@ -17,7 +18,7 @@ $stats = [
     ['label' => 'Total Users', 'value' => $data['totalUsers'], 'icon' => '👥', 'bg' => 'bg-rose-500/10 text-rose-600 border-rose-500/20'],
     ['label' => 'Total Donors', 'value' => $data['totalDonors'], 'icon' => '💧', 'bg' => 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'],
     ['label' => 'Total Requests', 'value' => $data['totalRequests'], 'icon' => '📋', 'bg' => 'bg-sky-500/10 text-sky-600 border-sky-500/20'],
-    ['label' => 'Successful Donations', 'value' => $data['completedRequests'], 'icon' => '🩸', 'bg' => 'bg-red-500/10 text-red-600 border-red-500/20'],
+    ['label' => 'Successful Donations', 'value' => $data['completedRequests'], 'sub' => $data['acceptedRequests'] . ' accepted by donors', 'icon' => '🩸', 'bg' => 'bg-red-500/10 text-red-600 border-red-500/20'],
 ];
 
 // ✅ REAL DATABASE ACTIVITY
@@ -132,6 +133,9 @@ function timeAgo($datetime)
                         <p class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight stat-counter" data-target="<?= htmlspecialchars((string)$stat['value']) ?>">
                             0
                         </p>
+                        <?php if (!empty($stat['sub'])): ?>
+                            <p class="text-[10px] font-medium text-slate-500 mt-1"><?= htmlspecialchars($stat['sub']) ?></p>
+                        <?php endif; ?>
                     </div>
 
                     <div class="<?= $stat['bg'] ?> border w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-inner transform group-hover:scale-110 transition-transform duration-300 ease-out">

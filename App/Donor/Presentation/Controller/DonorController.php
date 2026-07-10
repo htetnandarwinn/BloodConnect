@@ -11,6 +11,7 @@ use App\Notification\Infrastructure\Persistence\NotificationRepository;
 use App\Shared\Helpers\PermissionGuard;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
 use App\User\Infrastructure\Persistence\UserRepository;
+use App\Donation\Infrastructure\Persistence\DonationRepository;
 use App\Donor\Application\UseCase\DonorDonationEligibilityService;
 
 
@@ -162,6 +163,16 @@ class DonorController
         }
 
         $request = $repo->findById($requestId);
+
+        $donationRepo = new DonationRepository();
+        $donationRepo->create([
+            'request_id' => $requestId,
+            'donor_id'   => (int)($user['user_id'] ?? 0),
+            'donation_date' => date('Y-m-d'),
+            'status'     => 8,
+            'remarks'    => 'Accepted by donor'
+        ]);
+
         $notificationRepo = new NotificationRepository();
         $userRepo = new UserRepository();
         $donor = $userRepo->findById((int)($user['user_id'] ?? 0));

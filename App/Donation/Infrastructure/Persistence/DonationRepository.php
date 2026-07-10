@@ -86,6 +86,12 @@ class DonationRepository implements DonationRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function updateStatusByRequestId(int $requestId, int $status): bool
+    {
+        $stmt = $this->db->prepare("UPDATE donation_history SET status = ? WHERE request_id = ?");
+        return $stmt->execute([$status, $requestId]);
+    }
+
     public function countSuccessfulDonations(?int $statusId = null): int
     {
         $status = $statusId ?? null;

@@ -111,7 +111,7 @@ $historyCount = count($requests);
 
                         <div class="col-span-2 flex items-center justify-end pr-2">
                             <a href="/BloodConnect/public/donor/history/view?id=<?= (int)$rid ?>"
-                                class="px-4 py-2 text-xs font-bold bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-all active:scale-95 shadow-3xs">
+                                class="px-4 py-2 text-xs font-bold bg-red-600 border border-red-600 text-white hover:bg-red-700 rounded-xl transition-all active:scale-95 shadow-3xs">
                                 Inspect Logs
                             </a>
                         </div>
@@ -149,7 +149,7 @@ $historyCount = count($requests);
 
                         <div class="pt-1">
                             <a href="/BloodConnect/public/donor/history/view?id=<?= (int)$rid ?>"
-                                class="flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl font-bold text-xs transition-all active:scale-95 shadow-3xs w-full">
+                                class="flex items-center justify-center gap-2 py-2.5 px-4 bg-red-600 border border-red-600 text-white hover:bg-red-700 rounded-xl font-bold text-xs transition-all active:scale-95 shadow-3xs w-full">
                                 Inspect Full Ticket History
                             </a>
                         </div>

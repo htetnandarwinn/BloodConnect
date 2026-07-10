@@ -132,11 +132,11 @@ $donors = $stmt->fetchAll();
 
                     <div class="col-span-2 flex justify-start pl-4">
                         <?php if ($donor['availability_status'] === 'AVAILABLE'): ?>
-                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-emerald-50 text-emerald-600 border-emerald-200/50">
+                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-emerald-500 text-white border-emerald-600">
                                 AVAILABLE
                             </span>
                         <?php elseif ($donor['availability_status'] === 'UNAVAILABLE'): ?>
-                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-amber-50 text-amber-600 border-amber-200/50">
+                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-red-500 text-white border-red-600">
                                 UNAVAILABLE
                             </span>
                         <?php else: ?>

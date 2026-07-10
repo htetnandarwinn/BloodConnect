@@ -64,6 +64,17 @@ $router->post('/resend-code', [VerifyEmailController::class, 'resend']);
 
 /*
 |--------------------------------------------------------------------------
+| SHARED NOTIFICATION AJAX ROUTES (auth only - all roles)
+|--------------------------------------------------------------------------
+*/
+$router->group(['middleware' => ['auth']], function (Router $router) {
+    $router->post('/notification/mark-read', [PatientController::class, 'markNotificationRead']);
+    $router->post('/notification/mark-all-read', [PatientController::class, 'markAllNotificationsRead']);
+    $router->get('/notification/unread-count', [PatientController::class, 'unreadCount']);
+});
+
+/*
+|--------------------------------------------------------------------------
 | PATIENT ROUTES (auth + patient)
 |--------------------------------------------------------------------------
 */
@@ -78,10 +89,6 @@ $router->group(['middleware' => ['auth', 'patient']], function (Router $router) 
     $router->get('/patient/profile/update', [PatientController::class, 'updateProfilePage']);
     $router->post('/patient/profile/update', [PatientController::class, 'updateProfile']);
     $router->get('/patient/notifications', [PatientController::class, 'notifications']);
-    $router->post('/notification/mark-read', [PatientController::class, 'markNotificationRead']);
-    $router->post('/notification/mark-all-read', [PatientController::class, 'markAllNotificationsRead']);
-    $router->get('/notification/unread-count', [PatientController::class, 'getUnreadCount']);
-    $router->get('/notification/unread-count', [PatientController::class, 'unreadCount']);
 });
 
 /*
@@ -124,9 +131,6 @@ $router->group(['middleware' => ['auth', 'donor']], function (Router $router) {
     $router->get('/donor/profile/update', [DonorController::class, 'updateProfilePage']);
     $router->post('/donor/profile/update', [DonorController::class, 'updateProfile']);
     $router->get('/donor/notifications', [DonorController::class, 'notifications']);
-    $router->post('/notification/mark-read', [DonorController::class, 'markNotificationRead']);
-    $router->post('/notification/mark-all-read', [DonorController::class, 'markAllNotificationsRead']);
-    $router->get('/notification/unread-count', [DonorController::class, 'unreadCount']);
     $router->post('/donor/request/accept', [DonorController::class, 'acceptRequest']);
     $router->post('/donor/request/decline', [DonorController::class, 'declineRequest']);
 });

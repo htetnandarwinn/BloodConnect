@@ -1,4 +1,8 @@
-<div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300 lg:hidden"></div>
+<?php
+
+use App\Shared\Helpers\Permission;
+
+?><div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300 lg:hidden"></div>
 
 <aside id="sidebarDrawer" class="fixed inset-y-0 left-0 w-72 bg-white border-r border-slate-100 p-5 flex flex-col justify-between z-50 -translate-x-full lg:translate-x-0 lg:sticky lg:top-0 h-screen transition-transform duration-300 ease-in-out shrink-0">
     <div class="space-y-7">
@@ -24,55 +28,61 @@
 
         <nav class="space-y-1.5" id="sidebarNav">
 
-            <a href="/BloodConnect/public/patient/dashboard"
-                class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
-                <span class="text-xl">📊</span>
-                Dashboard
-            </a>
+            <?php if (Permission::can('dashboard.view')): ?>
+                <a href="/BloodConnect/public/patient/dashboard"
+                    class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
+                    <span class="text-xl">📊</span>
+                    Dashboard
+                </a>
+            <?php endif; ?>
 
-            <div class="pt-4 pb-1 px-4">
-                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Activities</span>
-            </div>
-
-            <a href="/BloodConnect/public/patient/request-blood"
-                class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
-                <span class="text-xl">🩸</span>
-                Request Blood
-            </a>
-
-            <!-- <a href="/BloodConnect/public/patient/search-donors"
-                class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
-                <span class="text-xl">🔍</span>
-                Search Donors
-            </a> -->
-
-            <a href="/BloodConnect/public/patient/my-requests"
-                class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
-                <span class="text-xl">📋</span>
-                My Requests
-            </a>
-
-            <div class="pt-4 pb-1 px-4">
-                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Communication</span>
-            </div>
-
-            <a href="/BloodConnect/public/patient/notifications"
-                class="nav-link flex items-center justify-between px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
-
-                <div class="flex items-center gap-3.5">
-                    <span class="text-xl">🔔</span>
-                    Notifications
+            <?php if (Permission::can('blood_request.create') || Permission::can('blood_request.view_own')): ?>
+                <div class="pt-4 pb-1 px-4">
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Activities</span>
                 </div>
+            <?php endif; ?>
 
-                <?php if (!empty($unreadCount) && $unreadCount > 0): ?>
-                    <span class="notification-badge w-5 h-5 rounded-full bg-[#ce2424] text-white text-[10px] font-black flex items-center justify-center">
-                        <?= $unreadCount ?>
-                    </span>
-                <?php else: ?>
-                    <span class="notification-badge w-5 h-5 rounded-full bg-[#ce2424] text-white text-[10px] font-black hidden"></span>
-                <?php endif; ?>
+            <?php if (Permission::can('blood_request.create')): ?>
+                <a href="/BloodConnect/public/patient/request-blood"
+                    class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
+                    <span class="text-xl">🩸</span>
+                    Request Blood
+                </a>
+            <?php endif; ?>
 
-            </a>
+            <?php if (Permission::can('blood_request.view_own')): ?>
+                <a href="/BloodConnect/public/patient/my-requests"
+                    class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
+                    <span class="text-xl">📋</span>
+                    My Requests
+                </a>
+            <?php endif; ?>
+
+            <?php if (Permission::can('notification.view')): ?>
+                <div class="pt-4 pb-1 px-4">
+                    <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Communication</span>
+                </div>
+            <?php endif; ?>
+
+            <?php if (Permission::can('notification.view')): ?>
+                <a href="/BloodConnect/public/patient/notifications"
+                    class="nav-link flex items-center justify-between px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
+
+                    <div class="flex items-center gap-3.5">
+                        <span class="text-xl">🔔</span>
+                        Notifications
+                    </div>
+
+                    <?php if (!empty($unreadCount) && $unreadCount > 0): ?>
+                        <span class="notification-badge w-5 h-5 rounded-full bg-[#ce2424] text-white text-[10px] font-black flex items-center justify-center">
+                            <?= $unreadCount ?>
+                        </span>
+                    <?php else: ?>
+                        <span class="notification-badge w-5 h-5 rounded-full bg-[#ce2424] text-white text-[10px] font-black hidden"></span>
+                    <?php endif; ?>
+
+                </a>
+            <?php endif; ?>
 
         </nav>
     </div>

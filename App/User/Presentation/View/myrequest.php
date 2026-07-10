@@ -133,7 +133,7 @@
                         <div class="col-span-1 flex items-center justify-end pr-2">
                             <a href="/BloodConnect/public/patient/my-request/view?id=<?= (int)$rid ?>"
                                 title="Inspect Ticket"
-                                class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-50 border border-transparent hover:border-slate-200 rounded-xl transition-all active:scale-90">
+                                class="p-2 text-red-500 hover:text-white hover:bg-red-600 border border-transparent hover:border-red-600 rounded-xl transition-all active:scale-90 font-semibold">
                                 View
                             </a>
                         </div>
@@ -184,7 +184,7 @@
                                 <?= htmlspecialchars(ucwords((string)$status)) ?>
                             </span>
                             <a href="/BloodConnect/public/patient/my-request/view?id=<?= (int)$rid ?>"
-                                class="flex items-center justify-center gap-2 py-2 px-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all active:scale-95">
+                                class="flex items-center justify-center gap-2 py-2 px-4 bg-red-600 border border-red-600 text-white rounded-xl font-bold text-xs transition-all active:scale-95 hover:bg-red-700">
                                 Inspect Request
                             </a>
                         </div>

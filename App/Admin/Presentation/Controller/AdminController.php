@@ -61,6 +61,7 @@ class AdminController
 
         $pendingRequests = 0;
         $completedRequests = $donationRepo->countSuccessfulDonations();
+        $acceptedRequests = $requestRepo->countAcceptedByDonors();
 
         foreach ($requests as $request) {
             $status = strtolower(trim($request['status'] ?? ''));
@@ -75,6 +76,7 @@ class AdminController
             'totalRequests'     => count($requests),
             'pendingRequests'   => $pendingRequests,
             'completedRequests' => $completedRequests,
+            'acceptedRequests'  => $acceptedRequests,
             'adminName'         => $_SESSION['user']['username'] ?? 'Admin'
         ];
 
@@ -421,13 +423,7 @@ class AdminController
         $donationRepo = new DonationRepository();
         $donorId = (int)($request['donor_id'] ?? 0);
         if ($donorId > 0) {
-            $donationRepo->create([
-                'request_id' => $requestId,
-                'donor_id' => $donorId,
-                'donation_date' => date('Y-m-d'),
-                'status' => (int)$completedStatus,
-                'remarks' => 'Donation completed successfully'
-            ]);
+            $donationRepo->updateStatusByRequestId($requestId, (int)$completedStatus);
         }
 
         $notificationRepo = new \App\Notification\Infrastructure\Persistence\NotificationRepository();

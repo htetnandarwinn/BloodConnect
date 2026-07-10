@@ -523,4 +523,20 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 
         ]);
     }
+
+    public function countAcceptedByDonors(): int
+    {
+        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*)
+            FROM blood_requests
+            WHERE donor_id IS NOT NULL
+              AND status = ?
+        ");
+
+        $stmt->execute([$acceptedStatus]);
+
+        return (int)$stmt->fetchColumn();
+    }
 }
