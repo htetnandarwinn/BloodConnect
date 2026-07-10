@@ -536,6 +536,19 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         ]);
     }
 
+    public function cancelRequest(int $requestId, int $patientId, int $cancelledStatus): bool
+    {
+        $stmt = $this->db->prepare("
+            UPDATE blood_requests
+            SET status = ?
+            WHERE request_id = ?
+              AND patient_id = ?
+              AND status = 7
+        ");
+        $stmt->execute([$cancelledStatus, $requestId, $patientId]);
+        return $stmt->rowCount() > 0;
+    }
+
     public function countAcceptedByDonors(): int
     {
         $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;

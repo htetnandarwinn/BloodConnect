@@ -121,8 +121,18 @@ class DonorController
         $this->authGuard();
         PermissionGuard::check('blood_request.accept');
 
+        $donorId = (int)(Session::get('user')['user_id'] ?? 0);
 
-
+        // Donor cannot accept if they already have an accepted request
+        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $bloodRequestRepo = new BloodRequestRepository();
+        $existingAccepted = $bloodRequestRepo->findAcceptedRequestsForDonor($donorId, $acceptedStatus);
+        if (!empty($existingAccepted)) {
+            Session::set('flash_message', 'You cannot accept more requests while you have an active accepted request.');
+            Session::set('flash_status', 'error');
+            header('Location: /BloodConnect/public/donor/blood-requests');
+            exit;
+        }
 
         $user = Session::get('user');
 
@@ -326,10 +336,17 @@ class DonorController
         $acceptedRequests = $repo->findAcceptedRequestsForDonor((int) Session::get('user_id'), $acceptedStatus);
         $combinedRequests = array_merge($pendingRequests, $acceptedRequests);
 
+        $message = Session::get('flash_message', '');
+        $status = Session::get('flash_status', '');
+        Session::remove('flash_message');
+        Session::remove('flash_status');
+
         donorView::render('blood_requests', [
             'user' => $user,
             'blood_group' => $bloodGroup,
             'requests' => $combinedRequests,
+            'message' => $message,
+            'status'  => $status,
         ]);
     }
 

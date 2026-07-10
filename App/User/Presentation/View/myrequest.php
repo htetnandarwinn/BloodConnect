@@ -67,6 +67,13 @@
         </div>
     </div>
 
+    <?php if (!empty($message)): ?>
+        <div class="mb-5 p-3.5 rounded-xl flex items-center gap-3 border transition-all duration-300 <?= $status === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700' ?>">
+            <i class="fa-solid <?= $status === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation' ?> text-base"></i>
+            <span class="text-xs font-semibold"><?= htmlspecialchars($message) ?></span>
+        </div>
+    <?php endif; ?>
+
     <div class="space-y-3">
         <?php if (empty($requests)): ?>
             <div class="bg-white border border-slate-200/70 rounded-2xl p-12 text-center text-slate-400 font-medium">

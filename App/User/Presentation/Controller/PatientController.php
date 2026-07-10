@@ -60,10 +60,17 @@ class PatientController
 
         $repo = new BloodRequestRepository();
 
+        $message = Session::get('flash_message', '');
+        $status = Session::get('flash_status', '');
+        Session::remove('flash_message');
+        Session::remove('flash_status');
+
         return patientView::render('myrequest', [
             'username'    => Session::get('username'),
             'requests'    => $repo->findByPatientId($this->getUserId()),
-            'unreadCount' => $this->getUnreadCount()
+            'unreadCount' => $this->getUnreadCount(),
+            'message'     => $message,
+            'status'      => $status,
         ]);
     }
 
@@ -210,6 +217,92 @@ class PatientController
             'notifications' => $repo->findByUserId($patientId),
             'unreadCount'   => $this->getUnreadCount()
         ]);
+    }
+
+    public function cancelRequest()
+    {
+        $this->authGuard();
+        PermissionGuard::check('blood_request.view_own');
+
+        $requestId = (int)($_POST['request_id'] ?? 0);
+        $patientId = $this->getUserId();
+
+        if (!$requestId) {
+            header('Location: /BloodConnect/public/patient/my-requests');
+            exit;
+        }
+
+        $repo = new \App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository();
+        $masterRepo = new \App\Shared\Infrastructure\Persistence\MasterDataRepository();
+
+        // Fetch request before cancelling to get donor info
+        $request = $repo->findById($requestId);
+
+        $cancelledStatus = $masterRepo->getId('REQUEST_STATUS', 'CANCELLED') ?? 10;
+
+        $cancelled = $repo->cancelRequest($requestId, $patientId, $cancelledStatus);
+
+        if ($cancelled) {
+            $notificationRepo = new NotificationRepository();
+
+            // Notify patient
+            $notificationRepo->create(
+                $patientId,
+                'Request Cancelled',
+                'Your blood request has been cancelled.',
+                'REMINDER'
+            );
+
+            $patientName = htmlspecialchars($request['patient_name'] ?? 'A patient');
+            $bloodGroup = htmlspecialchars($request['blood_group_needed'] ?? '');
+
+            // Notify assigned donor if any
+            $donorId = (int)($request['donor_id'] ?? 0);
+            if ($donorId > 0) {
+                $notificationRepo->create(
+                    $donorId,
+                    'Request Cancelled',
+                    "{$patientName} has cancelled their {$bloodGroup} blood request.",
+                    'REMINDER'
+                );
+            }
+
+            // Notify matching donors (by blood group)
+            $matchingDonors = $repo->getMatchingDonors($bloodGroup);
+            foreach ($matchingDonors as $donor) {
+                $matchedDonorId = (int)$donor['user_id'];
+                if ($matchedDonorId === $donorId) {
+                    continue;
+                }
+                $notificationRepo->create(
+                    $matchedDonorId,
+                    'Request Cancelled',
+                    "{$patientName} has cancelled their {$bloodGroup} blood request.",
+                    'REMINDER'
+                );
+            }
+
+            // Notify all admins
+            $userRepo = new UserRepository();
+            $admins = $userRepo->getAdmins();
+            foreach ($admins as $admin) {
+                $notificationRepo->create(
+                    (int)$admin['user_id'],
+                    'Request Cancelled',
+                    "{$patientName} has cancelled their {$bloodGroup} blood request.",
+                    'REMINDER'
+                );
+            }
+
+            Session::set('flash_message', 'Your blood request has been cancelled.');
+            Session::set('flash_status', 'success');
+        } else {
+            Session::set('flash_message', 'Cannot cancel this request. Only pending requests can be cancelled.');
+            Session::set('flash_status', 'error');
+        }
+
+        header('Location: /BloodConnect/public/patient/my-requests');
+        exit;
     }
 
     public function updateProfilePage()

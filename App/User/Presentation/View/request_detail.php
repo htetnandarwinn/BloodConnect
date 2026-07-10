@@ -18,9 +18,19 @@ $showPendingAssignment = $hasDonor && !$isAccepted;
             <h2 class="text-2xl font-bold text-slate-900">Request Details</h2>
             <p class="text-sm text-slate-500">View full request information and assigned donor details.</p>
         </div>
-        <a href="/BloodConnect/public/patient/my-requests" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
-            ← Back to My Requests
-        </a>
+        <div class="flex items-center gap-2">
+            <?php if (strtolower($statusLabel) === 'pending'): ?>
+                <form method="POST" action="/BloodConnect/public/patient/request/cancel" class="inline" onsubmit="return confirm('Are you sure you want to cancel this request?')">
+                    <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
+                    <button type="submit" class="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-100">
+                        Cancel Request
+                    </button>
+                </form>
+            <?php endif; ?>
+            <a href="/BloodConnect/public/patient/my-requests" class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+                ← Back to My Requests
+            </a>
+        </div>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">

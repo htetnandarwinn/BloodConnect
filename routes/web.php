@@ -88,6 +88,7 @@ $router->group(['middleware' => ['auth', 'patient']], function (Router $router) 
     $router->get('/patient/profile', [PatientController::class, 'profile']);
     $router->get('/patient/profile/update', [PatientController::class, 'updateProfilePage']);
     $router->post('/patient/profile/update', [PatientController::class, 'updateProfile']);
+    $router->post('/patient/request/cancel', [PatientController::class, 'cancelRequest']);
     $router->get('/patient/notifications', [PatientController::class, 'notifications']);
 });
 
