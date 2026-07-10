@@ -1,5 +1,10 @@
 <?php
 // C:\xampp_new\htdocs\BloodConnect\App\Authentication\Presentation\View\register.php
+$basePath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+if ($basePath === '/' || $basePath === '\\') {
+    $basePath = '';
+}
+
 $errors = $_SESSION['errors'] ?? [];
 $success = $_SESSION['success'] ?? '';
 $old = $_SESSION['old'] ?? [];
@@ -81,7 +86,7 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
                         </div>
                     <?php endif; ?>
 
-                    <form id="unifiedRegisterForm" method="POST" action="/donor/register" class="mt-6 space-y-5">
+                    <form id="unifiedRegisterForm" method="POST" action="/donor/register" class="space-y-5">
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div class="space-y-1.5 group">
@@ -91,7 +96,7 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
                                         <i class="fa-regular fa-user"></i>
                                     </span>
                                     <input type="text" id="regUsername" name="username" placeholder="Choose unique name"
-                                        value="<?= htmlspecialchars($old['username'] ?? '', ENT_QUOTES) ?>" 
+                                        value="<?= htmlspecialchars($old['username'] ?? '', ENT_QUOTES) ?>"
                                         class="w-full bg-white border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/5 transition duration-150 font-medium">
                                 </div>
                                 <p id="regUsernameFieldError" class="text-red-600 text-xs font-semibold mt-1 items-center gap-1.5 animate-fade-in <?= empty($errors['username']) ? 'hidden' : 'flex' ?>">
@@ -106,7 +111,7 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
                                         <i class="fa-regular fa-envelope"></i>
                                     </span>
                                     <input type="email" id="regEmail" name="email" placeholder="name@example.com"
-                                        value="<?= htmlspecialchars($old['email'] ?? '', ENT_QUOTES) ?>" 
+                                        value="<?= htmlspecialchars($old['email'] ?? '', ENT_QUOTES) ?>"
                                         class="w-full bg-white border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/5 transition duration-150 font-medium">
                                 </div>
                                 <p id="regEmailFieldError" class="text-red-600 text-xs font-semibold mt-1 items-center gap-1.5 animate-fade-in <?= empty($errors['email']) ? 'hidden' : 'flex' ?>">
@@ -128,7 +133,7 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
                                         name="phone"
                                         placeholder="09xxxxxxxxx"
                                         value="<?= htmlspecialchars($old['phone'] ?? '', ENT_QUOTES) ?>"
-                                        
+
                                         maxlength="11"
                                         pattern="^09[0-9]{9}$"
                                         inputmode="numeric"
@@ -148,7 +153,7 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
                                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-red-500/80 pointer-events-none text-base">
                                         <i class="fa-solid fa-droplet"></i>
                                     </span>
-                                    <select id="regBloodGroup" name="blood_group" 
+                                    <select id="regBloodGroup" name="blood_group"
                                         class="w-full bg-white border border-slate-200 rounded-xl pl-11 pr-10 py-3 text-sm text-slate-700 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/5 transition duration-150 font-medium appearance-none cursor-pointer">
                                         <option value="" disabled <?= empty($old['blood_group']) ? 'selected' : '' ?>>Select Group</option>
                                         <?php foreach (['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as $bg): ?>
@@ -187,7 +192,7 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
                                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-base transition-colors group-focus-within:text-red-500">
                                         <i class="fa-solid fa-lock"></i>
                                     </span>
-                                    <input type="password" id="regPassword" name="password" placeholder="Create security password" 
+                                    <input type="password" id="regPassword" name="password" placeholder="Create security password"
                                         class="w-full bg-white border border-slate-200 rounded-xl pl-11 pr-12 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/5 transition duration-150 font-medium">
                                     <button type="button" onclick="togglePasswordVisibility('regPassword', 'togglePasswordIcon')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition">
                                         <i id="togglePasswordIcon" class="fa-regular fa-eye"></i>
@@ -204,7 +209,7 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
                                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-base transition-colors group-focus-within:text-red-500">
                                         <i class="fa-solid fa-shield-halved"></i>
                                     </span>
-                                    <input type="password" id="regConfirmPassword" name="confirm_password" placeholder="Retype secret token" 
+                                    <input type="password" id="regConfirmPassword" name="confirm_password" placeholder="Retype secret token"
                                         class="w-full bg-white border border-slate-200 rounded-xl pl-11 pr-12 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/5 transition duration-150 font-medium">
                                     <button type="button" onclick="togglePasswordVisibility('regConfirmPassword', 'toggleConfirmPasswordIcon')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none transition">
                                         <i id="toggleConfirmPasswordIcon" class="fa-regular fa-eye"></i>
@@ -240,6 +245,18 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
                         <button type="submit" id="submitBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 px-6 rounded-xl text-base shadow-md shadow-red-600/10 active:scale-[0.99] transition duration-150 mt-2">
                             Register Profile
                         </button>
+
+                        <div class="relative flex items-center">
+                            <div class="flex-grow border-t border-slate-200"></div>
+                            <span class="flex-shrink mx-4 text-xs font-bold text-slate-400 uppercase">or</span>
+                            <div class="flex-grow border-t border-slate-200"></div>
+                        </div>
+
+                        <a href="<?= $basePath ?? '' ?>/auth/google"
+                            class="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 hover:border-red-300 hover:bg-red-50/30 text-slate-700 font-bold py-3.5 px-6 rounded-xl text-sm shadow-sm active:scale-[0.99] transition duration-150">
+                            <i class="fa-brands fa-google text-red-500 text-lg"></i>
+                            Continue with Google
+                        </a>
 
                         <div class="text-center pt-2">
                             <p class="text-sm text-slate-400 font-semibold">

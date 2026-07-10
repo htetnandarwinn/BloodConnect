@@ -1,0 +1,215 @@
+<?php
+
+namespace App\Authentication\Presentation\Controller;
+
+use App\Authentication\Infrastructure\Persistence\AuthRepository;
+use App\Shared\Helpers\Session;
+use App\Shared\Infrastructure\OAuth\GoogleOAuth;
+use App\Shared\Infrastructure\Activity\ActivityLogger;
+use App\Shared\Infrastructure\Persistence\MasterDataRepository;
+
+class GoogleAuthController
+{
+    public function redirect()
+    {
+        Session::start();
+
+        $google = new GoogleOAuth();
+        if (!$google->isConfigured()) {
+            $_SESSION['errors']['form'] = 'Google sign-in is not configured yet. Please add valid Google OAuth credentials and the correct redirect URI in the environment file.';
+            header('Location: /BloodConnect/public/login');
+            exit;
+        }
+
+        header('Location: ' . $google->getAuthorizationUrl());
+        exit;
+    }
+
+    public function callback()
+    {
+        Session::start();
+
+        $code = $_GET['code'] ?? '';
+        $error = $_GET['error'] ?? '';
+
+        if ($error || !$code) {
+            header('Location: /BloodConnect/public/login');
+            exit;
+        }
+
+        $google = new GoogleOAuth();
+
+        $tokenData = $google->fetchAccessToken($code);
+        if (!$tokenData) {
+            $_SESSION['errors']['form'] = 'Failed to authenticate with Google. Please try again.';
+            header('Location: /BloodConnect/public/login');
+            exit;
+        }
+
+        $userInfo = $google->fetchUserInfo($tokenData['access_token']);
+        if (!$userInfo) {
+            $_SESSION['errors']['form'] = 'Failed to fetch Google profile. Please try again.';
+            header('Location: /BloodConnect/public/login');
+            exit;
+        }
+
+        $googleId = $userInfo['id'] ?? '';
+        $email = $userInfo['email'] ?? '';
+        $name = $userInfo['name'] ?? '';
+        $avatar = $userInfo['picture'] ?? '';
+
+        if (!$email) {
+            $_SESSION['errors']['form'] = 'Google account must have an email address.';
+            header('Location: /BloodConnect/public/login');
+            exit;
+        }
+
+        $repo = new AuthRepository();
+
+        // Check if Google ID already exists
+        $existingByGoogle = $repo->findByGoogleId($googleId);
+        if ($existingByGoogle) {
+            $this->loginUser($existingByGoogle);
+            return;
+        }
+
+        // Check if email already exists
+        $existingByEmail = $repo->findByEmailWithGoogle($email);
+        if ($existingByEmail) {
+            // Link Google account to existing user and log them in
+            $repo->linkGoogleAccount((int)$existingByEmail['user_id'], $googleId, $avatar);
+            $updatedUser = $repo->findByEmail($email);
+            $this->loginUser($updatedUser);
+            return;
+        }
+
+        // New user — store Google info in session and redirect to role selection
+        Session::set('google_registration', [
+            'google_id' => $googleId,
+            'email'     => $email,
+            'name'      => $name,
+            'avatar'    => $avatar,
+        ]);
+
+        header('Location: /BloodConnect/public/auth/google/choose-role');
+        exit;
+    }
+
+    public function chooseRole()
+    {
+        Session::start();
+
+        $googleData = Session::get('google_registration');
+        if (!$googleData) {
+            header('Location: /BloodConnect/public/register');
+            exit;
+        }
+
+        $errors = $_SESSION['errors'] ?? [];
+        unset($_SESSION['errors']);
+
+        $viewFile = __DIR__ . '/../View/google_choose_role.php';
+        $layout = __DIR__ . '/../../../Shared/Presentation/Layout/app.php';
+
+        ob_start();
+        require $viewFile;
+        $content = ob_get_clean();
+        require $layout;
+    }
+
+    public function completeRegistration()
+    {
+        Session::start();
+
+        $googleData = Session::get('google_registration');
+        if (!$googleData) {
+            header('Location: /BloodConnect/public/register');
+            exit;
+        }
+
+        $role = $_POST['role'] ?? '';
+        $username = trim($_POST['username'] ?? '');
+        $bloodGroup = trim($_POST['blood_group'] ?? '');
+
+        if (!in_array($role, ['donor', 'patient'])) {
+            $_SESSION['errors']['role'] = 'Please select a valid role.';
+            header('Location: /BloodConnect/public/auth/google/choose-role');
+            exit;
+        }
+
+        if (!$username) {
+            $_SESSION['errors']['username'] = 'Username is required.';
+            header('Location: /BloodConnect/public/auth/google/choose-role');
+            exit;
+        }
+
+        if (!$bloodGroup || !in_array($bloodGroup, ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'])) {
+            $_SESSION['errors']['blood_group'] = 'Please select your blood group.';
+            header('Location: /BloodConnect/public/auth/google/choose-role');
+            exit;
+        }
+
+        $userTypeId = $role === 'donor' ? 2 : 3;
+        $statusId = 1;
+        $masterRepo = new MasterDataRepository();
+        $pendingStatus = $masterRepo->getId('USER_STATUS', 'ACTIVE');
+        if ($pendingStatus) {
+            $statusId = (int)$pendingStatus;
+        }
+
+        $repo = new AuthRepository();
+
+        // Check username uniqueness
+        $existingUser = $repo->findByUsername($username);
+        if ($existingUser) {
+            $_SESSION['errors']['username'] = 'Username is already taken.';
+            header('Location: /BloodConnect/public/auth/google/choose-role');
+            exit;
+        }
+
+        $userId = $repo->createGoogleUser(
+            $username,
+            $googleData['email'],
+            $googleData['google_id'],
+            $googleData['avatar'],
+            $userTypeId,
+            $statusId,
+            $bloodGroup
+        );
+
+        Session::remove('google_registration');
+
+        $user = $repo->findByEmail($googleData['email']);
+        $this->loginUser($user);
+    }
+
+    private function loginUser(array $user): void
+    {
+        Session::set('user', $user);
+        Session::set('user_id', $user['user_id']);
+        Session::set('username', $user['username']);
+        Session::set('email', $user['email']);
+        Session::set('user_type_id', $user['user_type_id']);
+
+        $repo = new AuthRepository();
+        $permissions = $repo->getPermissionsByUserType((int)$user['user_type_id']);
+        Session::set('permissions', $permissions);
+
+        $logger = new ActivityLogger();
+        $logger->log(
+            $user['user_id'],
+            $user['username'],
+            'USER_LOGIN',
+            $user['username'] . ' logged in to system'
+        );
+
+        $redirectMap = [
+            1 => '/BloodConnect/public/admin/dashboard',
+            2 => '/BloodConnect/public/donor/dashboard',
+            3 => '/BloodConnect/public/patient/dashboard',
+        ];
+        $redirect = $redirectMap[(int)$user['user_type_id']] ?? '/BloodConnect/public/';
+        header("Location: $redirect");
+        exit;
+    }
+}

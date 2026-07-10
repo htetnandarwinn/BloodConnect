@@ -9,6 +9,7 @@ use App\User\Presentation\Controller\PatientController;
 use App\BloodRequest\Presentation\Controller\BloodRequestController;
 use App\Admin\Presentation\Controller\AdminController;
 use App\Donor\Presentation\Controller\DonorController;
+use App\Authentication\Presentation\Controller\GoogleAuthController;
 
 $router = new Router();
 
@@ -52,6 +53,16 @@ $router->post('/donor/register', [AuthController::class, 'registerDonor']);
 $router->post('/donor/register', [AuthController::class, 'registerPatient']);
 
 $router->get('/logout', [AuthController::class, 'logout']);
+
+/*
+|--------------------------------------------------------------------------
+| GOOGLE OAUTH ROUTES (public)
+|--------------------------------------------------------------------------
+*/
+$router->get('/auth/google', [GoogleAuthController::class, 'redirect']);
+$router->get('/auth/google/callback', [GoogleAuthController::class, 'callback']);
+$router->get('/auth/google/choose-role', [GoogleAuthController::class, 'chooseRole']);
+$router->post('/auth/google/complete-registration', [GoogleAuthController::class, 'completeRegistration']);
 
 /*
 |--------------------------------------------------------------------------

@@ -250,6 +250,128 @@ class AuthRepository implements AuthRepositoryInterface
         ]);
     }
 
+    // ================= FIND BY GOOGLE ID =================
+    public function findByGoogleId(string $googleId)
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                user_id,
+                username,
+                email,
+                phone,
+                blood_group,
+                address,
+                password,
+                user_type_id,
+                status_id,
+                available,
+                is_active,
+                is_verified,
+                google_id,
+                avatar,
+                auth_provider
+            FROM users
+            WHERE google_id = :google_id
+            LIMIT 1
+        ");
+        $stmt->execute([':google_id' => $googleId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // ================= FIND BY EMAIL (with Google fields) =================
+    public function findByEmailWithGoogle(string $email)
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                user_id,
+                username,
+                email,
+                password,
+                user_type_id,
+                is_active,
+                is_verified,
+                google_id,
+                avatar,
+                auth_provider
+            FROM users
+            WHERE email = :email
+            LIMIT 1
+        ");
+        $stmt->execute([':email' => $email]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // ================= CREATE GOOGLE USER =================
+    public function createGoogleUser(
+        string $username,
+        string $email,
+        string $googleId,
+        string $avatar,
+        int $userTypeId,
+        int $statusId,
+        string $bloodGroup = ''
+    ): int {
+        $stmt = $this->db->prepare("
+            INSERT INTO users (
+                username,
+                email,
+                google_id,
+                avatar,
+                auth_provider,
+                user_type_id,
+                status_id,
+                blood_group,
+                is_verified,
+                is_active,
+                available,
+                created_at,
+                updated_at
+            ) VALUES (
+                :username,
+                :email,
+                :google_id,
+                :avatar,
+                'google',
+                :user_type_id,
+                :status_id,
+                :blood_group,
+                1,
+                1,
+                1,
+                NOW(),
+                NOW()
+            )
+        ");
+        $stmt->execute([
+            ':username' => $username,
+            ':email' => $email,
+            ':blood_group' => $bloodGroup,
+            ':google_id' => $googleId,
+            ':avatar' => $avatar,
+            ':user_type_id' => $userTypeId,
+            ':status_id' => $statusId,
+        ]);
+        return (int)$this->db->lastInsertId();
+    }
+
+    // ================= LINK GOOGLE ACCOUNT TO EXISTING USER =================
+    public function linkGoogleAccount(int $userId, string $googleId, string $avatar): bool
+    {
+        $stmt = $this->db->prepare("
+            UPDATE users
+            SET
+                google_id = :google_id,
+                avatar = :avatar,
+                auth_provider = 'google'
+            WHERE user_id = :user_id
+        ");
+        return $stmt->execute([
+            ':google_id' => $googleId,
+            ':avatar' => $avatar,
+            ':user_id' => $userId,
+        ]);
+    }
+
     public function getPermissionsByUserType(int $userTypeId): array
     {
         // Admin gets every permission

@@ -137,6 +137,18 @@ unset($_SESSION['errors'], $_SESSION['success'], $_SESSION['old']);
                             </a>
                         </div>
 
+                        <a href="<?= $basePath ?? '' ?>/auth/google"
+                            class="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 hover:border-red-300 hover:bg-red-50/30 text-gray-700 font-bold py-3.5 px-6 rounded-xl text-base shadow-sm active:scale-[0.99] transition duration-150">
+                            <i class="fa-brands fa-google text-red-500 text-lg"></i>
+                            Continue with Google
+                        </a>
+
+                        <div class="relative flex items-center">
+                            <div class="flex-grow border-t border-gray-200"></div>
+                            <span class="flex-shrink mx-4 text-xs font-bold text-gray-400 uppercase">or</span>
+                            <div class="flex-grow border-t border-gray-200"></div>
+                        </div>
+
                         <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-xl text-lg shadow-lg shadow-red-600/20 active:scale-[0.99] transition duration-150">
                             Sign in
                         </button>
