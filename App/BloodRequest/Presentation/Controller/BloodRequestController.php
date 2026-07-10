@@ -33,7 +33,15 @@ class BloodRequestController
             exit;
         }
 
-        return patientView::render('request_blood');
+        $message = Session::get('flash_message', '');
+        $status = Session::get('flash_status', '');
+        Session::remove('flash_message');
+        Session::remove('flash_status');
+
+        return patientView::render('request_blood', [
+            'message' => $message,
+            'status'  => $status,
+        ]);
     }
 
 
@@ -51,6 +59,21 @@ class BloodRequestController
             exit;
         }
 
+
+        // Prevent duplicate pending requests
+        if ($this->repository->hasPendingRequest(Session::get('user_id'))) {
+            $notificationRepo = new NotificationRepository();
+            $notificationRepo->create(
+                Session::get('user_id'),
+                'Duplicate Request Blocked',
+                'You already have a pending blood request.',
+                'REMINDER'
+            );
+            Session::set('flash_message', 'You already have a pending blood request.');
+            Session::set('flash_status', 'error');
+            header('Location: /BloodConnect/public/patient/request-blood');
+            exit;
+        }
 
         $requestCode = 'REQ' . date('YmdHis');
 

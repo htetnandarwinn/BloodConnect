@@ -12,7 +12,6 @@ use App\Shared\Infrastructure\Persistence\RoleRepository;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
 
 
-
 class AdminController
 {
     /**

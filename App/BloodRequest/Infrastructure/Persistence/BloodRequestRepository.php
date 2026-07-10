@@ -480,6 +480,18 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 
 
 
+    public function hasPendingRequest(int $patientId): bool
+    {
+        $stmt = $this->db->prepare("
+            SELECT COUNT(*)
+            FROM blood_requests
+            WHERE patient_id = ?
+              AND status = 7
+        ");
+        $stmt->execute([$patientId]);
+        return (int)$stmt->fetchColumn() > 0;
+    }
+
     // ================= UPDATE DONOR ACCEPT / DECLINE =================
 
     public function updateDonorDecision(
