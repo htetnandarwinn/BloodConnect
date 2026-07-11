@@ -1,2 +1,4 @@
 /node_modules/
 .envgit status
+.envgit rm --cached git ls-files .env
+.env

@@ -3,12 +3,30 @@
 namespace App\Shared\Presentation\Controller;
 
 use App\Shared\Presentation\View\View;
+use App\Donation\Infrastructure\Persistence\DonationRepository;
+use App\User\Infrastructure\Persistence\UserRepository;
 
 class HomeController
 {
     public function home()
     {
-        return View::render('home');
+        $donationRepo = new DonationRepository();
+        $successfulDonations = $donationRepo->countSuccessfulDonations();
+
+        $userRepo = new UserRepository();
+        $users = $userRepo->findAll();
+        $totalUsers = count($users);
+
+        $totalDonors = 0;
+        foreach ($users as $user) {
+            if ((int)($user['user_type_id'] ?? 0) === 2) $totalDonors++;
+        }
+
+        return View::render('home', [
+            'successful_donations' => $successfulDonations,
+            'total_donors' => $totalDonors,
+            'total_users' => $totalUsers,
+        ]);
     }
 
     public function about()
@@ -19,6 +37,47 @@ class HomeController
     public function contact()
     {
         return View::render('contact');
+    }
+
+    public function contactSend()
+    {
+        $name    = trim($_POST['name'] ?? '');
+        $email   = trim($_POST['email'] ?? '');
+        $subject = trim($_POST['subject'] ?? '');
+        $message = trim($_POST['message'] ?? '');
+
+        $errors = [];
+        if ($name === '')    $errors['name']    = 'Full name is required.';
+        if ($email === '' || !str_contains($email, '@')) $errors['email'] = 'A valid email is required.';
+        if ($subject === '') $errors['subject'] = 'Please specify a clear subject.';
+        if ($message === '') $errors['message'] = 'Message cannot be blank.';
+
+        if (!empty($errors)) {
+            $_SESSION['errors'] = $errors;
+            $_SESSION['old'] = $_POST;
+            header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '/contact'));
+            exit;
+        }
+
+        $_SESSION['success'] = 'Your message has been received. Our team will respond within 24 hours.';
+        $_SESSION['old'] = [];
+        header('Location: /contact');
+        exit;
+    }
+
+    public function faq()
+    {
+        return View::render('faq');
+    }
+
+    public function privacy()
+    {
+        return View::render('privacy_policy');
+    }
+
+    public function terms()
+    {
+        return View::render('terms_of_service');
     }
 
     public function search()

@@ -42,11 +42,11 @@
 
                 <!-- Call to Action Buttons with Hover Pop Effects -->
                 <div class="flex flex-col sm:flex-row gap-4 pt-4 w-full sm:w-auto">
-                    <a href="<?= $basePath ?>/register" class="group bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-xl text-lg shadow-lg shadow-red-600/20 active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2 transform hover:-translate-y-0.5">
+                    <a href="<?= $basePath ?>/search" class="group bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-8 rounded-xl text-lg shadow-lg shadow-red-600/20 active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2 transform hover:-translate-y-0.5">
                         <span>Find Blood Requests</span>
                         <i class="fa-solid fa-arrow-right text-sm transform group-hover:translate-x-1 transition-transform"></i>
                     </a>
-                    <a href="<?= $basePath ?>/donor/register" class="bg-white border border-gray-300 hover:border-gray-400 text-gray-800 font-bold py-4 px-8 rounded-xl text-lg shadow-sm hover:shadow-md active:scale-[0.99] transition-all duration-200 text-center transform hover:-translate-y-0.5">
+                    <a href="<?= $basePath ?>/register?role=donor" class="bg-white border border-gray-300 hover:border-gray-400 text-gray-800 font-bold py-4 px-8 rounded-xl text-lg shadow-sm hover:shadow-md active:scale-[0.99] transition-all duration-200 text-center transform hover:-translate-y-0.5">
                         Become a Donor
                     </a>
                 </div>
@@ -62,19 +62,51 @@
                         <rect x="83" y="135" width="74" height="20" rx="7" fill="#FFFFFF" />
                     </svg>
 
-                    <!-- Decorative Floating Badge -->
+                    <!-- Decorative Floating Badge - Live Donation Counter -->
                     <div class="absolute -bottom-4 -left-4 bg-white border border-gray-150 rounded-2xl p-4 shadow-lg flex items-center gap-3 transform animate-bounce duration-[4000ms]">
                         <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                            <i class="fa-solid fa-circle-check"></i>
+                            <i class="fa-solid fa-droplet"></i>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Platform Status</p>
-                            <p class="text-sm font-black text-gray-800">100% Verified Match</p>
+                            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider">Lives Impacted</p>
+                            <p class="text-sm font-black text-gray-800"><span class="counter-value" data-target="<?= $successful_donations ?>">0</span>+ Donations</p>
                         </div>
                     </div>
                 </div>
             </div>
 
+        </div>
+
+        <!-- STATISTICS COUNTER ROW -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16 relative z-10">
+            <div class="group bg-white border border-gray-200/60 rounded-2xl p-6 text-center shadow-sm hover:shadow-lg hover:border-red-200 hover:bg-red-50/30 transition-all duration-300 transform hover:-translate-y-1">
+                <div class="w-10 h-10 mx-auto mb-3 rounded-xl bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-colors duration-300">
+                    <i class="fa-solid fa-droplet text-lg"></i>
+                </div>
+                <span class="text-3xl md:text-4xl font-black text-red-600"><span class="counter-value" data-target="<?= $successful_donations ?>">0</span></span>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mt-1">Successful Donations</p>
+            </div>
+            <div class="group bg-white border border-gray-200/60 rounded-2xl p-6 text-center shadow-sm hover:shadow-lg hover:border-red-200 hover:bg-red-50/30 transition-all duration-300 transform hover:-translate-y-1">
+                <div class="w-10 h-10 mx-auto mb-3 rounded-xl bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-colors duration-300">
+                    <i class="fa-solid fa-hand-holding-heart text-lg"></i>
+                </div>
+                <span class="text-3xl md:text-4xl font-black text-red-600"><span class="counter-value" data-target="<?= $total_donors ?>">0</span></span>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mt-1">Active Donors</p>
+            </div>
+            <div class="group bg-white border border-gray-200/60 rounded-2xl p-6 text-center shadow-sm hover:shadow-lg hover:border-red-200 hover:bg-red-50/30 transition-all duration-300 transform hover:-translate-y-1">
+                <div class="w-10 h-10 mx-auto mb-3 rounded-xl bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-colors duration-300">
+                    <i class="fa-solid fa-users text-lg"></i>
+                </div>
+                <span class="text-3xl md:text-4xl font-black text-red-600"><span class="counter-value" data-target="<?= $total_users ?>">0</span></span>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mt-1">Total Users</p>
+            </div>
+            <div class="group bg-white border border-gray-200/60 rounded-2xl p-6 text-center shadow-sm hover:shadow-lg hover:border-red-200 hover:bg-red-50/30 transition-all duration-300 transform hover:-translate-y-1">
+                <div class="w-10 h-10 mx-auto mb-3 rounded-xl bg-red-50 text-red-600 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-colors duration-300">
+                    <i class="fa-solid fa-truck-medical text-lg"></i>
+                </div>
+                <span class="text-3xl md:text-4xl font-black text-red-600">24/7</span>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mt-1">Emergency Support</p>
+            </div>
         </div>
 
         <!-- QUICK ACTION CARD MODULES -->
@@ -117,3 +149,39 @@
 
     </div>
 </section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const counters = document.querySelectorAll('.counter-value');
+        const speed = 40;
+
+        const animate = (counter) => {
+            const target = parseInt(counter.getAttribute('data-target'));
+            const increment = Math.max(1, Math.floor(target / 30));
+            let current = 0;
+
+            const update = () => {
+                current += increment;
+                if (current >= target) {
+                    counter.textContent = target.toLocaleString();
+                    return;
+                }
+                counter.textContent = current.toLocaleString();
+                requestAnimationFrame(() => setTimeout(update, speed));
+            };
+
+            update();
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animate(entry.target);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        counters.forEach(c => observer.observe(c));
+    });
+</script>

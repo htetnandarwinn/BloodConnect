@@ -25,6 +25,8 @@ $stmt = $db->prepare("
         u.phone,
         ut.name AS role,
         u.is_active,
+        u.available,
+        u.next_available_date,
         u.created_at,
         COALESCE(md.label, u.blood_group, 'N/A') AS blood_group
     FROM users u
@@ -57,7 +59,7 @@ $role = $user['role'] ?? 'Unknown';
                 </svg>
             </a>
             <div>
-                <h1 class="text-xl font-extrabold text-slate-900 tracking-tight sm:text-2xl">User Directory</h1>
+                <h1 class="text-xl font-extrabold text-slate-900 tracking-tight sm:text-2xl"><?= strtolower($role) === 'donor' ? 'Donor' : 'User' ?> Directory</h1>
                 <p class="text-xs text-slate-400 font-medium">System Reference ID: #<?= $user['user_id'] ?></p>
             </div>
         </div>
@@ -106,17 +108,19 @@ $role = $user['role'] ?? 'Unknown';
                 </div>
             </div>
 
-            <div class="sm:self-end">
-                <?php if ($user['is_active'] == 1): ?>
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-full">
-                        <span class="w-2 h-2 rounded-full bg-green-500 relative flex"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span>
-                        Active Status
-                    </span>
-                <?php else: ?>
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-200 rounded-full">
-                        <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                        Disabled
-                    </span>
+            <div class="sm:self-end flex flex-col items-end gap-2">
+                <?php if (strtolower($role) === 'donor'): ?>
+                    <?php if ((int)($user['available'] ?? 1) === 1): ?>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            Available
+                        </span>
+                    <?php else: ?>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-full">
+                            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                            Unavailable
+                        </span>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
         </div>
@@ -155,6 +159,20 @@ $role = $user['role'] ?? 'Unknown';
                     </span>
                 </div>
             </div>
+
+            <?php if (strtolower($role) === 'donor' && (int)($user['available'] ?? 1) !== 1 && !empty($user['next_available_date'])): ?>
+                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-1.5">
+                    <span class="text-[11px] uppercase font-bold tracking-wider text-slate-400 block">Next Eligible Date</span>
+                    <div class="flex items-center gap-2.5 text-amber-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-amber-500 shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                        </svg>
+                        <span class="text-sm font-semibold text-slate-800 font-mono">
+                            <?= date('F j, Y', strtotime($user['next_available_date'])) ?>
+                        </span>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-1.5">
                 <span class="text-[11px] uppercase font-bold tracking-wider text-slate-400 block">Registration Timeline</span>

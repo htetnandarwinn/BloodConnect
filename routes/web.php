@@ -31,7 +31,11 @@ $router->aliasMiddleware('patient', \App\Shared\Middleware\PatientMiddleware::cl
 $router->get('/', [HomeController::class, 'home']);
 $router->get('/about', [HomeController::class, 'about']);
 $router->get('/contact', [HomeController::class, 'contact']);
+$router->post('/contact/send', [HomeController::class, 'contactSend']);
 $router->get('/search', [HomeController::class, 'search']);
+$router->get('/faq', [HomeController::class, 'faq']);
+$router->get('/privacy-policy', [HomeController::class, 'privacy']);
+$router->get('/terms-of-service', [HomeController::class, 'terms']);
 
 /*
 |--------------------------------------------------------------------------

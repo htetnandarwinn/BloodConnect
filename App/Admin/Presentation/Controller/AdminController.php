@@ -195,6 +195,12 @@ class AdminController
             $assignedDonor = (new UserRepository())->findById((int)$request['donor_id']);
         }
 
+        // Filter out the currently assigned/accepted donor from the dropdown
+        $currentDonorId = (int)($request['donor_id'] ?? 0);
+        $donors = array_values(array_filter($donors, function ($d) use ($currentDonorId) {
+            return (int)($d['user_id'] ?? 0) !== $currentDonorId;
+        }));
+
         ob_start();
         require __DIR__ . '/../View/blood_request_detail.php';
         $content = ob_get_clean();

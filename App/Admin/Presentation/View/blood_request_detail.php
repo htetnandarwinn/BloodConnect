@@ -48,6 +48,7 @@ if (!function_exists('getAdminBloodGroupStyle')) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blood Request Details | BloodConnect</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @keyframes fadeInUp {
@@ -65,6 +66,7 @@ if (!function_exists('getAdminBloodGroupStyle')) {
         .animate-fade-in-up {
             animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
 
@@ -174,6 +176,38 @@ if (!function_exists('getAdminBloodGroupStyle')) {
                                 <p class="mt-0.5 font-semibold text-slate-600 truncate"><?= htmlspecialchars((string)($acceptedDonor['email'] ?? '-')) ?></p>
                             </div>
                         </div>
+
+                        <?php if (!empty($donors)): ?>
+                            <div x-data="{ open: false }" class="pt-2 border-t border-emerald-200/40">
+                                <button @click="open = !open" type="button" class="inline-flex items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-4 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 hover:bg-slate-50 transition-all active:scale-95 shadow-3xs">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Change Donor
+                                </button>
+                                <form action="/BloodConnect/public/admin/blood-request/accept" method="POST" x-show="open" x-cloak class="mt-4 space-y-4">
+                                    <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase tracking-wider text-slate-400 block" for="donor_id_reassign_accepted">
+                                            Reassign To
+                                        </label>
+                                        <div class="relative">
+                                            <select id="donor_id_reassign_accepted" name="donor_id" class="w-full rounded-xl border border-slate-200/80 bg-white pl-4 pr-10 py-3 text-xs font-bold text-slate-700 appearance-none focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 shadow-3xs transition-all" required>
+                                                <option value="" class="font-semibold text-slate-400">-- Choose allocation node --</option>
+                                                <?php foreach ($donors as $donor): ?>
+                                                    <option value="<?= (int)($donor['user_id'] ?? 0) ?>" class="font-medium text-slate-700">
+                                                        <?= htmlspecialchars((string)($donor['username'] ?? 'Donor')) ?> &middot; [<?= htmlspecialchars((string)($donor['blood_group'] ?? '-')) ?>] &middot; <?= htmlspecialchars((string)($donor['phone'] ?? '-')) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                                                <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#ce2424] px-4 py-3 text-xs font-bold text-white hover:bg-[#a61c1c] transition-all active:scale-95 shadow-md shadow-red-600/10">
+                                        <i class="fa-solid fa-truck-medical"></i> Reassign & Dispatch
+                                    </button>
+                                </form>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                 <?php elseif ($isPendingAssignment && $assignedDonor): ?>
@@ -204,6 +238,38 @@ if (!function_exists('getAdminBloodGroupStyle')) {
                                 <p class="mt-0.5 font-semibold text-slate-600 truncate"><?= htmlspecialchars((string)($assignedDonor['email'] ?? '-')) ?></p>
                             </div>
                         </div>
+
+                        <?php if (!empty($donors)): ?>
+                            <div x-data="{ open: false }" class="pt-2 border-t border-amber-200/30">
+                                <button @click="open = !open" type="button" class="inline-flex items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-4 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 hover:bg-slate-50 transition-all active:scale-95 shadow-3xs">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Change Donor
+                                </button>
+                                <form action="/BloodConnect/public/admin/blood-request/accept" method="POST" x-show="open" x-cloak class="mt-4 space-y-4">
+                                    <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold uppercase tracking-wider text-slate-400 block" for="donor_id_reassign_pending">
+                                            Reassign To
+                                        </label>
+                                        <div class="relative">
+                                            <select id="donor_id_reassign_pending" name="donor_id" class="w-full rounded-xl border border-slate-200/80 bg-white pl-4 pr-10 py-3 text-xs font-bold text-slate-700 appearance-none focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 shadow-3xs transition-all" required>
+                                                <option value="" class="font-semibold text-slate-400">-- Choose allocation node --</option>
+                                                <?php foreach ($donors as $donor): ?>
+                                                    <option value="<?= (int)($donor['user_id'] ?? 0) ?>" class="font-medium text-slate-700">
+                                                        <?= htmlspecialchars((string)($donor['username'] ?? 'Donor')) ?> &middot; [<?= htmlspecialchars((string)($donor['blood_group'] ?? '-')) ?>] &middot; <?= htmlspecialchars((string)($donor['phone'] ?? '-')) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                                                <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#ce2424] px-4 py-3 text-xs font-bold text-white hover:bg-[#a61c1c] transition-all active:scale-95 shadow-md shadow-red-600/10">
+                                        <i class="fa-solid fa-truck-medical"></i> Reassign & Dispatch
+                                    </button>
+                                </form>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                 <?php elseif (empty($donors)): ?>

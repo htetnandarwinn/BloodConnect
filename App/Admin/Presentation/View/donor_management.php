@@ -17,21 +17,14 @@ $stmt = $db->prepare("
         u.phone,
         u.is_active,
         u.blood_group,
+        u.next_available_date,
         CONCAT('DNR-', u.user_id + 4200) AS donor_id,
         CASE
             WHEN u.is_active != 1 THEN 'INACTIVE'
-            WHEN latest_request.created_at IS NULL THEN 'AVAILABLE'
-            WHEN DATE_SUB(CURDATE(), INTERVAL 3 MONTH) <= latest_request.created_at THEN 'UNAVAILABLE'
-            ELSE 'AVAILABLE'
+            WHEN u.available = 1 OR u.next_available_date IS NULL THEN 'AVAILABLE'
+            ELSE 'UNAVAILABLE'
         END AS availability_status
     FROM users u
-    LEFT JOIN (
-        SELECT donor_id, MAX(created_at) AS created_at
-        FROM blood_requests
-        WHERE donor_id IS NOT NULL
-          AND status = 8
-        GROUP BY donor_id
-    ) latest_request ON latest_request.donor_id = u.user_id
     WHERE u.user_type_id = 2
     ORDER BY u.user_id DESC
 ");
@@ -130,7 +123,7 @@ $donors = $stmt->fetchAll();
                         <span class="text-xs text-slate-400 font-medium block mt-0.5 mono truncate">Mob: <?= htmlspecialchars($donor['phone'] ?? '—') ?></span>
                     </div>
 
-                    <div class="col-span-2 flex justify-start pl-4">
+                    <div class="col-span-2 flex flex-col items-start justify-center pl-4 gap-1">
                         <?php if ($donor['availability_status'] === 'AVAILABLE'): ?>
                             <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-emerald-500 text-white border-emerald-600">
                                 AVAILABLE
@@ -139,6 +132,11 @@ $donors = $stmt->fetchAll();
                             <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-red-500 text-white border-red-600">
                                 UNAVAILABLE
                             </span>
+                            <?php if (!empty($donor['next_available_date'])): ?>
+                                <span class="text-[10px] text-slate-500 font-medium mono whitespace-nowrap">
+                                    Eligible: <?= date('M d, Y', strtotime($donor['next_available_date'])) ?>
+                                </span>
+                            <?php endif; ?>
                         <?php else: ?>
                             <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-rose-50 text-rose-600 border-rose-200/50">
                                 INACTIVE
@@ -208,6 +206,14 @@ $donors = $stmt->fetchAll();
                             <?= htmlspecialchars($donor['blood_group']) ?>
                         </div>
                     </div>
+
+                    <?php if ($donor['availability_status'] === 'UNAVAILABLE' && !empty($donor['next_available_date'])): ?>
+                        <div class="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl">
+                            <span class="text-[10px] text-amber-700 font-semibold">
+                                <i class="fa-regular fa-calendar-circle-clock"></i> Next eligible: <?= date('M d, Y', strtotime($donor['next_available_date'])) ?>
+                            </span>
+                        </div>
+                    <?php endif; ?>
 
                     <div class="flex items-center gap-2 pt-1">
                         <a href="/BloodConnect/public/admin/user/view?id=<?= $donor['user_id'] ?>"

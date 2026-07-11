@@ -17,16 +17,16 @@
                     Connecting voluntary blood donors with patients in need quickly and safely. Join us in making a lifesaving difference today.
                 </p>
                 <div class="flex items-center gap-3 mt-2">
-                    <a href="#" class="w-11 h-11 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-600 hover:text-white transition-all duration-300 text-lg">
+                    <a href="https://facebook.com/BloodConnect" target="_blank" rel="noopener noreferrer" class="w-11 h-11 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-600 hover:text-white transition-all duration-300 text-lg">
                         <i class="fa-brands fa-facebook-f"></i>
                     </a>
-                    <a href="#" class="w-11 h-11 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-600 hover:text-white transition-all duration-300 text-lg">
+                    <a href="https://twitter.com/BloodConnect" target="_blank" rel="noopener noreferrer" class="w-11 h-11 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-600 hover:text-white transition-all duration-300 text-lg">
                         <i class="fa-brands fa-twitter"></i>
                     </a>
-                    <a href="#" class="w-11 h-11 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-600 hover:text-white transition-all duration-300 text-lg">
+                    <a href="https://instagram.com/BloodConnect" target="_blank" rel="noopener noreferrer" class="w-11 h-11 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-600 hover:text-white transition-all duration-300 text-lg">
                         <i class="fa-brands fa-instagram"></i>
                     </a>
-                    <a href="#" class="w-11 h-11 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-600 hover:text-white transition-all duration-300 text-lg">
+                    <a href="https://linkedin.com/company/BloodConnect" target="_blank" rel="noopener noreferrer" class="w-11 h-11 rounded-xl bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-red-600 hover:text-white transition-all duration-300 text-lg">
                         <i class="fa-brands fa-linkedin-in"></i>
                     </a>
                 </div>
@@ -37,9 +37,9 @@
                 <ul class="flex flex-col gap-3 text-base">
                     <li><a href="<?= $basePath ?>/" class="hover:text-red-500 transition-colors duration-200">Home</a></li>
                     <li><a href="<?= $basePath ?>/about" class="hover:text-red-500 transition-colors duration-200">About Us</a></li>
-                    <li><a href="<?= $basePath ?>/search-donor" class="hover:text-red-500 transition-colors duration-200">Search Donor</a></li>
-                    <li><a href="<?= $basePath ?>/blood-request" class="hover:text-red-500 transition-colors duration-200">Blood Requests</a></li>
-                    <li><a href="<?= $basePath ?>/donors" class="hover:text-red-500 transition-colors duration-200">Donors</a></li>
+                    <li><a href="<?= $basePath ?>/register" class="hover:text-red-500 transition-colors duration-200">Search Donor</a></li>
+                    <li><a href="<?= $basePath ?>/register" class="hover:text-red-500 transition-colors duration-200">Blood Requests</a></li>
+
                 </ul>
             </div>
 
@@ -47,9 +47,9 @@
                 <h3 class="text-white font-bold text-lg tracking-wider uppercase text-sm">Support</h3>
                 <ul class="flex flex-col gap-3 text-base">
                     <li><a href="<?= $basePath ?>/contact" class="hover:text-red-500 transition-colors duration-200">Contact Us</a></li>
-                    <li><a href="#" class="hover:text-red-500 transition-colors duration-200">FAQ</a></li>
-                    <li><a href="#" class="hover:text-red-500 transition-colors duration-200">Privacy Policy</a></li>
-                    <li><a href="#" class="hover:text-red-500 transition-colors duration-200">Terms of Service</a></li>
+                    <li><a href="<?= $basePath ?>/faq" class="hover:text-red-500 transition-colors duration-200">FAQ</a></li>
+                    <li><a href="<?= $basePath ?>/privacy-policy" class="hover:text-red-500 transition-colors duration-200">Privacy Policy</a></li>
+                    <li><a href="<?= $basePath ?>/terms-of-service" class="hover:text-red-500 transition-colors duration-200">Terms of Service</a></li>
                 </ul>
             </div>
 
@@ -58,8 +58,8 @@
                 <p class="text-gray-400 text-base leading-relaxed">
                     Subscribe to receive local blood drive notifications and community metrics.
                 </p>
-                <form class="flex flex-col sm:flex-row gap-3 mt-2 w-full" onsubmit="event.preventDefault();">
-                    <input type="email" placeholder="Your email address" required
+                <form class="flex flex-col sm:flex-row gap-3 mt-2 w-full" action="<?= $basePath ?>/register" method="GET">
+                    <input type="email" name="email" placeholder="Your email address" required
                         class="w-full bg-gray-800 text-white border border-gray-750 px-4 py-3 rounded-xl focus:outline-none focus:border-red-500 transition text-base">
                     <button type="submit" 
                         class="bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-3 rounded-xl transition duration-200 whitespace-nowrap text-base">
