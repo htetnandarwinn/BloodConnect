@@ -7,6 +7,7 @@ use App\Donation\Domain\Repository\DonationRepositoryInterface;
 use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 use App\User\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
+use App\Shared\Infrastructure\Activity\ActivityLogger;
 
 class CompleteBloodRequestUseCase
 {
@@ -15,7 +16,8 @@ class CompleteBloodRequestUseCase
         private DonationRepositoryInterface $donationRepo,
         private NotificationRepositoryInterface $notificationRepo,
         private UserRepositoryInterface $userRepo,
-        private MasterDataRepository $masterRepo
+        private MasterDataRepository $masterRepo,
+        private ActivityLogger $activityLogger
     ) {}
 
     public function execute(int $requestId): array
@@ -67,6 +69,13 @@ class CompleteBloodRequestUseCase
                 'REQUEST'
             );
         }
+
+        $this->activityLogger->log(
+            null,
+            null,
+            'REQUEST_COMPLETED',
+            "Blood request {$request['request_code']} (ID: {$requestId}) completed"
+        );
 
         return ['success' => true];
     }

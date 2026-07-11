@@ -20,7 +20,7 @@ class UserRepository implements UserRepositoryInterface
         $stmt = $this->db->prepare("
             SELECT *
             FROM users
-            WHERE user_id = ?
+            WHERE user_id = ? AND deleted_at IS NULL
         ");
 
         $stmt->execute([$id]);
@@ -84,6 +84,7 @@ class UserRepository implements UserRepositoryInterface
         $stmt = $this->db->query("
         SELECT *
         FROM users
+        WHERE deleted_at IS NULL
     ");
 
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -94,11 +95,23 @@ class UserRepository implements UserRepositoryInterface
         $stmt = $this->db->prepare("
         SELECT user_id, username
         FROM users
-        WHERE user_type_id = 1
+        WHERE user_type_id = 1 AND deleted_at IS NULL
     ");
 
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function softDelete(int $id): bool
+    {
+        $stmt = $this->db->prepare("UPDATE users SET deleted_at = NOW(), is_active = 0 WHERE user_id = ? AND deleted_at IS NULL");
+        return $stmt->execute([$id]);
+    }
+
+    public function restore(int $id): bool
+    {
+        $stmt = $this->db->prepare("UPDATE users SET deleted_at = NULL, is_active = 1 WHERE user_id = ?");
+        return $stmt->execute([$id]);
     }
 }

@@ -89,7 +89,7 @@ $container->singleton(
     \App\Admin\Presentation\Controller\AdminUserController::class,
     function (\App\Shared\Infrastructure\Container\Container $c) {
         return new \App\Admin\Presentation\Controller\AdminUserController(
-            $c->get(\App\User\Domain\Repository\UserRepositoryInterface::class)
+            $c->get(\App\Admin\Application\UseCase\ManageUsersUseCase::class)
         );
     }
 );

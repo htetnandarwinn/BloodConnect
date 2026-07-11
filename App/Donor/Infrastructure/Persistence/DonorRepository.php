@@ -141,4 +141,10 @@ class DonorRepository implements DonorRepositoryInterface
 
         return $stmt->execute($params);
     }
+
+    public function createDonorProfile(int $userId): bool
+    {
+        $stmt = $this->db->prepare("INSERT INTO donors (user_id) VALUES (?)");
+        return $stmt->execute([$userId]);
+    }
 }

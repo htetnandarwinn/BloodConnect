@@ -9,16 +9,20 @@ use App\Authentication\Application\UseCase\LogoutUseCase;
 use App\Authentication\Presentation\View\View;
 use App\Authentication\Application\DTO\RegisterPatientDTO;
 use App\Authentication\Domain\Repository\AuthRepositoryInterface;
+use App\Donor\Domain\Repository\DonorRepositoryInterface;
 use App\Authentication\Presentation\Request\RegisterPatientRequest;
 use App\Authentication\Presentation\Request\LoginRequest;
 use App\Shared\Helpers\Permission;
 use App\Shared\Infrastructure\Mail\EmailService;
+use App\Shared\Infrastructure\Activity\ActivityLogger;
 
 class AuthController
 {
     public function __construct(
         private AuthRepositoryInterface $authRepo,
-        private EmailService $emailService
+        private EmailService $emailService,
+        private DonorRepositoryInterface $donorRepo,
+        private ActivityLogger $activityLogger
     ) {}
     // ================= VIEW =================
 
@@ -197,7 +201,8 @@ class AuthController
 
             $useCase = new RegisterPatientUseCase(
                 $this->authRepo,
-                $this->emailService
+                $this->emailService,
+                $this->donorRepo
             );
 
             $result = $useCase->execute(
@@ -254,7 +259,7 @@ class AuthController
             $request = new LoginRequest();
             $data = $request->validate($_POST);
 
-            $useCase = new LoginUseCase($this->authRepo);
+            $useCase = new LoginUseCase($this->authRepo, $this->activityLogger);
 
             $result = $useCase->execute($data);
 

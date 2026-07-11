@@ -5,13 +5,15 @@ namespace App\Donor\Application\UseCase;
 use App\Donor\Domain\Repository\DonorRepositoryInterface;
 use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 use App\User\Domain\Repository\UserRepositoryInterface;
+use App\Shared\Infrastructure\Activity\ActivityLogger;
 
 class UpdateDonorProfileUseCase
 {
     public function __construct(
         private DonorRepositoryInterface $donorRepo,
         private NotificationRepositoryInterface $notificationRepo,
-        private UserRepositoryInterface $userRepo
+        private UserRepositoryInterface $userRepo,
+        private ActivityLogger $activityLogger
     ) {}
 
     public function execute(int $userId, array $data): array
@@ -37,6 +39,13 @@ class UpdateDonorProfileUseCase
                 'PROFILE_UPDATE'
             );
         }
+
+        $this->activityLogger->log(
+            $userId,
+            $data['username'] ?? null,
+            'PROFILE_UPDATED',
+            "Donor updated their profile"
+        );
 
         return ['success' => true];
     }

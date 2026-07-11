@@ -2,10 +2,16 @@
 
 namespace App\Donation\Application\UseCase;
 
+use App\Donation\Domain\Repository\DonationRepositoryInterface;
+
 class GetDonationHistoryUseCase
 {
-    public function execute(int $donorId)
+    public function __construct(
+        private DonationRepositoryInterface $donationRepo
+    ) {}
+
+    public function execute(int $donorId): array
     {
-        // TODO
+        return $this->donationRepo->findByDonor($donorId);
     }
 }

@@ -5,9 +5,11 @@ namespace App\BloodRequest\Application\UseCase;
 use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
 use App\Donor\Domain\Repository\DonorRepositoryInterface;
 use App\Donation\Domain\Repository\DonationRepositoryInterface;
+use App\Donor\Application\UseCase\DonorDonationEligibilityService;
 use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 use App\User\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
+use App\Shared\Infrastructure\Activity\ActivityLogger;
 
 class AcceptBloodRequestUseCase
 {
@@ -15,14 +17,26 @@ class AcceptBloodRequestUseCase
         private BloodRequestRepositoryInterface $bloodRequestRepo,
         private DonorRepositoryInterface $donorRepo,
         private DonationRepositoryInterface $donationRepo,
+        private DonorDonationEligibilityService $eligibilityService,
         private NotificationRepositoryInterface $notificationRepo,
         private UserRepositoryInterface $userRepo,
-        private MasterDataRepository $masterRepo
+        private MasterDataRepository $masterRepo,
+        private ActivityLogger $activityLogger
     ) {}
 
     public function execute(int $requestId, int $donorId): array
     {
+        $availability = $this->donorRepo->syncAvailabilityStatus($donorId);
         $acceptedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+
+        $lastDonation = $this->bloodRequestRepo->findAcceptedRequestsForDonor($donorId, $acceptedStatus);
+        $lastDonationDate = !empty($lastDonation[0]['created_at']) ? (string)$lastDonation[0]['created_at'] : '';
+
+        $eligibility = $this->eligibilityService->evaluate($lastDonationDate, $availability['next_available_date']);
+        if (!$eligibility['is_available']) {
+            return ['success' => false, 'error' => 'You are not eligible to donate yet. Next eligible date: ' . $eligibility['next_eligible_date']];
+        }
+
         $existingAccepted = $this->bloodRequestRepo->findAcceptedRequestsForDonor($donorId, $acceptedStatus);
         if (!empty($existingAccepted)) {
             return ['success' => false, 'error' => 'You cannot accept more requests while you have an active accepted request.'];
@@ -88,6 +102,13 @@ class AcceptBloodRequestUseCase
                 'REQUEST'
             );
         }
+
+        $this->activityLogger->log(
+            $donorId,
+            $donor['username'] ?? null,
+            'REQUEST_ACCEPTED',
+            "Donor accepted blood request {$request['request_code']} (ID: {$requestId})"
+        );
 
         return ['success' => true];
     }

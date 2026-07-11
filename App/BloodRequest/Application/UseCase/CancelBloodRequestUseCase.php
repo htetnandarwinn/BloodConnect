@@ -6,6 +6,7 @@ use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
 use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 use App\User\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
+use App\Shared\Infrastructure\Activity\ActivityLogger;
 
 class CancelBloodRequestUseCase
 {
@@ -13,7 +14,8 @@ class CancelBloodRequestUseCase
         private BloodRequestRepositoryInterface $bloodRequestRepo,
         private NotificationRepositoryInterface $notificationRepo,
         private UserRepositoryInterface $userRepo,
-        private MasterDataRepository $masterRepo
+        private MasterDataRepository $masterRepo,
+        private ActivityLogger $activityLogger
     ) {}
 
     public function execute(int $requestId, int $patientId): array
@@ -77,6 +79,13 @@ class CancelBloodRequestUseCase
                 'REMINDER'
             );
         }
+
+        $this->activityLogger->log(
+            $patientId,
+            null,
+            'REQUEST_CANCELLED',
+            "Patient cancelled blood request {$request['request_code']} (ID: {$requestId})"
+        );
 
         return ['success' => true];
     }

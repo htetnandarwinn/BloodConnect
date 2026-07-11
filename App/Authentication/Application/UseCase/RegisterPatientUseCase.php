@@ -4,13 +4,15 @@ namespace App\Authentication\Application\UseCase;
 
 use App\Authentication\Application\DTO\RegisterPatientDTO;
 use App\Authentication\Domain\Repository\AuthRepositoryInterface;
+use App\Donor\Domain\Repository\DonorRepositoryInterface;
 use App\Shared\Infrastructure\Mail\EmailService;
 
 class RegisterPatientUseCase
 {
     public function __construct(
         private AuthRepositoryInterface $repo,
-        private EmailService $emailService
+        private EmailService $emailService,
+        private DonorRepositoryInterface $donorRepo
     ) {}
 
     public function execute(
@@ -42,7 +44,7 @@ class RegisterPatientUseCase
         int $statusId,
         string $passwordHash
     ): string {
-        return $this->repo->createPatient(
+        $userId = $this->repo->createPatient(
             $dto,
             $userTypeId,
             $statusId,
@@ -50,5 +52,11 @@ class RegisterPatientUseCase
             '',
             $passwordHash
         );
+
+        if ($userTypeId === 2) {
+            $this->donorRepo->createDonorProfile((int)$userId);
+        }
+
+        return $userId;
     }
 }

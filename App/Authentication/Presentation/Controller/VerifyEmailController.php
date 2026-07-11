@@ -4,6 +4,7 @@ namespace App\Authentication\Presentation\Controller;
 
 use App\Shared\Helpers\Session;
 use App\Authentication\Domain\Repository\AuthRepositoryInterface;
+use App\Donor\Domain\Repository\DonorRepositoryInterface;
 use App\Shared\Infrastructure\Mail\EmailService;
 use App\Authentication\Application\UseCase\RegisterPatientUseCase;
 use App\Authentication\Application\DTO\RegisterPatientDTO;
@@ -12,7 +13,8 @@ class VerifyEmailController
 {
     public function __construct(
         private AuthRepositoryInterface $authRepo,
-        private EmailService $emailService
+        private EmailService $emailService,
+        private DonorRepositoryInterface $donorRepo
     ) {}
     public function show()
     {
@@ -49,7 +51,8 @@ class VerifyEmailController
 
         $useCase = new RegisterPatientUseCase(
             $this->authRepo,
-            $this->emailService
+            $this->emailService,
+            $this->donorRepo
         );
 
         $dto = new RegisterPatientDTO(

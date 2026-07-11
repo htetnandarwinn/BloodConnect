@@ -9,4 +9,5 @@ interface DonorRepositoryInterface
     public function syncAvailabilityStatus(int $userId): array;
     public function saveNextAvailableDate(int $userId, string $nextAvailableDate): bool;
     public function updateProfile(int $id, array $data): bool;
+    public function createDonorProfile(int $userId): bool;
 }

@@ -3,11 +3,13 @@
 namespace App\Authentication\Application\UseCase;
 
 use App\Authentication\Domain\Repository\AuthRepositoryInterface;
+use App\Shared\Infrastructure\Activity\ActivityLogger;
 
 class LoginUseCase
 {
     public function __construct(
-        private AuthRepositoryInterface $repo
+        private AuthRepositoryInterface $repo,
+        private ActivityLogger $activityLogger
     ) {}
 
     public function execute(array $credentials): array
@@ -17,12 +19,10 @@ class LoginUseCase
         $login = trim($credentials['login'] ?? '');
         $password = $credentials['password'] ?? '';
 
-        // Validate login
         if ($login === '') {
             $errors['login'] = 'Email or Username is required.';
         }
 
-        // Validate password
         if ($password === '') {
             $errors['password'] = 'Password is required.';
         }
@@ -34,15 +34,12 @@ class LoginUseCase
             ];
         }
 
-        // Find user by email first
         $user = $this->repo->findByEmail($login);
 
-        // If not found, try username
         if (!$user) {
             $user = $this->repo->findByUsername($login);
         }
 
-        // User not found
         if (!$user) {
             return [
                 'success' => false,
@@ -52,9 +49,6 @@ class LoginUseCase
             ];
         }
 
-
-
-        // Verify password
         if (!password_verify($password, $user['password'])) {
             return [
                 'success' => false,
@@ -64,7 +58,6 @@ class LoginUseCase
             ];
         }
 
-        // Check if account is active
         if ((int)$user['is_active'] !== 1) {
             return [
                 'success' => false,
@@ -74,7 +67,6 @@ class LoginUseCase
             ];
         }
 
-        // Check if account is verified
         if ((int)$user['is_verified'] !== 1) {
             return [
                 'success' => false,
@@ -84,7 +76,13 @@ class LoginUseCase
             ];
         }
 
-        // Login successful
+        $this->activityLogger->log(
+            (int)$user['user_id'],
+            $user['username'] ?? null,
+            'LOGIN',
+            "User logged in"
+        );
+
         return [
             'success' => true,
             'user' => $user

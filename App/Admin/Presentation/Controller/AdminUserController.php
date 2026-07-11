@@ -2,18 +2,18 @@
 
 namespace App\Admin\Presentation\Controller;
 
-use App\User\Domain\Repository\UserRepositoryInterface;
-use App\Shared\Infrastructure\Database\Database;
+use App\Admin\Application\UseCase\ManageUsersUseCase;
+use App\Shared\Helpers\Session;
 
 class AdminUserController
 {
     public function __construct(
-        private UserRepositoryInterface $userRepo
+        private ManageUsersUseCase $manageUsersUseCase
     ) {}
 
     public function userManagement(): void
     {
-        $users = $this->userRepo->findAll();
+        $users = $this->manageUsersUseCase->getAllUsers();
 
         ob_start();
         require __DIR__ . '/../View/user_management.php';
@@ -38,10 +38,7 @@ class AdminUserController
             exit;
         }
 
-        $db = Database::getConnection();
-        $stmt = $db->prepare("SELECT user_id, username, email, user_type_id, is_active FROM users WHERE user_id = ?");
-        $stmt->execute([$id]);
-        $user = $stmt->fetch();
+        $user = $this->manageUsersUseCase->getUserById((int)$id);
 
         if (!$user) {
             header("Location: /BloodConnect/public/admin/user-management");
@@ -56,20 +53,37 @@ class AdminUserController
 
     public function updateUser(): void
     {
-        $id = $_POST['user_id'] ?? null;
-        $username = $_POST['username'] ?? '';
-        $email = $_POST['email'] ?? '';
-        $role = $_POST['user_type_id'] ?? 3;
-        $status = $_POST['is_active'] ?? 1;
+        $id = (int)($_POST['user_id'] ?? 0);
+        $username = trim($_POST['username'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $role = (int)($_POST['user_type_id'] ?? 3);
+        $status = (int)($_POST['is_active'] ?? 1);
 
         if (!$id) {
             header("Location: /BloodConnect/public/admin/user-management");
             exit;
         }
 
-        $db = Database::getConnection();
-        $stmt = $db->prepare("UPDATE users SET username = ?, email = ?, user_type_id = ?, is_active = ? WHERE user_id = ?");
-        $stmt->execute([$username, $email, $role, $status, $id]);
+        Session::start();
+        $adminId = Session::get('user_id');
+        $adminName = Session::get('username');
+
+        $result = $this->manageUsersUseCase->updateUser(
+            $id,
+            [
+                'username' => $username,
+                'email' => $email,
+                'user_type_id' => $role,
+                'is_active' => $status,
+            ],
+            $adminId,
+            $adminName
+        );
+
+        if (!$result['success']) {
+            Session::set('flash_message', $result['error']);
+            Session::set('flash_status', 'error');
+        }
 
         header("Location: /BloodConnect/public/admin/user-management");
         exit;
@@ -77,13 +91,18 @@ class AdminUserController
 
     public function deleteUser(): void
     {
-        $id = $_GET['id'] ?? null;
+        $id = (int)($_GET['id'] ?? 0);
 
-        if ($id) {
-            $db = Database::getConnection();
-            $stmt = $db->prepare("DELETE FROM users WHERE user_id = ?");
-            $stmt->execute([$id]);
+        if (!$id) {
+            header("Location: /BloodConnect/public/admin/user-management");
+            exit;
         }
+
+        Session::start();
+        $adminId = Session::get('user_id');
+        $adminName = Session::get('username');
+
+        $this->manageUsersUseCase->deleteUser($id, $adminId, $adminName);
 
         header("Location: /BloodConnect/public/admin/user-management");
         exit;
