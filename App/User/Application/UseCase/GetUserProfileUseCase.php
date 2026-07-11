@@ -2,10 +2,16 @@
 
 namespace App\User\Application\UseCase;
 
+use App\User\Domain\Repository\UserRepositoryInterface;
+
 class GetUserProfileUseCase
 {
-    public function execute(int $userId)
+    public function __construct(
+        private UserRepositoryInterface $userRepo
+    ) {}
+
+    public function execute(int $userId): ?array
     {
-        // TODO: fetch user profile
+        return $this->userRepo->findById($userId);
     }
 }

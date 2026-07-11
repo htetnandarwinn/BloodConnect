@@ -2,23 +2,17 @@
 
 namespace App\BloodRequest\Presentation\Controller;
 
-use App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository;
+use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
+use App\BloodRequest\Application\UseCase\CreateBloodRequestUseCase;
 use App\Shared\Helpers\Session;
 use App\Shared\Presentation\View\patientView;
-use App\Notification\Infrastructure\Persistence\NotificationRepository;
-use App\Shared\Infrastructure\Activity\ActivityLogger;
-use App\User\Infrastructure\Persistence\UserRepository;
-use App\Shared\Infrastructure\Persistence\MasterDataRepository;
 
 class BloodRequestController
 {
-    private BloodRequestRepository $repository;
-
-
-    public function __construct()
-    {
-        $this->repository = new BloodRequestRepository();
-    }
+    public function __construct(
+        private BloodRequestRepositoryInterface $repository,
+        private CreateBloodRequestUseCase $createUseCase
+    ) {}
 
 
     /**
@@ -46,190 +40,37 @@ class BloodRequestController
 
 
 
-    /**
-     * Store New Blood Request
-     */
     public function store()
     {
         Session::start();
-
 
         if (!Session::has('user_id')) {
             header('Location: /BloodConnect/public/login');
             exit;
         }
 
+        $data = [
+            'blood_group_needed' => trim($_POST['blood_group_needed']),
+            'hospital_name'      => trim($_POST['hospital_name']),
+            'urgency'            => trim($_POST['urgency']),
+            'contact_phone'      => trim($_POST['contact_phone']),
+            'unit'               => (int)($_POST['unit'] ?? 1),
+        ];
 
-        // Prevent duplicate pending requests
-        if ($this->repository->hasPendingRequest(Session::get('user_id'))) {
-            $notificationRepo = new NotificationRepository();
-            $notificationRepo->create(
-                Session::get('user_id'),
-                'Duplicate Request Blocked',
-                'You already have a pending blood request.',
-                'REMINDER'
-            );
-            Session::set('flash_message', 'You already have a pending blood request.');
+        $result = $this->createUseCase->execute(
+            (int)Session::get('user_id'),
+            trim($_POST['patient_name']),
+            $data
+        );
+
+        if (!$result['success']) {
+            Session::set('flash_message', $result['error']);
             Session::set('flash_status', 'error');
             header('Location: /BloodConnect/public/patient/request-blood');
             exit;
         }
 
-        $requestCode = 'REQ' . date('YmdHis');
-
-
-        $masterRepo = new MasterDataRepository();
-
-
-        $pendingStatus = $masterRepo->getId(
-            'REQUEST_STATUS',
-            'PENDING'
-        );
-
-
-        if (!$pendingStatus) {
-            die("Pending status not found");
-        }
-
-
-
-        $data = [
-
-            'request_code' => $requestCode,
-
-            'patient_id' => Session::get('user_id'),
-
-            'patient_name' => trim($_POST['patient_name']),
-
-            'blood_group_needed' => trim($_POST['blood_group_needed']),
-
-            'hospital_name' => trim($_POST['hospital_name']),
-
-            'urgency' => trim($_POST['urgency']),
-
-            'contact_phone' => trim($_POST['contact_phone']),
-
-            'unit' => (int) $_POST['unit'],
-
-            'status' => $pendingStatus
-
-        ];
-
-
-
-        $saved = $this->repository->create($data);
-
-
-
-        if (!$saved) {
-
-            die("Failed to create blood request");
-        }
-
-
-
-        // Activity Log
-
-        $logger = new ActivityLogger();
-
-
-        $logger->log(
-
-            Session::get('user_id'),
-
-            Session::get('username'),
-
-            'BLOOD_REQUEST_CREATED',
-
-            "Blood request {$requestCode} created"
-
-        );
-
-
-
-
-        // Notifications
-
-        $notificationRepo = new NotificationRepository();
-
-
-
-        // Patient notification
-
-        $notificationRepo->create(
-
-            Session::get('user_id'),
-
-            'Blood Request Submitted',
-
-            'Your blood request is now pending.',
-
-            'REQUEST'
-
-        );
-
-
-
-
-        // Admin notification
-
-        $userRepo = new UserRepository();
-
-
-        $admins = $userRepo->getAdmins();
-
-        $matchingDonors = $this->repository->getMatchingDonors($data['blood_group_needed']);
-
-        foreach ($matchingDonors as $donor) {
-            $notificationRepo->create(
-                (int)$donor['user_id'],
-                'New Blood Request',
-                sprintf(
-                    'Patient %s has requested %s blood. Please review the request.',
-                    $data['patient_name'],
-                    $data['blood_group_needed']
-                ),
-                'REQUEST'
-            );
-        }
-
-
-
-        foreach ($admins as $admin) {
-
-
-            $message = sprintf(
-
-                'New blood request %s from %s (%s)',
-
-                $requestCode,
-
-                $data['patient_name'],
-
-                $data['blood_group_needed']
-
-            );
-
-
-            $notificationRepo->create(
-
-                $admin['user_id'],
-
-                'New Blood Request',
-
-                $message,
-
-                'REQUEST'
-
-            );
-        }
-
-
-
-        header(
-            'Location: /BloodConnect/public/patient/dashboard?page=my-requests'
-        );
-
+        header('Location: /BloodConnect/public/patient/dashboard?page=my-requests');
         exit;
     }
 

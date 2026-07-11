@@ -3,18 +3,21 @@
 namespace App\Shared\Presentation\Controller;
 
 use App\Shared\Presentation\View\View;
-use App\Donation\Infrastructure\Persistence\DonationRepository;
-use App\User\Infrastructure\Persistence\UserRepository;
+use App\Donation\Domain\Repository\DonationRepositoryInterface;
+use App\User\Domain\Repository\UserRepositoryInterface;
 
 class HomeController
 {
+    public function __construct(
+        private DonationRepositoryInterface $donationRepo,
+        private UserRepositoryInterface $userRepo
+    ) {}
+
     public function home()
     {
-        $donationRepo = new DonationRepository();
-        $successfulDonations = $donationRepo->countSuccessfulDonations();
+        $successfulDonations = $this->donationRepo->countSuccessfulDonations();
 
-        $userRepo = new UserRepository();
-        $users = $userRepo->findAll();
+        $users = $this->userRepo->findAll();
         $totalUsers = count($users);
 
         $totalDonors = 0;

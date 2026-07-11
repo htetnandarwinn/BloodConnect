@@ -2,35 +2,44 @@
 
 namespace App\Donor\Presentation\Controller;
 
-
 use App\Shared\Helpers\Session;
 use App\Shared\Presentation\View\donorView;
-use App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository;
-use App\Donor\Infrastructure\Persistence\DonorRepository;
-use App\Notification\Infrastructure\Persistence\NotificationRepository;
-use App\Shared\Helpers\PermissionGuard;
+use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
+use App\BloodRequest\Application\UseCase\AcceptBloodRequestUseCase;
+use App\BloodRequest\Application\UseCase\DeclineBloodRequestUseCase;
+use App\Donor\Domain\Repository\DonorRepositoryInterface;
+use App\Notification\Domain\Repository\NotificationRepositoryInterface;
+use App\User\Domain\Repository\UserRepositoryInterface;
+use App\Donation\Domain\Repository\DonationRepositoryInterface;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
-use App\User\Infrastructure\Persistence\UserRepository;
-use App\Donation\Infrastructure\Persistence\DonationRepository;
 use App\Donor\Application\UseCase\DonorDonationEligibilityService;
-
+use App\Donor\Application\UseCase\GetDonorProfileUseCase;
+use App\Donor\Application\UseCase\GetDonationHistoryUseCase;
+use App\Donor\Application\UseCase\UpdateDonorProfileUseCase;
 
 class DonorController
 {
-
+    public function __construct(
+        private BloodRequestRepositoryInterface $bloodRequestRepo,
+        private DonorRepositoryInterface $donorRepo,
+        private NotificationRepositoryInterface $notificationRepo,
+        private UserRepositoryInterface $userRepo,
+        private DonationRepositoryInterface $donationRepo,
+        private MasterDataRepository $masterRepo,
+        private DonorDonationEligibilityService $eligibilityService,
+        private AcceptBloodRequestUseCase $acceptUseCase,
+        private DeclineBloodRequestUseCase $declineUseCase,
+        private GetDonorProfileUseCase $getDonorProfileUseCase,
+        private GetDonationHistoryUseCase $getDonationHistoryUseCase,
+        private UpdateDonorProfileUseCase $updateDonorProfileUseCase
+    ) {}
 
     private function authGuard()
     {
-
         Session::start();
 
-
         if (!Session::has('user_id')) {
-
-            header(
-                'Location: /BloodConnect/public/login'
-            );
-
+            header('Location: /BloodConnect/public/login');
             exit;
         }
     }
@@ -42,8 +51,7 @@ class DonorController
 
     private function getUnreadCount(): int
     {
-        $repo = new NotificationRepository();
-        return $repo->getUnreadCount($this->getUserId());
+        return $this->notificationRepo->getUnreadCount($this->getUserId());
     }
 
 
@@ -53,9 +61,6 @@ class DonorController
     public function donor_dashboard()
     {
         $this->authGuard();
-        PermissionGuard::check('dashboard.view');
-
-
 
         $user = Session::get('user');
         $bloodGroup = '';
@@ -65,51 +70,34 @@ class DonorController
         }
 
         if ($bloodGroup === '') {
-            $donorRepo = new DonorRepository();
-            $donor = $donorRepo->findById((int) Session::get('user_id'));
+            $donor = $this->donorRepo->findById((int)Session::get('user_id'));
             $bloodGroup = trim((string)($donor['blood_group'] ?? ''));
         }
 
-        $repo = new BloodRequestRepository();
-        $donorRepo = new DonorRepository();
-        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
-        $pendingRequests = $repo->findPendingRequestsForDonor($bloodGroup);
-        $acceptedRequests = $repo->findAcceptedRequestsForDonor((int) Session::get('user_id'), (int) $acceptedStatus);
+        $acceptedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $pendingRequests = $this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup);
+        $acceptedRequests = $this->bloodRequestRepo->findAcceptedRequestsForDonor((int)Session::get('user_id'), (int)$acceptedStatus);
         $lastDonation = $acceptedRequests[0] ?? [];
         $combinedRequests = array_merge($pendingRequests, $acceptedRequests);
-        $eligibilityService = new DonorDonationEligibilityService();
-        $lastDonationDate = !empty($lastDonation['created_at']) ? (string) $lastDonation['created_at'] : '';
-        $availabilityState = $donorRepo->syncAvailabilityStatus((int) Session::get('user_id'));
-        $eligibility = $eligibilityService->evaluate($lastDonationDate, $availabilityState['next_available_date']);
+        $lastDonationDate = !empty($lastDonation['created_at']) ? (string)$lastDonation['created_at'] : '';
+        $availabilityState = $this->donorRepo->syncAvailabilityStatus((int)Session::get('user_id'));
+        $eligibility = $this->eligibilityService->evaluate($lastDonationDate, $availabilityState['next_available_date']);
 
-        donorView::render(
-            'donor_dashboard',
-            [
-
-                'user' => $user,
-
-
-                'blood_group' => $bloodGroup,
-
-
-                'availability' => $availabilityState['available'] ? 'Available' : 'Unavailable',
-                'availability_message' => $availabilityState['available']
-                    ? $eligibility['message']
-                    : ($availabilityState['next_available_date'] ? 'You will be eligible again after the waiting period.' : $eligibility['message']),
-                'next_eligible_date' => $availabilityState['available'] ? '' : ($availabilityState['next_available_date'] ?? $eligibility['next_eligible_date']),
-
-                'last_donation_date' => !empty($lastDonationDate)
-                    ? date('d M Y', strtotime($lastDonationDate))
-                    : 'No donation yet',
-
-                'last_donation_location' => $lastDonation['hospital_name'] ?? 'No location saved',
-
-                'blood_requests' => $combinedRequests,
-
-                'pending_requests_count' => count($pendingRequests)
-
-            ]
-        );
+        donorView::render('donor_dashboard', [
+            'user' => $user,
+            'blood_group' => $bloodGroup,
+            'availability' => $availabilityState['available'] ? 'Available' : 'Unavailable',
+            'availability_message' => $availabilityState['available']
+                ? $eligibility['message']
+                : ($availabilityState['next_available_date'] ? 'You will be eligible again after the waiting period.' : $eligibility['message']),
+            'next_eligible_date' => $availabilityState['available'] ? '' : ($availabilityState['next_available_date'] ?? $eligibility['next_eligible_date']),
+            'last_donation_date' => !empty($lastDonationDate)
+                ? date('d M Y', strtotime($lastDonationDate))
+                : 'No donation yet',
+            'last_donation_location' => $lastDonation['hospital_name'] ?? 'No location saved',
+            'blood_requests' => $combinedRequests,
+            'pending_requests_count' => count($pendingRequests)
+        ]);
     }
 
 
@@ -119,118 +107,20 @@ class DonorController
     public function acceptRequest()
     {
         $this->authGuard();
-        PermissionGuard::check('blood_request.accept');
 
         $donorId = (int)(Session::get('user')['user_id'] ?? 0);
+        $requestId = (int)$_POST['request_id'];
 
-        // Donor cannot accept if they already have an accepted request
-        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
-        $bloodRequestRepo = new BloodRequestRepository();
-        $existingAccepted = $bloodRequestRepo->findAcceptedRequestsForDonor($donorId, $acceptedStatus);
-        if (!empty($existingAccepted)) {
-            Session::set('flash_message', 'You cannot accept more requests while you have an active accepted request.');
+        $result = $this->acceptUseCase->execute($requestId, $donorId);
+
+        if (!$result['success']) {
+            Session::set('flash_message', $result['error']);
             Session::set('flash_status', 'error');
             header('Location: /BloodConnect/public/donor/blood-requests');
             exit;
         }
 
-        $user = Session::get('user');
-
-
-
-        $requestId = (int)$_POST['request_id'];
-
-
-
-        $repo = new BloodRequestRepository();
-
-
-
-        $updated = $repo->updateDonorDecision(
-
-            $requestId,
-
-            $user['user_id'],
-
-            8   // Accepted
-
-        );
-
-        if ($updated) {
-            $nextAvailableDate = (new \DateTime('now', new \DateTimeZone('Asia/Yangon')))
-                ->modify('+3 months')
-                ->format('Y-m-d H:i:s');
-
-            $donorRepo = new DonorRepository();
-            $donorRepo->saveNextAvailableDate((int)($user['user_id'] ?? 0), $nextAvailableDate);
-        }
-
-
-
-        if (!$updated) {
-
-            die("Failed to accept request");
-        }
-
-        $request = $repo->findById($requestId);
-
-        $donationRepo = new DonationRepository();
-        $donationRepo->create([
-            'request_id' => $requestId,
-            'donor_id'   => (int)($user['user_id'] ?? 0),
-            'donation_date' => date('Y-m-d'),
-            'status'     => 8,
-            'remarks'    => 'Accepted by donor'
-        ]);
-
-        $notificationRepo = new NotificationRepository();
-        $userRepo = new UserRepository();
-        $donor = $userRepo->findById((int)($user['user_id'] ?? 0));
-        $patient = $userRepo->findById((int)($request['patient_id'] ?? 0));
-        $admins = $notificationRepo->getAdmins();
-
-        foreach ($admins as $admin) {
-            $notificationRepo->create(
-                (int)$admin['user_id'],
-                'Blood Request Accepted',
-                sprintf(
-                    'Blood request %s has been accepted by donor %s.',
-                    $request['request_code'] ?? 'N/A',
-                    $donor['username'] ?? 'Unknown donor'
-                ),
-                'REQUEST'
-            );
-        }
-
-        if ($donor) {
-            $notificationRepo->create(
-                (int)$donor['user_id'],
-                'Blood Request Accepted',
-                sprintf(
-                    'You accepted blood request %s. The patient will be notified shortly.',
-                    $request['request_code'] ?? 'N/A'
-                ),
-                'REQUEST'
-            );
-        }
-
-        if ($patient) {
-            $notificationRepo->create(
-                (int)$patient['user_id'],
-                'Blood Request Accepted',
-                sprintf(
-                    'Donor %s has accepted your blood request %s.',
-                    $donor['username'] ?? 'A donor',
-                    $request['request_code'] ?? 'N/A'
-                ),
-                'REQUEST'
-            );
-        }
-
-        header(
-            'Location: /BloodConnect/public/donor/dashboard'
-        );
-
+        header('Location: /BloodConnect/public/donor/dashboard');
         exit;
     }
 
@@ -242,80 +132,40 @@ class DonorController
     public function declineRequest()
     {
         $this->authGuard();
-        PermissionGuard::check('blood_request.decline');
 
-
-
-
-        $user = Session::get('user');
-
-
-
+        $donorId = (int)(Session::get('user')['user_id'] ?? 0);
         $requestId = (int)$_POST['request_id'];
 
+        $result = $this->declineUseCase->execute($requestId, $donorId);
 
-
-        $repo = new BloodRequestRepository();
-
-
-
-        $updated = $repo->updateDonorDecision(
-
-            $requestId,
-
-            $user['user_id'],
-
-            10   // Declined ID - change after checking master_data
-
-        );
-
-
-
-        if (!$updated) {
-
-            die("Failed to decline request");
+        if (!$result['success']) {
+            echo $result['error'];
+            exit;
         }
 
-
-
-        header(
-            'Location: /BloodConnect/public/donor/dashboard'
-        );
-
+        header('Location: /BloodConnect/public/donor/dashboard');
         exit;
     }
 
     public function profile()
     {
         $this->authGuard();
-        PermissionGuard::check('profile.view');
 
-
-        $user = Session::get('user');
-        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
-        $repo = new BloodRequestRepository();
-        $donorRepo = new DonorRepository();
-        $acceptedRequests = $repo->findAcceptedRequestsForDonor((int) Session::get('user_id'), (int) $acceptedStatus);
-        $lastDonationDate = !empty($acceptedRequests[0]['created_at']) ? (string) $acceptedRequests[0]['created_at'] : '';
-        $eligibilityService = new DonorDonationEligibilityService();
-        $availabilityState = $donorRepo->syncAvailabilityStatus((int) Session::get('user_id'));
-        $eligibility = $eligibilityService->evaluate($lastDonationDate, $availabilityState['next_available_date']);
+        $profile = $this->getDonorProfileUseCase->execute((int)Session::get('user_id'));
 
         donorView::render('donor_profile', [
-            'user' => $user,
-            'availability' => $availabilityState['available'] ? 'Available' : 'Unavailable',
-            'availability_message' => $availabilityState['available']
-                ? $eligibility['message']
-                : ($availabilityState['next_available_date'] ? 'You will be eligible again after the waiting period.' : $eligibility['message']),
-            'next_eligible_date' => $availabilityState['available'] ? '' : ($availabilityState['next_available_date'] ?? $eligibility['next_eligible_date'])
+            'user' => Session::get('user'),
+            'availability' => $profile['availability_state']['available'] ? 'Available' : 'Unavailable',
+            'availability_message' => $profile['availability_state']['available']
+                ? $profile['eligibility']['message']
+                : ($profile['availability_state']['next_available_date'] ? 'You will be eligible again after the waiting period.' : $profile['eligibility']['message']),
+            'next_eligible_date' => $profile['availability_state']['available'] ? '' : ($profile['availability_state']['next_available_date'] ?? $profile['eligibility']['next_eligible_date'])
         ]);
     }
 
     public function bloodRequests()
     {
         $this->authGuard();
-        PermissionGuard::check('blood_request.view_matching');
-
 
         $user = Session::get('user');
         $bloodGroup = '';
@@ -325,15 +175,13 @@ class DonorController
         }
 
         if ($bloodGroup === '') {
-            $donorRepo = new DonorRepository();
-            $donor = $donorRepo->findById((int) Session::get('user_id'));
+            $donor = $this->donorRepo->findById((int)Session::get('user_id'));
             $bloodGroup = trim((string)($donor['blood_group'] ?? ''));
         }
 
-        $repo = new BloodRequestRepository();
-        $pendingRequests = $repo->findPendingRequestsForDonor($bloodGroup);
-        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
-        $acceptedRequests = $repo->findAcceptedRequestsForDonor((int) Session::get('user_id'), $acceptedStatus);
+        $acceptedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $pendingRequests = $this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup);
+        $acceptedRequests = $this->bloodRequestRepo->findAcceptedRequestsForDonor((int)Session::get('user_id'), $acceptedStatus);
         $combinedRequests = array_merge($pendingRequests, $acceptedRequests);
 
         $message = Session::get('flash_message', '');
@@ -353,10 +201,8 @@ class DonorController
     public function bloodRequestDetails(int $requestId)
     {
         $this->authGuard();
-        PermissionGuard::check('blood_request.view_matching');
 
-        $repo = new BloodRequestRepository();
-        $request = $repo->findById($requestId);
+        $request = $this->bloodRequestRepo->findById($requestId);
 
         if (!$request) {
             die('Blood request not found.');
@@ -371,21 +217,16 @@ class DonorController
     public function history()
     {
         $this->authGuard();
-        PermissionGuard::check('donation_history.view');
-
-        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
-        $repo = new BloodRequestRepository();
 
         donorView::render('donation_history', [
             'user' => Session::get('user'),
-            'requests' => $repo->findAcceptedRequestsForDonor((int)Session::get('user_id'), (int)$acceptedStatus),
+            'requests' => $this->getDonationHistoryUseCase->execute((int)Session::get('user_id')),
         ]);
     }
 
     public function viewHistory()
     {
         $this->authGuard();
-        PermissionGuard::check('donation_history.view');
 
         $requestId = (int)($_GET['id'] ?? 0);
 
@@ -394,9 +235,8 @@ class DonorController
             exit;
         }
 
-        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
-        $repo = new BloodRequestRepository();
-        $request = $repo->findDonorRequestDetail($requestId, (int)Session::get('user_id'), (int)$acceptedStatus);
+        $acceptedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $request = $this->bloodRequestRepo->findDonorRequestDetail($requestId, (int)Session::get('user_id'), (int)$acceptedStatus);
 
         if (empty($request)) {
             header('Location: /BloodConnect/public/donor/history');
@@ -412,25 +252,18 @@ class DonorController
     public function updateProfilePage()
     {
         $this->authGuard();
-        PermissionGuard::check('profile.update');
-
-
-        $user = Session::get('user');
 
         donorView::render('update_profile', [
-            'user' => $user
+            'user' => Session::get('user')
         ]);
     }
 
     public function notifications()
     {
         $this->authGuard();
-        PermissionGuard::check('notification.view');
-
-        $repo = new NotificationRepository();
 
         donorView::render('notification', [
-            'notifications' => $repo->findByUserId($this->getUserId()),
+            'notifications' => $this->notificationRepo->findByUserId($this->getUserId()),
             'unreadCount' => $this->getUnreadCount()
         ]);
     }
@@ -438,16 +271,14 @@ class DonorController
     public function markNotificationRead()
     {
         $this->authGuard();
-        PermissionGuard::check('notification.view');
 
         $id = (int)($_POST['notification_id'] ?? 0);
-        $repo = new NotificationRepository();
-        $success = $repo->markAsRead($id);
+        $success = $this->notificationRepo->markAsRead($id);
 
         header('Content-Type: application/json');
         echo json_encode([
             'success' => $success,
-            'count' => $repo->getUnreadCount($this->getUserId())
+            'count' => $this->notificationRepo->getUnreadCount($this->getUserId())
         ]);
         exit;
     }
@@ -455,10 +286,8 @@ class DonorController
     public function markAllNotificationsRead()
     {
         $this->authGuard();
-        PermissionGuard::check('notification.view');
 
-        $repo = new NotificationRepository();
-        $success = $repo->markAllAsRead($this->getUserId());
+        $success = $this->notificationRepo->markAllAsRead($this->getUserId());
 
         header('Content-Type: application/json');
         echo json_encode([
@@ -471,13 +300,10 @@ class DonorController
     public function unreadCount()
     {
         $this->authGuard();
-        PermissionGuard::check('notification.view');
-
-        $repo = new NotificationRepository();
 
         header('Content-Type: application/json');
         echo json_encode([
-            'count' => $repo->getUnreadCount($this->getUserId())
+            'count' => $this->notificationRepo->getUnreadCount($this->getUserId())
         ]);
         exit;
     }
@@ -485,10 +311,8 @@ class DonorController
     public function updateProfile()
     {
         $this->authGuard();
-        PermissionGuard::check('profile.update');
 
-
-        $userId = (int) Session::get('user_id');
+        $userId = (int)Session::get('user_id');
 
         $password = trim($_POST['new_password'] ?? '');
         $confirmPassword = trim($_POST['confirm_password'] ?? '');
@@ -516,28 +340,10 @@ class DonorController
             $data['password'] = $password;
         }
 
-        $repo = new DonorRepository();
+        $result = $this->updateDonorProfileUseCase->execute($userId, $data);
 
-        if (!$repo->updateProfile($userId, $data)) {
-            die('Update failed!');
-        }
-
-        $notificationRepo = new NotificationRepository();
-        $notificationRepo->create(
-            $userId,
-            'Profile Updated',
-            'Your donor profile has been updated successfully.',
-            'PROFILE_UPDATE'
-        );
-
-        $admins = (new UserRepository())->getAdmins();
-        foreach ($admins as $admin) {
-            $notificationRepo->create(
-                (int)$admin['user_id'],
-                'Donor Profile Updated',
-                sprintf('%s updated their donor profile information.', $data['username']),
-                'PROFILE_UPDATE'
-            );
+        if (!$result['success']) {
+            die($result['error']);
         }
 
         Session::set('username', $data['username']);

@@ -3,10 +3,15 @@
 namespace App\Authentication\Presentation\Controller;
 
 use App\Shared\Helpers\Session;
-use App\Authentication\Infrastructure\Persistence\AuthRepository;
+use App\Authentication\Domain\Repository\AuthRepositoryInterface;
+use App\Shared\Infrastructure\Mail\EmailService;
 
 class VerifyEmailController
 {
+    public function __construct(
+        private AuthRepositoryInterface $authRepo,
+        private EmailService $emailService
+    ) {}
     public function show()
     {
         return \App\Authentication\Presentation\View\View::render('verify-email');
@@ -24,8 +29,7 @@ class VerifyEmailController
             $this->redirect('/verify-email');
         }
 
-        $repo = new AuthRepository();
-        $user = $repo->findByEmail($email);
+        $user = $this->authRepo->findByEmail($email);
 
         if (!$user) {
             $_SESSION['errors']['form'] = "User not found.";
@@ -57,8 +61,8 @@ class VerifyEmailController
                 'verifyEmail' => [$email],
             ] as $method => $args
         ) {
-            if (method_exists($repo, $method)) {
-                $repo->{$method}(...$args);
+            if (method_exists($this->authRepo, $method)) {
+                $this->authRepo->{$method}(...$args);
                 $verified = true;
                 break;
             }
@@ -84,8 +88,6 @@ class VerifyEmailController
             $this->redirect('/register');
         }
 
-        $repo = new AuthRepository();
-
         $code = rand(100000, 999999);
         $expires = date('Y-m-d H:i:s', strtotime('+10 minutes'));
 
@@ -100,14 +102,11 @@ class VerifyEmailController
 
         $updated = false;
         foreach ($updateMethods as $m) {
-            if (method_exists($repo, $m)) {
-                // call whichever method exists on the repository
-                // some implementations expect ($email, $code, $expires) others may expect ($code, $expires, $email)
+            if (method_exists($this->authRepo, $m)) {
                 try {
-                    $repo->{$m}($email, $code, $expires);
+                    $this->authRepo->{$m}($email, $code, $expires);
                 } catch (\ArgumentCountError $e) {
-                    // try alternate argument order
-                    $repo->{$m}($code, $expires, $email);
+                    $this->authRepo->{$m}($code, $expires, $email);
                 }
                 $updated = true;
                 break;
@@ -127,8 +126,7 @@ class VerifyEmailController
 
     private function sendEmail($email, $code)
     {
-        $emailService = new \App\Shared\Infrastructure\Mail\EmailService();
-        $emailService->sendOtp($email, $code);
+        $this->emailService->sendOtp($email, $code);
     }
 
     private function redirect(string $path): void

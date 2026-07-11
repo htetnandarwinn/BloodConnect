@@ -7,7 +7,7 @@ use PDO;
 use PDOException;
 use Exception;
 
-class NotificationRepository
+class NotificationRepository implements \App\Notification\Domain\Repository\NotificationRepositoryInterface
 {
     private PDO $db;
 

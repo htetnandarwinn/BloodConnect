@@ -2,19 +2,15 @@
 
 namespace App\Notification\Application\UseCase;
 
-use App\Notification\Infrastructure\Persistence\NotificationRepository;
-use App\User\Infrastructure\Persistence\UserRepository;
+use App\Notification\Domain\Repository\NotificationRepositoryInterface;
+use App\User\Domain\Repository\UserRepositoryInterface;
 
 class SendProfileUpdateNotificationUseCase
 {
-    private NotificationRepository $notificationRepo;
-    private UserRepository $userRepo;
-
-    public function __construct()
-    {
-        $this->notificationRepo = new NotificationRepository();
-        $this->userRepo = new UserRepository();
-    }
+    public function __construct(
+        private NotificationRepositoryInterface $notificationRepo,
+        private UserRepositoryInterface $userRepo
+    ) {}
 
     public function execute(int $userId, string $username): void
     {

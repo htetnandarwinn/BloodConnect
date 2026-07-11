@@ -2,16 +2,13 @@
 
 namespace App\Authentication\Application\UseCase;
 
-use App\Authentication\Infrastructure\Persistence\AuthRepository;
+use App\Authentication\Domain\Repository\AuthRepositoryInterface;
 
 class LoginUseCase
 {
-    private AuthRepository $repo;
-
-    public function __construct()
-    {
-        $this->repo = new AuthRepository();
-    }
+    public function __construct(
+        private AuthRepositoryInterface $repo
+    ) {}
 
     public function execute(array $credentials): array
     {

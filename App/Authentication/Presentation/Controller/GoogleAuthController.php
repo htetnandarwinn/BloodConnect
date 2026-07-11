@@ -2,7 +2,7 @@
 
 namespace App\Authentication\Presentation\Controller;
 
-use App\Authentication\Infrastructure\Persistence\AuthRepository;
+use App\Authentication\Domain\Repository\AuthRepositoryInterface;
 use App\Shared\Helpers\Session;
 use App\Shared\Infrastructure\OAuth\GoogleOAuth;
 use App\Shared\Infrastructure\Activity\ActivityLogger;
@@ -10,18 +10,23 @@ use App\Shared\Infrastructure\Persistence\MasterDataRepository;
 
 class GoogleAuthController
 {
+    public function __construct(
+        private AuthRepositoryInterface $authRepo,
+        private GoogleOAuth $googleOAuth,
+        private ActivityLogger $activityLogger,
+        private MasterDataRepository $masterRepo
+    ) {}
     public function redirect()
     {
         Session::start();
 
-        $google = new GoogleOAuth();
-        if (!$google->isConfigured()) {
+        if (!$this->googleOAuth->isConfigured()) {
             $_SESSION['errors']['form'] = 'Google sign-in is not configured yet. Please add valid Google OAuth credentials and the correct redirect URI in the environment file.';
             header('Location: /BloodConnect/public/login');
             exit;
         }
 
-        header('Location: ' . $google->getAuthorizationUrl());
+        header('Location: ' . $this->googleOAuth->getAuthorizationUrl());
         exit;
     }
 
@@ -37,16 +42,14 @@ class GoogleAuthController
             exit;
         }
 
-        $google = new GoogleOAuth();
-
-        $tokenData = $google->fetchAccessToken($code);
+        $tokenData = $this->googleOAuth->fetchAccessToken($code);
         if (!$tokenData) {
             $_SESSION['errors']['form'] = 'Failed to authenticate with Google. Please try again.';
             header('Location: /BloodConnect/public/login');
             exit;
         }
 
-        $userInfo = $google->fetchUserInfo($tokenData['access_token']);
+        $userInfo = $this->googleOAuth->fetchUserInfo($tokenData['access_token']);
         if (!$userInfo) {
             $_SESSION['errors']['form'] = 'Failed to fetch Google profile. Please try again.';
             header('Location: /BloodConnect/public/login');
@@ -64,21 +67,18 @@ class GoogleAuthController
             exit;
         }
 
-        $repo = new AuthRepository();
-
         // Check if Google ID already exists
-        $existingByGoogle = $repo->findByGoogleId($googleId);
+        $existingByGoogle = $this->authRepo->findByGoogleId($googleId);
         if ($existingByGoogle) {
             $this->loginUser($existingByGoogle);
             return;
         }
 
         // Check if email already exists
-        $existingByEmail = $repo->findByEmailWithGoogle($email);
+        $existingByEmail = $this->authRepo->findByEmailWithGoogle($email);
         if ($existingByEmail) {
-            // Link Google account to existing user and log them in
-            $repo->linkGoogleAccount((int)$existingByEmail['user_id'], $googleId, $avatar);
-            $updatedUser = $repo->findByEmail($email);
+            $this->authRepo->linkGoogleAccount((int)$existingByEmail['user_id'], $googleId, $avatar);
+            $updatedUser = $this->authRepo->findByEmail($email);
             $this->loginUser($updatedUser);
             return;
         }
@@ -151,23 +151,19 @@ class GoogleAuthController
 
         $userTypeId = $role === 'donor' ? 2 : 3;
         $statusId = 1;
-        $masterRepo = new MasterDataRepository();
-        $pendingStatus = $masterRepo->getId('USER_STATUS', 'ACTIVE');
+        $pendingStatus = $this->masterRepo->getId('USER_STATUS', 'ACTIVE');
         if ($pendingStatus) {
             $statusId = (int)$pendingStatus;
         }
 
-        $repo = new AuthRepository();
-
-        // Check username uniqueness
-        $existingUser = $repo->findByUsername($username);
+        $existingUser = $this->authRepo->findByUsername($username);
         if ($existingUser) {
             $_SESSION['errors']['username'] = 'Username is already taken.';
             header('Location: /BloodConnect/public/auth/google/choose-role');
             exit;
         }
 
-        $userId = $repo->createGoogleUser(
+        $this->authRepo->createGoogleUser(
             $username,
             $googleData['email'],
             $googleData['google_id'],
@@ -179,7 +175,7 @@ class GoogleAuthController
 
         Session::remove('google_registration');
 
-        $user = $repo->findByEmail($googleData['email']);
+        $user = $this->authRepo->findByEmail($googleData['email']);
         $this->loginUser($user);
     }
 
@@ -191,12 +187,10 @@ class GoogleAuthController
         Session::set('email', $user['email']);
         Session::set('user_type_id', $user['user_type_id']);
 
-        $repo = new AuthRepository();
-        $permissions = $repo->getPermissionsByUserType((int)$user['user_type_id']);
+        $permissions = $this->authRepo->getPermissionsByUserType((int)$user['user_type_id']);
         Session::set('permissions', $permissions);
 
-        $logger = new ActivityLogger();
-        $logger->log(
+        $this->activityLogger->log(
             $user['user_id'],
             $user['username'],
             'USER_LOGIN',

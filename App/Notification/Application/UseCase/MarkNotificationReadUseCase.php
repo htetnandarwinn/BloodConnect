@@ -2,16 +2,13 @@
 
 namespace App\Notification\Application\UseCase;
 
-use App\Notification\Infrastructure\Persistence\NotificationRepository;
+use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 
-class MarkNotificationReadUseCase
+readonly class MarkNotificationReadUseCase
 {
-    private NotificationRepository $repo;
-
-    public function __construct()
-    {
-        $this->repo = new NotificationRepository();
-    }
+    public function __construct(
+        private NotificationRepositoryInterface $repo
+    ) {}
 
     public function execute(int $notificationId): bool
     {

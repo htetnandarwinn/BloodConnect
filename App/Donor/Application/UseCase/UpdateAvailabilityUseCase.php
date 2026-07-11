@@ -2,10 +2,16 @@
 
 namespace App\Donor\Application\UseCase;
 
+use App\Donor\Domain\Repository\DonorRepositoryInterface;
+
 class UpdateAvailabilityUseCase
 {
-    public function execute(int $donorId, bool $available)
+    public function __construct(
+        private DonorRepositoryInterface $donorRepo
+    ) {}
+
+    public function execute(int $donorId): array
     {
-        // TODO
+        return $this->donorRepo->syncAvailabilityStatus($donorId);
     }
 }

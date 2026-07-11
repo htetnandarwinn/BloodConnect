@@ -8,15 +8,18 @@ use App\Authentication\Application\UseCase\RegisterPatientUseCase;
 use App\Authentication\Application\UseCase\LogoutUseCase;
 use App\Authentication\Presentation\View\View;
 use App\Authentication\Application\DTO\RegisterPatientDTO;
-use App\Authentication\Infrastructure\Persistence\AuthRepository;
+use App\Authentication\Domain\Repository\AuthRepositoryInterface;
 use App\Authentication\Presentation\Request\RegisterPatientRequest;
 use App\Authentication\Presentation\Request\LoginRequest;
 use App\Shared\Helpers\Permission;
 use App\Shared\Infrastructure\Mail\EmailService;
-use App\Shared\Infrastructure\Persistence\PermissionRepository;
 
 class AuthController
 {
+    public function __construct(
+        private AuthRepositoryInterface $authRepo,
+        private EmailService $emailService
+    ) {}
     // ================= VIEW =================
 
     public function showRegister()
@@ -51,8 +54,7 @@ class AuthController
             $this->redirect('/forgot-password');
         }
 
-        $repo = new AuthRepository();
-        $user = $repo->findByEmail($email);
+        $user = $this->authRepo->findByEmail($email);
 
         if (!$user) {
             $this->setFlash(
@@ -65,10 +67,9 @@ class AuthController
         $otp = random_int(100000, 999999);
         $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
 
-        $repo->updateVerificationCode($email, $otp, $expiresAt);
+        $this->authRepo->updateVerificationCode($email, $otp, $expiresAt);
 
-        $emailService = new EmailService();
-        $emailService->sendPasswordResetOtp($email, $otp);
+        $this->emailService->sendPasswordResetOtp($email, $otp);
 
         Session::set('reset_email', $email);
         Session::set('reset_verified', false);
@@ -100,8 +101,7 @@ class AuthController
             $this->redirect('/forgot-password/verify');
         }
 
-        $repo = new AuthRepository();
-        $user = $repo->findByEmail($email);
+        $user = $this->authRepo->findByEmail($email);
 
         if (!$user) {
             $this->setFlash(['form' => 'We could not find that account.']);
@@ -152,9 +152,8 @@ class AuthController
             $this->redirect('/forgot-password/reset');
         }
 
-        $repo = new AuthRepository();
-        $repo->updatePassword($email, password_hash($password, PASSWORD_BCRYPT));
-        $repo->clearVerificationCode($email);
+        $this->authRepo->updatePassword($email, password_hash($password, PASSWORD_BCRYPT));
+        $this->authRepo->clearVerificationCode($email);
 
         Session::remove('reset_email');
         Session::remove('reset_verified');
@@ -197,8 +196,8 @@ class AuthController
             );
 
             $useCase = new RegisterPatientUseCase(
-                new AuthRepository(),
-                new EmailService()
+                $this->authRepo,
+                $this->emailService
             );
 
             $userId = $useCase->execute(
@@ -242,7 +241,7 @@ class AuthController
             $request = new LoginRequest();
             $data = $request->validate($_POST);
 
-            $useCase = new LoginUseCase();
+            $useCase = new LoginUseCase($this->authRepo);
 
             $result = $useCase->execute($data);
 
@@ -299,32 +298,15 @@ class AuthController
             Session::set('email', $user['email']);
             Session::set('user_type_id', $user['user_type_id']);
 
-            $repo = new \App\Authentication\Infrastructure\Persistence\AuthRepository();
-            $permissions = $repo->getPermissionsByUserType(
+            $permissions = $this->authRepo->getPermissionsByUserType(
                 (int)$user['user_type_id']
             );
 
             Session::set('permissions', $permissions);
 
-            $logger = new \App\Shared\Infrastructure\Activity\ActivityLogger();
-
-            $logger->log(
-                $user['user_id'],
-                $user['username'],
-                'USER_LOGIN',
-                $user['username'] . ' logged in to system',
-                'info'
-            );
-
-            // ==============================
-            // OPTIONAL: mark user as online
-            // ==============================
-            $repo = new \App\Authentication\Infrastructure\Persistence\AuthRepository();
-            // setLoginStatus may not exist in all repository implementations
             $method = 'setLoginStatus';
-            if (method_exists($repo, $method)) {
-                // call dynamically to avoid static analysis errors about undefined method
-                $repo->{$method}($user['user_id'], 1);
+            if (method_exists($this->authRepo, $method)) {
+                $this->authRepo->{$method}($user['user_id'], 1);
             }
 
             // ==========================

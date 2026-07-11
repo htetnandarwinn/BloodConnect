@@ -2,7 +2,7 @@
 
 namespace App\Authentication\Presentation\Request;
 
-use App\Shared\Validation\Validator;
+use App\Shared\Helpers\Validator;
 
 class RegisterPatientRequest
 {
@@ -31,7 +31,7 @@ class RegisterPatientRequest
             ->required('password', $data['password'] ?? '');
 
         if ($validator->fails()) {
-            throw new \Exception(json_encode($validator->errors()));
+            throw new \Exception(json_encode($validator->getErrors()));
         }
 
         return $data;

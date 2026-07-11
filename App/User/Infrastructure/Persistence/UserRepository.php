@@ -28,7 +28,7 @@ class UserRepository implements UserRepositoryInterface
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function update($id, $data)
+    public function update(int $id, array $data)
     {
         $db = Database::getConnection();
 

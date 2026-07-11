@@ -2,6 +2,9 @@
 
 namespace Routes;
 
+use App\Shared\Infrastructure\Container\Container;
+use App\Shared\Helpers\Permission;
+
 class Router
 {
     private array $routes = [];
@@ -9,6 +12,12 @@ class Router
     private array $middlewareAliases = [];
     private string $groupPrefix = '';
     private array $groupMiddleware = [];
+    private ?Container $container = null;
+
+    public function setContainer(Container $container): void
+    {
+        $this->container = $container;
+    }
 
     public function aliasMiddleware(string $name, string $class): void
     {
@@ -102,7 +111,7 @@ class Router
             return call_user_func($action);
         }
 
-        // Array controller routes
+        // Array controller routes: [ControllerClass::class, 'method']
         if (is_array($action)) {
             [$controller, $function] = $action;
 
@@ -110,7 +119,7 @@ class Router
                 throw new \Exception("Controller not found: $controller");
             }
 
-            $instance = new $controller();
+            $instance = $this->resolveController($controller);
 
             if (!method_exists($instance, $function)) {
                 throw new \Exception("Method not found: $function in $controller");
@@ -132,9 +141,48 @@ class Router
         return null;
     }
 
+    private function resolveController(string $controller): object
+    {
+        if ($this->container !== null && $this->container->has($controller)) {
+            return $this->container->get($controller);
+        }
+
+        if ($this->container !== null) {
+            try {
+                return $this->container->make($controller);
+            } catch (\Exception $e) {
+                // Fall through to default instantiation
+            }
+        }
+
+        return new $controller();
+    }
+
     private function runMiddleware(array $middlewareList): void
     {
         foreach ($middlewareList as $name) {
+            // Support middleware with parameters: "permission:dashboard.view"
+            if (is_string($name) && str_contains($name, ':')) {
+                $parts = explode(':', $name, 2);
+                $alias = $parts[0];
+                $param = $parts[1];
+
+                $class = $this->middlewareAliases[$alias] ?? null;
+
+                if (!$class) {
+                    throw new \Exception("Middleware alias '$alias' is not registered.");
+                }
+
+                $instance = new $class($param);
+
+                if (!method_exists($instance, 'handle')) {
+                    throw new \Exception("Middleware $class must have a handle() method.");
+                }
+
+                $instance->handle();
+                continue;
+            }
+
             $class = $this->middlewareAliases[$name] ?? null;
 
             if (!$class) {

@@ -186,7 +186,7 @@ class AuthRepository implements AuthRepositoryInterface
         return $this->db->lastInsertId();
     }
 
-    public function markAsVerified($userId)
+    public function markAsVerified(int $userId): void
     {
         $stmt = $this->db->prepare("
             UPDATE users
@@ -202,7 +202,7 @@ class AuthRepository implements AuthRepositoryInterface
         ]);
     }
 
-    public function updateVerificationCode($email, $code, $expires)
+    public function updateVerificationCode(string $email, int $code, string $expires): void
     {
         $stmt = $this->db->prepare("
             UPDATE users

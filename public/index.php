@@ -14,24 +14,137 @@ require_once __DIR__ . '/../vendor/autoload.php';
 session_start();
 
 /**
+ * --------------------------------------------------------
+ * Dependency Injection Container
+ * --------------------------------------------------------
+ */
+$container = new \App\Shared\Infrastructure\Container\Container();
+
+// ===== Repository Bindings (Interface -> Implementation) =====
+$container->singleton(
+    \App\Authentication\Domain\Repository\AuthRepositoryInterface::class,
+    \App\Authentication\Infrastructure\Persistence\AuthRepository::class
+);
+
+$container->singleton(
+    \App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface::class,
+    \App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository::class
+);
+
+$container->singleton(
+    \App\Donation\Domain\Repository\DonationRepositoryInterface::class,
+    \App\Donation\Infrastructure\Persistence\DonationRepository::class
+);
+
+$container->singleton(
+    \App\Donor\Domain\Repository\DonorRepositoryInterface::class,
+    \App\Donor\Infrastructure\Persistence\DonorRepository::class
+);
+
+$container->singleton(
+    \App\Notification\Domain\Repository\NotificationRepositoryInterface::class,
+    \App\Notification\Infrastructure\Persistence\NotificationRepository::class
+);
+
+$container->singleton(
+    \App\User\Domain\Repository\UserRepositoryInterface::class,
+    \App\User\Infrastructure\Persistence\UserRepository::class
+);
+
+// ===== Shared Service Bindings =====
+$container->singleton(
+    \App\Shared\Infrastructure\Persistence\MasterDataRepository::class,
+    \App\Shared\Infrastructure\Persistence\MasterDataRepository::class
+);
+
+$container->singleton(
+    \App\Shared\Infrastructure\Persistence\RoleRepository::class,
+    \App\Shared\Infrastructure\Persistence\RoleRepository::class
+);
+
+$container->singleton(
+    \App\Shared\Infrastructure\Mail\EmailService::class,
+    \App\Shared\Infrastructure\Mail\EmailService::class
+);
+
+$container->singleton(
+    \App\Shared\Infrastructure\Activity\ActivityLogger::class,
+    \App\Shared\Infrastructure\Activity\ActivityLogger::class
+);
+
+// ===== Admin Controllers =====
+$container->singleton(
+    \App\Admin\Presentation\Controller\AdminDashboardController::class,
+    function (\App\Shared\Infrastructure\Container\Container $c) {
+        return new \App\Admin\Presentation\Controller\AdminDashboardController(
+            $c->get(\App\User\Domain\Repository\UserRepositoryInterface::class),
+            $c->get(\App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface::class),
+            $c->get(\App\Donation\Domain\Repository\DonationRepositoryInterface::class),
+            $c->get(\App\Notification\Domain\Repository\NotificationRepositoryInterface::class)
+        );
+    }
+);
+
+$container->singleton(
+    \App\Admin\Presentation\Controller\AdminUserController::class,
+    function (\App\Shared\Infrastructure\Container\Container $c) {
+        return new \App\Admin\Presentation\Controller\AdminUserController(
+            $c->get(\App\User\Domain\Repository\UserRepositoryInterface::class)
+        );
+    }
+);
+
+$container->singleton(
+    \App\Admin\Presentation\Controller\AdminBloodRequestController::class,
+    function (\App\Shared\Infrastructure\Container\Container $c) {
+        return new \App\Admin\Presentation\Controller\AdminBloodRequestController(
+            $c->get(\App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface::class),
+            $c->get(\App\Donation\Domain\Repository\DonationRepositoryInterface::class),
+            $c->get(\App\Notification\Domain\Repository\NotificationRepositoryInterface::class),
+            $c->get(\App\User\Domain\Repository\UserRepositoryInterface::class),
+            $c->get(\App\Shared\Infrastructure\Persistence\MasterDataRepository::class),
+            $c->get(\App\Admin\Application\UseCase\ViewBloodRequestsUseCase::class),
+            $c->get(\App\Admin\Application\UseCase\ConfirmDonationUseCase::class)
+        );
+    }
+);
+
+$container->singleton(
+    \App\Admin\Presentation\Controller\AdminRoleController::class,
+    function (\App\Shared\Infrastructure\Container\Container $c) {
+        return new \App\Admin\Presentation\Controller\AdminRoleController(
+            $c->get(\App\Shared\Infrastructure\Persistence\RoleRepository::class)
+        );
+    }
+);
+
+/**
+ * --------------------------------------------------------
  * Get request URI
+ * --------------------------------------------------------
  */
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 /**
+ * --------------------------------------------------------
  * Get project base path correctly
+ * --------------------------------------------------------
  */
 $basePath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 
 /**
+ * --------------------------------------------------------
  * Remove base path from URI
+ * --------------------------------------------------------
  */
 if ($basePath !== '/' && $basePath !== '') {
     $uri = str_replace($basePath, '', $uri);
 }
 
 /**
+ * --------------------------------------------------------
  * Normalize URI
+ * --------------------------------------------------------
  */
 $uri = '/' . trim($uri, '/');
 
@@ -40,8 +153,11 @@ if ($uri === '//') {
 }
 
 /**
+ * --------------------------------------------------------
  * Load router
+ * --------------------------------------------------------
  */
 $router = require __DIR__ . '/../routes/web.php';
+$router->setContainer($container);
 
 $router->dispatch($uri, $_SERVER['REQUEST_METHOD']);

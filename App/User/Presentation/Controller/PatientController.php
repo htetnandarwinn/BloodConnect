@@ -4,15 +4,25 @@ namespace App\User\Presentation\Controller;
 
 use App\Shared\Helpers\Session;
 use App\Shared\Presentation\View\patientView;
-use App\User\Infrastructure\Persistence\UserRepository;
-use App\Shared\Helpers\Validator;
-use App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository;
+use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
+use App\BloodRequest\Application\UseCase\CancelBloodRequestUseCase;
+use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 use App\Notification\Application\UseCase\SendProfileUpdateNotificationUseCase;
-use App\Notification\Infrastructure\Persistence\NotificationRepository;
-use App\Shared\Helpers\PermissionGuard;
+use App\User\Domain\Repository\UserRepositoryInterface;
+use App\Shared\Helpers\Validator;
+use App\Shared\Infrastructure\Persistence\MasterDataRepository;
 
 class PatientController
 {
+    public function __construct(
+        private BloodRequestRepositoryInterface $bloodRequestRepo,
+        private NotificationRepositoryInterface $notificationRepo,
+        private UserRepositoryInterface $userRepo,
+        private MasterDataRepository $masterRepo,
+        private CancelBloodRequestUseCase $cancelUseCase,
+        private SendProfileUpdateNotificationUseCase $profileUpdateNotifUseCase
+    ) {}
+
     private function getUserId(): int
     {
         return (int) Session::get('user_id');
@@ -20,8 +30,7 @@ class PatientController
 
     private function getUnreadCount(): int
     {
-        $repo = new NotificationRepository();
-        return $repo->getUnreadCount($this->getUserId());
+        return $this->notificationRepo->getUnreadCount($this->getUserId());
     }
 
     private function authGuard()
@@ -35,19 +44,14 @@ class PatientController
     }
     public function patient_dashboard()
     {
-
-
         $this->authGuard();
-        PermissionGuard::check('dashboard.view');
 
-
-        $repo = new BloodRequestRepository();
         $patientId = $this->getUserId();
 
         return patientView::render('patient_dashboard', [
             'username'    => Session::get('username'),
-            'requests'    => $repo->findByPatientId($patientId),
-            'metrics'     => $repo->getPatientStats($patientId),
+            'requests'    => $this->bloodRequestRepo->findByPatientId($patientId),
+            'metrics'     => $this->bloodRequestRepo->getPatientStats($patientId),
             'unreadCount' => $this->getUnreadCount()
         ]);
     }
@@ -55,10 +59,6 @@ class PatientController
     public function myRequests()
     {
         $this->authGuard();
-        PermissionGuard::check('blood_request.view_own');
-
-
-        $repo = new BloodRequestRepository();
 
         $message = Session::get('flash_message', '');
         $status = Session::get('flash_status', '');
@@ -67,7 +67,7 @@ class PatientController
 
         return patientView::render('myrequest', [
             'username'    => Session::get('username'),
-            'requests'    => $repo->findByPatientId($this->getUserId()),
+            'requests'    => $this->bloodRequestRepo->findByPatientId($this->getUserId()),
             'unreadCount' => $this->getUnreadCount(),
             'message'     => $message,
             'status'      => $status,
@@ -77,7 +77,6 @@ class PatientController
     public function viewMyRequest()
     {
         $this->authGuard();
-        PermissionGuard::check('blood_request.view_own');
 
         $requestId = (int)($_GET['id'] ?? 0);
 
@@ -86,8 +85,7 @@ class PatientController
             exit;
         }
 
-        $repo = new BloodRequestRepository();
-        $request = $repo->findPatientRequestDetail($requestId, $this->getUserId());
+        $request = $this->bloodRequestRepo->findPatientRequestDetail($requestId, $this->getUserId());
 
         if (empty($request)) {
             header('Location: /BloodConnect/public/patient/my-requests');
@@ -104,13 +102,9 @@ class PatientController
     public function profile()
     {
         $this->authGuard();
-        PermissionGuard::check('profile.view');
-
-
-        $repo = new UserRepository();
 
         return patientView::render('patientProfile', [
-            'user'        => $repo->findById($this->getUserId()),
+            'user'        => $this->userRepo->findById($this->getUserId()),
             'unreadCount' => $this->getUnreadCount()
         ]);
     }
@@ -118,7 +112,6 @@ class PatientController
     public function updateProfile()
     {
         $this->authGuard();
-        PermissionGuard::check('profile.update');
 
         $userId = $this->getUserId();
 
@@ -153,7 +146,6 @@ class PatientController
             exit;
         }
 
-        // Password is optional
         if (!empty($data['password'])) {
 
             if ($data['password'] !== $data['confirm_password']) {
@@ -168,9 +160,7 @@ class PatientController
             unset($data['password']);
         }
 
-        $repo = new UserRepository();
-
-        if (!$repo->update($userId, $data)) {
+        if (!$this->userRepo->update($userId, $data)) {
             die("Update failed!");
         }
 
@@ -184,8 +174,7 @@ class PatientController
             Session::set('user', $userSession);
         }
 
-        $notificationUseCase = new SendProfileUpdateNotificationUseCase();
-        $notificationUseCase->execute($userId, $data['username']);
+        $this->profileUpdateNotifUseCase->execute($userId, $data['username']);
 
         header("Location: /BloodConnect/public/patient/profile");
         exit;
@@ -194,8 +183,6 @@ class PatientController
     public function searchDonors()
     {
         $this->authGuard();
-        PermissionGuard::check('donor.search');
-
 
         return patientView::render('search_donors', [
             'username'    => Session::get('username'),
@@ -206,15 +193,12 @@ class PatientController
     public function notifications()
     {
         $this->authGuard();
-        PermissionGuard::check('notification.view');
 
-
-        $repo = new NotificationRepository();
         $patientId = $this->getUserId();
 
         return patientView::render('notification', [
             'username'      => Session::get('username'),
-            'notifications' => $repo->findByUserId($patientId),
+            'notifications' => $this->notificationRepo->findByUserId($patientId),
             'unreadCount'   => $this->getUnreadCount()
         ]);
     }
@@ -222,7 +206,6 @@ class PatientController
     public function cancelRequest()
     {
         $this->authGuard();
-        PermissionGuard::check('blood_request.view_own');
 
         $requestId = (int)($_POST['request_id'] ?? 0);
         $patientId = $this->getUserId();
@@ -232,72 +215,13 @@ class PatientController
             exit;
         }
 
-        $repo = new \App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository();
-        $masterRepo = new \App\Shared\Infrastructure\Persistence\MasterDataRepository();
+        $result = $this->cancelUseCase->execute($requestId, $patientId);
 
-        // Fetch request before cancelling to get donor info
-        $request = $repo->findById($requestId);
-
-        $cancelledStatus = $masterRepo->getId('REQUEST_STATUS', 'CANCELLED') ?? 10;
-
-        $cancelled = $repo->cancelRequest($requestId, $patientId, $cancelledStatus);
-
-        if ($cancelled) {
-            $notificationRepo = new NotificationRepository();
-
-            // Notify patient
-            $notificationRepo->create(
-                $patientId,
-                'Request Cancelled',
-                'Your blood request has been cancelled.',
-                'REMINDER'
-            );
-
-            $patientName = htmlspecialchars($request['patient_name'] ?? 'A patient');
-            $bloodGroup = htmlspecialchars($request['blood_group_needed'] ?? '');
-
-            // Notify assigned donor if any
-            $donorId = (int)($request['donor_id'] ?? 0);
-            if ($donorId > 0) {
-                $notificationRepo->create(
-                    $donorId,
-                    'Request Cancelled',
-                    "{$patientName} has cancelled their {$bloodGroup} blood request.",
-                    'REMINDER'
-                );
-            }
-
-            // Notify matching donors (by blood group)
-            $matchingDonors = $repo->getMatchingDonors($bloodGroup);
-            foreach ($matchingDonors as $donor) {
-                $matchedDonorId = (int)$donor['user_id'];
-                if ($matchedDonorId === $donorId) {
-                    continue;
-                }
-                $notificationRepo->create(
-                    $matchedDonorId,
-                    'Request Cancelled',
-                    "{$patientName} has cancelled their {$bloodGroup} blood request.",
-                    'REMINDER'
-                );
-            }
-
-            // Notify all admins
-            $userRepo = new UserRepository();
-            $admins = $userRepo->getAdmins();
-            foreach ($admins as $admin) {
-                $notificationRepo->create(
-                    (int)$admin['user_id'],
-                    'Request Cancelled',
-                    "{$patientName} has cancelled their {$bloodGroup} blood request.",
-                    'REMINDER'
-                );
-            }
-
+        if ($result['success']) {
             Session::set('flash_message', 'Your blood request has been cancelled.');
             Session::set('flash_status', 'success');
         } else {
-            Session::set('flash_message', 'Cannot cancel this request. Only pending requests can be cancelled.');
+            Session::set('flash_message', $result['error']);
             Session::set('flash_status', 'error');
         }
 
@@ -308,12 +232,9 @@ class PatientController
     public function updateProfilePage()
     {
         $this->authGuard();
-        PermissionGuard::check('profile.view');
-
-        $repo = new UserRepository();
 
         return patientView::render('update_profile', [
-            'user' => $repo->findById($this->getUserId()),
+            'user' => $this->userRepo->findById($this->getUserId()),
             'unreadCount' => $this->getUnreadCount()
         ]);
     }
@@ -321,19 +242,16 @@ class PatientController
     public function markNotificationRead()
     {
         $this->authGuard();
-        PermissionGuard::check('notification.view');
 
         $id = (int)($_POST['notification_id'] ?? 0);
 
-        $repo = new NotificationRepository();
-
-        $success = $repo->markAsRead($id);
+        $success = $this->notificationRepo->markAsRead($id);
 
         header('Content-Type: application/json');
 
         echo json_encode([
             "success" => $success,
-            "count" => $repo->getUnreadCount($this->getUserId())
+            "count" => $this->notificationRepo->getUnreadCount($this->getUserId())
         ]);
 
         exit;
@@ -342,11 +260,8 @@ class PatientController
     public function markAllNotificationsRead()
     {
         $this->authGuard();
-        PermissionGuard::check('notification.view');
 
-        $repo = new NotificationRepository();
-
-        $success = $repo->markAllAsRead($this->getUserId());
+        $success = $this->notificationRepo->markAllAsRead($this->getUserId());
 
         header('Content-Type: application/json');
 
@@ -361,22 +276,18 @@ class PatientController
     public function unreadCount()
     {
         $this->authGuard();
-        PermissionGuard::check('notification.view');
-
-        $repo = new NotificationRepository();
 
         header('Content-Type: application/json');
 
         echo json_encode([
-            'count' => $repo->getUnreadCount($this->getUserId())
+            'count' => $this->notificationRepo->getUnreadCount($this->getUserId())
         ]);
 
         exit;
     }
+
     public function getPatientStats(int $patientId): array
     {
-        // Delegate to BloodRequestRepository to avoid direct DB access here
-        $repo = new \App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository();
-        return $repo->getPatientStats($patientId);
+        return $this->bloodRequestRepo->getPatientStats($patientId);
     }
 }
