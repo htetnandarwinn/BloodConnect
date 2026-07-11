@@ -19,24 +19,36 @@ class RegisterPatientUseCase
         int $statusId,
         int $otp,
         string $expiresAt
-    ): string {
+    ): array {
 
         if ($this->repo->findByEmail($dto->email)) {
             throw new \DomainException("Email already exists");
         }
 
-        // 1. Save user
-        $userId = $this->repo->createPatient(
+        $passwordHash = password_hash($dto->password, PASSWORD_BCRYPT);
+
+        $this->emailService->sendOtp($dto->email, $otp);
+
+        return [
+            'otp' => $otp,
+            'expires_at' => $expiresAt,
+            'password_hash' => $passwordHash,
+        ];
+    }
+
+    public function finalizeRegistration(
+        RegisterPatientDTO $dto,
+        int $userTypeId,
+        int $statusId,
+        string $passwordHash
+    ): string {
+        return $this->repo->createPatient(
             $dto,
             $userTypeId,
             $statusId,
-            $otp,
-            $expiresAt
+            0,
+            '',
+            $passwordHash
         );
-
-        // 2. Send OTP EMAIL (IMPORTANT PART)
-        $this->emailService->sendOtp($dto->email, $otp);
-
-        return $userId;
     }
 }

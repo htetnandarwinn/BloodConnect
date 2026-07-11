@@ -83,7 +83,8 @@ class AuthRepository implements AuthRepositoryInterface
         int $userTypeId,
         int $statusId,
         int $otp,
-        string $expiresAt
+        string $expiresAt,
+        string $passwordHash
     ): string {
 
         $sql = "
@@ -112,9 +113,9 @@ class AuthRepository implements AuthRepositoryInterface
             :user_type_id,
             :status_id,
             1,
-            0,
-            :otp,
-            :expiresAt,
+            1,
+            NULL,
+            NULL,
             NOW(),
             NOW()
         )
@@ -126,13 +127,11 @@ class AuthRepository implements AuthRepositoryInterface
             ':username' => $dto->username,
             ':email' => $dto->email,
             ':phone' => $dto->phone,
-            ':password' => password_hash($dto->password, PASSWORD_BCRYPT),
+            ':password' => $passwordHash,
             ':blood_group' => $dto->blood_group,
             ':address' => $dto->address,
             ':user_type_id' => $userTypeId,
             ':status_id' => $statusId,
-            ':otp' => $otp,
-            ':expiresAt' => $expiresAt,
         ]);
 
         return (string) $this->db->lastInsertId();

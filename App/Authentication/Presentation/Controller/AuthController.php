@@ -200,7 +200,7 @@ class AuthController
                 $this->emailService
             );
 
-            $userId = $useCase->execute(
+            $result = $useCase->execute(
                 $dto,
                 $userTypeId,
                 $statusId,
@@ -208,8 +208,21 @@ class AuthController
                 $expiresAt
             );
 
+            Session::set('pending_registration', [
+                'username'       => $data['username'],
+                'email'          => $data['email'],
+                'phone'          => $data['phone'] ?? null,
+                'password_hash'  => $result['password_hash'],
+                'blood_group'    => $data['blood_group'] ?? null,
+                'address'        => $data['address'] ?? null,
+                'role'           => $role,
+                'user_type_id'   => $userTypeId,
+                'status_id'      => $statusId,
+                'otp'            => $result['otp'],
+                'expires_at'     => $result['expires_at'],
+            ]);
+
             Session::set('verify_email', $data['email']);
-            Session::set('verify_user_id', $userId);
 
             $this->redirect('/verify-email');
         } catch (\DomainException $e) {

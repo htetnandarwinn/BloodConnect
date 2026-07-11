@@ -8,7 +8,7 @@ interface AuthRepositoryInterface
 {
     public function findByEmail(string $email);
     public function findByUsername(string $username);
-    public function createPatient(RegisterPatientDTO $dto, int $userTypeId, int $statusId, int $otp, string $expiresAt): string;
+    public function createPatient(RegisterPatientDTO $dto, int $userTypeId, int $statusId, int $otp, string $expiresAt, string $passwordHash): string;
     public function createDonor(RegisterPatientDTO $dto);
     public function markAsVerified(int $userId): void;
     public function updateVerificationCode(string $email, int $code, string $expires): void;

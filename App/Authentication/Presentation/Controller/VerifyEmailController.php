@@ -5,6 +5,8 @@ namespace App\Authentication\Presentation\Controller;
 use App\Shared\Helpers\Session;
 use App\Authentication\Domain\Repository\AuthRepositoryInterface;
 use App\Shared\Infrastructure\Mail\EmailService;
+use App\Authentication\Application\UseCase\RegisterPatientUseCase;
+use App\Authentication\Application\DTO\RegisterPatientDTO;
 
 class VerifyEmailController
 {
@@ -22,6 +24,7 @@ class VerifyEmailController
         Session::start();
 
         $email = Session::get('verify_email');
+        $pending = Session::get('pending_registration');
         $code = $_POST['code'] ?? null;
 
         if (!$email || !$code) {
@@ -29,52 +32,47 @@ class VerifyEmailController
             $this->redirect('/verify-email');
         }
 
-        $user = $this->authRepo->findByEmail($email);
-
-        if (!$user) {
-            $_SESSION['errors']['form'] = "User not found.";
-            $this->redirect('/verify-email');
+        if (!$pending || $pending['email'] !== $email) {
+            $_SESSION['errors']['form'] = "Registration data not found. Please register again.";
+            $this->redirect('/register');
         }
 
-        $expiresAt = $user['verification_expires_at'] ?? null;
-
-        // ❌ expired check
-        if (empty($expiresAt) || strtotime($expiresAt) < time()) {
+        if (strtotime($pending['expires_at']) < time()) {
             $_SESSION['errors']['form'] = "Code expired. Please resend.";
             $this->redirect('/verify-email');
         }
 
-        // ❌ wrong code
-        if ((string)($user['verification_code'] ?? '') !== trim((string)$code)) {
+        if ((string)$pending['otp'] !== trim((string)$code)) {
             $_SESSION['errors']['form'] = "Invalid code.";
             $this->redirect('/verify-email');
         }
 
-        // ✅ success → verify user
-        $verified = false;
-        foreach (
-            [
-                'markAsVerified' => [$user['user_id']],
-                'markVerified' => [$user['user_id']],
-                'verifyUser' => [$user['user_id']],
-                'verify' => [$user['user_id']],
-                'verifyEmail' => [$email],
-            ] as $method => $args
-        ) {
-            if (method_exists($this->authRepo, $method)) {
-                $this->authRepo->{$method}(...$args);
-                $verified = true;
-                break;
-            }
-        }
+        $useCase = new RegisterPatientUseCase(
+            $this->authRepo,
+            $this->emailService
+        );
 
-        if (!$verified) {
-            throw new \RuntimeException('Unable to verify user account.');
-        }
+        $dto = new RegisterPatientDTO(
+            $pending['username'],
+            $pending['email'],
+            $pending['phone'],
+            '',
+            $pending['blood_group'],
+            $pending['address'],
+            $pending['role']
+        );
 
-        $_SESSION['success'] = "Email verified successfully!";
-        unset($_SESSION['verify_email']);
+        $userId = $useCase->finalizeRegistration(
+            $dto,
+            (int)$pending['user_type_id'],
+            (int)$pending['status_id'],
+            $pending['password_hash']
+        );
 
+        Session::remove('pending_registration');
+        Session::remove('verify_email');
+
+        $_SESSION['success'] = "Email verified successfully! You can now log in.";
         $this->redirect('/login');
     }
 
@@ -83,50 +81,23 @@ class VerifyEmailController
         Session::start();
 
         $email = Session::get('verify_email');
+        $pending = Session::get('pending_registration');
 
-        if (!$email) {
+        if (!$email || !$pending) {
             $this->redirect('/register');
         }
 
         $code = rand(100000, 999999);
         $expires = date('Y-m-d H:i:s', strtotime('+10 minutes'));
 
-        // Attempt to update verification code using a repository method that may vary
-        $updateMethods = [
-            'updateVerificationCode',
-            'setVerificationCode',
-            'saveVerificationCode',
-            'updateVerification',
-            'setVerification',
-        ];
+        $pending['otp'] = $code;
+        $pending['expires_at'] = $expires;
+        Session::set('pending_registration', $pending);
 
-        $updated = false;
-        foreach ($updateMethods as $m) {
-            if (method_exists($this->authRepo, $m)) {
-                try {
-                    $this->authRepo->{$m}($email, $code, $expires);
-                } catch (\ArgumentCountError $e) {
-                    $this->authRepo->{$m}($code, $expires, $email);
-                }
-                $updated = true;
-                break;
-            }
-        }
-
-        if (! $updated) {
-            throw new \RuntimeException('Unable to update verification code: repository method not found.');
-        }
-
-        // send email again (PHPMailer)
-        $this->sendEmail($email, $code);
+        $this->emailService->sendOtp($email, $code);
 
         $_SESSION['success'] = "New code sent!";
         $this->redirect('/verify-email');
-    }
-
-    private function sendEmail($email, $code)
-    {
-        $this->emailService->sendOtp($email, $code);
     }
 
     private function redirect(string $path): void
