@@ -1,0 +1,52 @@
+digraph ModuleInteraction {
+    rankdir=LR;
+    splines=curved;
+    fontname="Times New Roman";
+    fontsize=12;
+    bgcolor="white";
+    nodesep=0.5;
+    ranksep=0.7;
+
+    node [fontname="Times New Roman", fontsize=9, shape=box, style=filled, fillcolor="#E3F2FD"];
+
+    // Modules
+    Auth [label="Authentication\nModule" fillcolor="#FFCDD2"];
+    Donor [label="Donor\nModule" fillcolor="#C8E6C9"];
+    Request [label="Blood Request\nModule" fillcolor="#BBDEFB"];
+    Notification [label="Notification\nModule" fillcolor="#FFF9C4"];
+    Profile [label="Profile\nModule" fillcolor="#D1C4E9"];
+    Search [label="Search\nModule" fillcolor="#FFE0B2"];
+    Analytics [label="Analytics\nModule" fillcolor="#B2EBF2"];
+    Admin [label="Admin\nModule" fillcolor="#F8BBD0"];
+
+    // Database
+    DB [label="MySQL\nDatabase" shape=database style=filled fillcolor="#E0E0E0"];
+
+    // Interactions
+    Auth -> Donor [label="authenticates"];
+    Auth -> Request [label="authenticates"];
+    Auth -> Admin [label="authenticates"];
+    Auth -> Profile [label="authenticates"];
+
+    Donor -> Request [label="responds to"];
+    Donor -> Profile [label="manages"];
+
+    Request -> Notification [label="triggers alert"];
+    Request -> Search [label="indexes listings"];
+
+    Donor -> Search [label="indexes profiles"];
+    
+    Search -> Donor [label="queries profiles"];
+    Search -> Request [label="queries requests"];
+
+    Admin -> Donor [label="manages"];
+    Admin -> Request [label="verifies"];
+    Admin -> Analytics [label="views reports"];
+
+    Analytics -> DB [label="queries"];
+    Auth -> DB [label="reads/writes"];
+    Donor -> DB [label="reads/writes"];
+    Request -> DB [label="reads/writes"];
+    Notification -> DB [label="reads/writes"];
+    Profile -> DB [label="reads/writes"];
+}

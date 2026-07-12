@@ -1,0 +1,100 @@
+digraph ERDiagram {
+    rankdir=BT;
+    splines=ortho;
+    fontname="Times New Roman";
+    fontsize=12;
+    bgcolor="white";
+    ranksep=1.0;
+    nodesep=0.5;
+
+    node [fontname="Times New Roman", fontsize=9, shape=plaintext];
+
+    // Users Entity
+    subgraph cluster_users {
+        label="Users";
+        fontname="Times New Roman";
+        fontsize=11;
+        style=filled;
+        fillcolor="#E8F5E9";
+        color="#388E3C";
+
+        User_PK [label="<PK> user_id (INT)" shape=box style=filled fillcolor="#A5D6A7"];
+        User_username [label="username (VARCHAR 50)" shape=box];
+        User_email [label="email (VARCHAR 100)" shape=box];
+        User_password [label="password_hash (VARCHAR 255)" shape=box];
+        User_role [label="role (ENUM)" shape=box];
+        User_fname [label="first_name (VARCHAR 50)" shape=box];
+        User_lname [label="last_name (VARCHAR 50)" shape=box];
+        User_dob [label="date_of_birth (DATE)" shape=box];
+        User_blood [label="blood_type (ENUM)" shape=box];
+        User_phone [label="phone (VARCHAR 20)" shape=box];
+        User_address [label="address (TEXT)" shape=box];
+        User_city [label="city (VARCHAR 50)" shape=box];
+        User_status [label="status (ENUM)" shape=box];
+        User_created [label="created_at (TIMESTAMP)" shape=box];
+        User_updated [label="updated_at (TIMESTAMP)" shape=box];
+    }
+
+    // Blood Requests Entity
+    subgraph cluster_requests {
+        label="Blood_Requests";
+        fontname="Times New Roman";
+        fontsize=11;
+        style=filled;
+        fillcolor="#FFEBEE";
+        color="#C62828";
+
+        Req_PK [label="<PK> request_id (INT)" shape=box style=filled fillcolor="#EF9A9A"];
+        Req_user [label="<FK> user_id (INT)" shape=box];
+        Req_blood [label="blood_type_needed (ENUM)" shape=box];
+        Req_quantity [label="quantity_ml (DECIMAL)" shape=box];
+        Req_urgency [label="urgency (ENUM)" shape=box];
+        Req_hospital [label="hospital_name (VARCHAR 100)" shape=box];
+        Req_reason [label="reason (TEXT)" shape=box];
+        Req_status [label="status (ENUM)" shape=box];
+        Req_created [label="created_at (TIMESTAMP)" shape=box];
+        Req_updated [label="updated_at (TIMESTAMP)" shape=box];
+    }
+
+    // Donations Entity
+    subgraph cluster_donations {
+        label="Donations";
+        fontname="Times New Roman";
+        fontsize=11;
+        style=filled;
+        fillcolor="#E3F2FD";
+        color="#1565C0";
+
+        Don_PK [label="<PK> donation_id (INT)" shape=box style=filled fillcolor="#90CAF9"];
+        Don_user [label="<FK> user_id (INT)" shape=box];
+        Don_req [label="<FK> request_id (INT)" shape=box];
+        Don_date [label="donation_date (DATE)" shape=box];
+        Don_volume [label="volume_ml (DECIMAL)" shape=box];
+        Don_verified [label="verified (BOOLEAN)" shape=box];
+        Don_notes [label="notes (TEXT)" shape=box];
+        Don_created [label="created_at (TIMESTAMP)" shape=box];
+    }
+
+    // Notifications Entity
+    subgraph cluster_notifications {
+        label="Notifications";
+        fontname="Times New Roman";
+        fontsize=11;
+        style=filled;
+        fillcolor="#FFF3E0";
+        color="#E65100";
+
+        Notif_PK [label="<PK> notification_id (INT)" shape=box style=filled fillcolor="#FFCC80"];
+        Notif_user [label="<FK> user_id (INT)" shape=box];
+        Notif_type [label="type (ENUM)" shape=box];
+        Notif_msg [label="message (TEXT)" shape=box];
+        Notif_read [label="is_read (BOOLEAN)" shape=box];
+        Notif_created [label="created_at (TIMESTAMP)" shape=box];
+    }
+
+    // Relationships
+    User_PK -> Req_user [label=" 1:N " color="#388E3C" fontsize=9 fontcolor="#388E3C"];
+    User_PK -> Don_user [label=" 1:N " color="#388E3C" fontsize=9 fontcolor="#388E3C"];
+    User_PK -> Notif_user [label=" 1:N " color="#388E3C" fontsize=9 fontcolor="#388E3C"];
+    Req_PK -> Don_req [label=" 1:N " color="#C62828" fontsize=9 fontcolor="#C62828"];
+}

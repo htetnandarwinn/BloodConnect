@@ -1,0 +1,86 @@
+digraph CleanArchitecture {
+    rankdir=LR;
+    splines=polyline;
+    fontname="Times New Roman";
+    fontsize=12;
+    bgcolor="white";
+    compound=true;
+    nodesep=0.6;
+    ranksep=0.8;
+
+    node [fontname="Times New Roman", fontsize=9, shape=box, style=filled];
+
+    subgraph cluster_entities {
+        label="Enterprise Business Rules\n(Entities Layer)";
+        fontname="Times New Roman";
+        fontsize=11;
+        style=filled;
+        fillcolor="#FFF9C4";
+        color="#F57F17";
+
+        Entities [label="Domain Entities\nUser, BloodRequest,\nDonation, Notification" fillcolor="#FFF176"];
+        Rules [label="Business Rules\nValidation Constraints\nDomain Logic" fillcolor="#FFF176"];
+    }
+
+    subgraph cluster_usecases {
+        label="Application Business Rules\n(Use Case Layer)";
+        fontname="Times New Roman";
+        fontsize=11;
+        style=filled;
+        fillcolor="#E3F2FD";
+        color="#1565C0";
+
+        UseCases [label="Application Use Cases\nRequestBlood, RegisterDonor,\nSearchDonors, ManageProfile,\nVerifyDonation" fillcolor="#90CAF9"];
+        Ports [label="Input/Output Ports\nRepository Interfaces\nService Interfaces" fillcolor="#90CAF9"];
+    }
+
+    subgraph cluster_controllers {
+        label="Interface Adapters\n(Controller Layer)";
+        fontname="Times New Roman";
+        fontsize=11;
+        style=filled;
+        fillcolor="#E8F5E9";
+        color="#2E7D32";
+
+        Controllers [label="Controllers\nAuthController, DonorController,\nRequestController, AdminController" fillcolor="#A5D6A7"];
+        Presenters [label="Presenters\nView Models\nDTO Assemblers" fillcolor="#A5D6A7"];
+        Gateways [label="Gateways\nDatabase Gateways\nORM Repositories" fillcolor="#A5D6A7"];
+    }
+
+    subgraph cluster_framework {
+        label="Frameworks & Drivers\n(Infrastructure Layer)";
+        fontname="Times New Roman";
+        fontsize=11;
+        style=filled;
+        fillcolor="#FCE4EC";
+        color="#880E4F";
+
+        Express [label="Express.js\n(Web Framework)" fillcolor="#F48FB1"];
+        DBImpl [label="MySQL\n(Sequelize ORM)" fillcolor="#F48FB1"];
+        Session [label="Session Management\nexpress-session" fillcolor="#F48FB1"];
+        Security [label="Security\nbcrypt, helmet, csurf" fillcolor="#F48FB1"];
+    }
+
+    // Dependencies pointing inward
+    edge [dir=back, style=dashed, color="#666666"];
+    
+    Express -> Controllers;
+    DBImpl -> Gateways;
+    Session -> Controllers;
+    Security -> Controllers;
+
+    edge [dir=forward, style=solid, color="#333333"];
+    
+    Controllers -> UseCases;
+    Presenters -> UseCases;
+    Gateways -> Ports;
+    
+    UseCases -> Entities;
+    Ports -> Entities;
+
+    // Decorations
+    label="Clean Architecture Layer Diagram";
+    fontsize=14;
+    fontname="Times New Roman Bold";
+    labeljust=l;
+}

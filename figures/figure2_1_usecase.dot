@@ -1,0 +1,88 @@
+digraph UseCaseDiagram {
+    rankdir=LR;
+    splines=curved;
+    fontname="Times New Roman";
+    fontsize=12;
+    bgcolor="white";
+    
+    node [fontname="Times New Roman", fontsize=10];
+    edge [fontname="Times New Roman", fontsize=9];
+
+    // Actors
+    Actor_Guest [label="Guest\n(Visitor)" shape=plaintext fontsize=10];
+    Actor_Donor [label="Donor" shape=plaintext fontsize=10];
+    Actor_Requester [label="Requester\n(BB/Patient)" shape=plaintext fontsize=10];
+    Actor_Admin [label="Blood Bank\nAdmin" shape=plaintext fontsize=10];
+    Actor_Nurse [label="Nurse\n(Medical Staff)" shape=plaintext fontsize=10];
+    Actor_Doctor [label="Doctor" shape=plaintext fontsize=10];
+    Actor_SuperAdmin [label="Super Admin" shape=plaintext fontsize=10];
+
+    // Use Cases
+    UC_Register [label="Register Account" shape=ellipse style=filled fillcolor="#E8F5E9"];
+    UC_Login [label="Login" shape=ellipse style=filled fillcolor="#E8F5E9"];
+    UC_Browse [label="Browse Blood\nRequests" shape=ellipse style=filled fillcolor="#E3F2FD"];
+    UC_Search [label="Search Donors /Requests" shape=ellipse style=filled fillcolor="#FFF3E0"];
+    UC_CreateRequest [label="Create Blood\nRequest" shape=ellipse style=filled fillcolor="#FCE4EC"];
+    UC_RespondRequest [label="Respond to\nRequest" shape=ellipse style=filled fillcolor="#F3E5F5"];
+    UC_ManageDonors [label="Manage Donor\nProfiles" shape=ellipse style=filled fillcolor="#FFF3E0"];
+    UC_TrackStatus [label="Track Request\nStatus" shape=ellipse style=filled fillcolor="#E8F5E9"];
+    UC_VerifyDonation [label="Verify Donation" shape=ellipse style=filled fillcolor="#FCE4EC"];
+    UC_MedicalScreen [label="Medical\nScreening" shape=ellipse style=filled fillcolor="#E3F2FD"];
+    UC_SystemConfig [label="System\nConfiguration" shape=ellipse style=filled fillcolor="#F3E5F5"];
+    UC_ManageUsers [label="Manage Users" shape=ellipse style=filled fillcolor="#FFCDD2"];
+    UC_ViewAnalytics [label="View Analytics\n& Reports" shape=ellipse style=filled fillcolor="#E8F5E9"];
+    UC_Logout [label="Logout" shape=ellipse style=filled fillcolor="#E8F5E9"];
+
+    // Relationships
+    Actor_Guest -> UC_Register;
+    Actor_Guest -> UC_Browse;
+    Actor_Guest -> UC_Login;
+
+    Actor_Donor -> UC_Login;
+    Actor_Donor -> UC_Browse;
+    Actor_Donor -> UC_Search;
+    Actor_Donor -> UC_RespondRequest;
+    Actor_Donor -> UC_TrackStatus;
+    Actor_Donor -> UC_ManageDonors;
+    Actor_Donor -> UC_Logout;
+
+    Actor_Requester -> UC_Login;
+    Actor_Requester -> UC_CreateRequest;
+    Actor_Requester -> UC_TrackStatus;
+    Actor_Requester -> UC_Logout;
+
+    Actor_Admin -> UC_Login;
+    Actor_Admin -> UC_ManageDonors;
+    Actor_Admin -> UC_VerifyDonation;
+    Actor_Admin -> UC_ViewAnalytics;
+    Actor_Admin -> UC_Logout;
+
+    Actor_Nurse -> UC_Login;
+    Actor_Nurse -> UC_MedicalScreen;
+    Actor_Nurse -> UC_VerifyDonation;
+    Actor_Nurse -> UC_Logout;
+
+    Actor_Doctor -> UC_Login;
+    Actor_Doctor -> UC_CreateRequest;
+    Actor_Doctor -> UC_Logout;
+
+    Actor_SuperAdmin -> UC_Login;
+    Actor_SuperAdmin -> UC_SystemConfig;
+    Actor_SuperAdmin -> UC_ManageUsers;
+    Actor_SuperAdmin -> UC_ViewAnalytics;
+    Actor_SuperAdmin -> UC_Logout;
+
+    // System boundary
+    subgraph cluster_system {
+        label="BloodConnect System";
+        fontsize=12;
+        fontname="Times New Roman";
+        style=dashed;
+        color="#333333";
+
+        UC_Register; UC_Login; UC_Browse; UC_Search;
+        UC_CreateRequest; UC_RespondRequest; UC_ManageDonors;
+        UC_TrackStatus; UC_VerifyDonation; UC_MedicalScreen;
+        UC_SystemConfig; UC_ManageUsers; UC_ViewAnalytics; UC_Logout;
+    }
+}

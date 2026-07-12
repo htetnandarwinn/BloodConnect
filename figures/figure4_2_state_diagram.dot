@@ -1,0 +1,41 @@
+digraph RequestLifecycle {
+    rankdir=TB;
+    splines=ortho;
+    fontname="Times New Roman";
+    fontsize=12;
+    bgcolor="white";
+    nodesep=0.5;
+    ranksep=0.6;
+
+    node [fontname="Times New Roman", fontsize=9, shape=box, style=filled];
+
+    // States
+    Pending [label="PENDING\n(Request Created)" fillcolor="#FFF9C4"];
+    Approved [label="APPROVED\n(Admin Verified)" fillcolor="#C8E6C9"];
+    Matched [label="MATCHED\n(Donor Found)" fillcolor="#BBDEFB"];
+    InProgress [label="IN_PROGRESS\n(Donation Scheduled)" fillcolor="#D1C4E9"];
+    Completed [label="COMPLETED\n(Donation Done)" fillcolor="#A5D6A7"];
+    Cancelled [label="CANCELLED" fillcolor="#FFCDD2"];
+    Expired [label="EXPIRED\n(No Match Found)" fillcolor="#FFAB91"];
+
+    // Start node
+    Start [label="" shape=point width=0.1];
+
+    // Transitions
+    Start -> Pending [label="User creates\nblood request"];
+
+    Pending -> Approved [label="Admin reviews\n& approves"];
+
+    Approved -> Matched [label="Donor volunteers\nto donate"];
+
+    Matched -> InProgress [label="Admin schedules\ndonation appointment"];
+
+    InProgress -> Completed [label="Nurse verifies\ndonation completed"];
+
+    Pending -> Cancelled [label="Requester\ncancels"];
+    Approved -> Cancelled [label="Requester\ncancels"];
+    Matched -> Cancelled [label="Donor or\nRequester cancels"];
+
+    Pending -> Expired [label="No match within\nvalidity period"];
+    Approved -> Expired [label="No donor found\nwithin validity period"];
+}

@@ -1,0 +1,102 @@
+digraph SystemArchitecture {
+    rankdir=TB;
+    splines=ortho;
+    fontname="Times New Roman";
+    fontsize=12;
+    bgcolor="white";
+    compound=true;
+    nodesep=0.3;
+    ranksep=0.4;
+
+    node [fontname="Times New Roman", fontsize=9, shape=box, style=filled, fillcolor="#E3F2FD"];
+
+    subgraph cluster_presentation {
+        label="Presentation Layer (N-tier Client)";
+        fontname="Times New Roman";
+        fontsize=11;
+        style=filled;
+        fillcolor="#F3E5F5";
+        color="#7B1FA2";
+
+        UI [label="Browser UI\n(HTML/CSS/JS)" fillcolor="#E1BEE7"];
+        Templates [label="EJS Templates\n(Server-Side)" fillcolor="#E1BEE7"];
+        Assets [label="Static Assets\n(CSS/JS/Images)" fillcolor="#E1BEE7"];
+    }
+
+    subgraph cluster_application {
+        label="Application Layer (Express.js)";
+        fontname="Times New Roman";
+        fontsize=11;
+        style=filled;
+        fillcolor="#E8F5E9";
+        color="#388E3C";
+
+        Routes [label="Route Handlers\n(Controllers)" fillcolor="#A5D6A7"];
+        Middleware [label="Middleware\n(Auth, Session, CSRF)" fillcolor="#A5D6A7"];
+        Validators [label="Validation &\nSanitization" fillcolor="#A5D6A7"];
+        Sessions [label="Session\nManagement" fillcolor="#A5D6A7"];
+    }
+
+    subgraph cluster_service {
+        label="Service Layer";
+        fontname="Times New Roman";
+        fontsize=11;
+        style=filled;
+        fillcolor="#FFF3E0";
+        color="#F57C00";
+
+        AuthSvc [label="Authentication\nService" fillcolor="#FFCC80"];
+        RequestSvc [label="Blood Request\nService" fillcolor="#FFCC80"];
+        DonorSvc [label="Donor\nManagement" fillcolor="#FFCC80"];
+        NotificationSvc [label="Notification\nService" fillcolor="#FFCC80"];
+        AnalyticsSvc [label="Analytics\nService" fillcolor="#FFCC80"];
+    }
+
+    subgraph cluster_data {
+        label="Data Layer";
+        fontname="Times New Roman";
+        fontsize=11;
+        style=filled;
+        fillcolor="#E3F2FD";
+        color="#1565C0";
+
+        MySQL [label="MySQL\nDatabase" fillcolor="#90CAF9" shape=database];
+        Models [label="Sequelize\nModels (ORM)" fillcolor="#90CAF9"];
+        Queries [label="Query\nOptimization" fillcolor="#90CAF9"];
+    }
+
+    subgraph cluster_security {
+        label="Cross-Cutting Concerns";
+        fontname="Times New Roman";
+        fontsize=11;
+        style=filled;
+        fillcolor="#FCE4EC";
+        color="#C62828";
+
+        Auth [label="Authentication\n& Authorization" fillcolor="#EF9A9A"];
+        Valid [label="Input Validation\n& Sanitization" fillcolor="#EF9A9A"];
+        CSRF [label="CSRF\nProtection" fillcolor="#EF9A9A"];
+        HTTPS [label="HTTPS\n& Helmet" fillcolor="#EF9A9A"];
+        Hash [label="Password\nHashing (bcrypt)" fillcolor="#EF9A9A"];
+    }
+
+    // Connections
+    UI -> Routes [label="HTTP Requests"];
+    Routes -> Templates [label="Render"];
+    Routes -> Middleware [style=dashed];
+    Middleware -> Routes [style=dashed];
+    Routes -> Validators [style=dashed];
+    Routes -> AuthSvc;
+    Routes -> RequestSvc;
+    Routes -> DonorSvc;
+    Routes -> NotificationSvc;
+    Routes -> AnalyticsSvc;
+
+    AuthSvc -> Models;
+    RequestSvc -> Models;
+    DonorSvc -> Models;
+    NotificationSvc -> Models;
+    AnalyticsSvc -> Models;
+
+    Models -> MySQL [label="SQL Queries"];
+}
