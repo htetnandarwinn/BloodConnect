@@ -1,6 +1,13 @@
 <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 min-h-screen" id="patientRequestsContainer">
 
     <?php
+    $requests = $requests ?? [];
+    $message = $message ?? '';
+    $status = $status ?? '';
+    $filter = $filter ?? '';
+    $pageTitle = $pageTitle ?? 'My Requests';
+    $emptyMessage = $emptyMessage ?? 'You have no requests recorded.';
+
     function getSeverityClass($level)
     {
         return match (strtoupper((string) $level)) {
@@ -50,17 +57,19 @@
                 </svg>
             </div>
             <div>
-                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">My Requests</h1>
-                <p class="text-xs sm:text-sm text-slate-400 font-medium mt-1.5">Direct system registry controls for live incoming hospital requests.</p>
+                <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight leading-none"><?= htmlspecialchars($pageTitle) ?></h1>
+                <p class="text-xs sm:text-sm text-slate-400 font-medium mt-1.5">
+                    <?= $filter === 'cancelled' ? 'Requests that were cancelled by you.' : 'Direct system registry controls for live incoming hospital requests.' ?>
+                </p>
             </div>
         </div>
 
         <div class="bg-[#111625] rounded-xl px-4 py-2.5 flex items-center justify-between gap-6 self-start sm:self-auto shadow-md">
             <div>
-                <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Active Tickets</span>
+                <span class="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Visible Requests</span>
                 <div class="flex items-baseline gap-1 mt-0.5">
-                    <span class="text-white font-black text-lg font-mono leading-none"><?= $activeCount ?></span>
-                    <span class="text-[10px] text-slate-500 font-medium">nodes</span>
+                    <span class="text-white font-black text-lg font-mono leading-none"><?= count($requests) ?></span>
+                    <span class="text-[10px] text-slate-500 font-medium">shown</span>
                 </div>
             </div>
             <div class="w-2 h-2 rounded-full bg-rose-500 shadow-xs shadow-rose-500/50 animate-pulse shrink-0"></div>
@@ -77,7 +86,7 @@
     <div class="space-y-3">
         <?php if (empty($requests)): ?>
             <div class="bg-white border border-slate-200/70 rounded-2xl p-12 text-center text-slate-400 font-medium">
-                You have no requests recorded.
+                <?= htmlspecialchars($emptyMessage) ?>
             </div>
         <?php else: ?>
 

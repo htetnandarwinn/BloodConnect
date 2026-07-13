@@ -437,6 +437,8 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 
     public function getPatientStats(int $patientId): array
     {
+        $cancelledStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'CANCELLED') ?? 10;
+
         // Total requests
         $stmt = $this->db->prepare("
         SELECT COUNT(*)
@@ -466,11 +468,21 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         $stmt->execute([$patientId]);
         $accepted = (int)$stmt->fetchColumn();
 
+        // Cancelled requests
+        $stmt = $this->db->prepare("
+        SELECT COUNT(*)
+        FROM blood_requests
+        WHERE patient_id = ?
+        AND status = ?
+    ");
+        $stmt->execute([$patientId, $cancelledStatus]);
+        $cancelled = (int)$stmt->fetchColumn();
 
         return [
             'total_requests'     => $total,
             'pending_requests'   => $pending,
-            'accepted_requests'  => $accepted
+            'accepted_requests'  => $accepted,
+            'cancelled_requests' => $cancelled
         ];
     }
 

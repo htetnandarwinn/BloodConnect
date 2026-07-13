@@ -152,7 +152,7 @@ function timeAgo($datetime)
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
                 </span>
-                <h3 class="font-bold text-slate-950 tracking-tight text-base">Live System Activity</h3>
+                <h3 class="font-bold text-slate-950 tracking-tight text-base">Recent System Activity</h3>
             </div>
             <span class="text-xs font-medium px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full">Real-time</span>
         </div>

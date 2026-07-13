@@ -42,6 +42,27 @@ class PatientController
             exit;
         }
     }
+
+    private function isCancelledRequest(array $request): bool
+    {
+        $status = strtolower((string)($request['status'] ?? $request['fulfillment_status'] ?? ''));
+
+        return $status === 'cancelled'
+            || $status === 'canceled'
+            || (int)($request['status'] ?? 0) === 10;
+    }
+
+    private function filterRequests(array $requests, string $filter): array
+    {
+        $filter = strtolower(trim($filter));
+
+        if ($filter !== 'cancelled') {
+            return $requests;
+        }
+
+        return array_values(array_filter($requests, fn(array $request): bool => $this->isCancelledRequest($request)));
+    }
+
     public function patient_dashboard()
     {
         $this->authGuard();
@@ -65,12 +86,43 @@ class PatientController
         Session::remove('flash_message');
         Session::remove('flash_status');
 
+        $filter = strtolower((string)($_GET['filter'] ?? ''));
+        $requests = $this->bloodRequestRepo->findByPatientId($this->getUserId());
+        $requests = $this->filterRequests($requests, $filter);
+
         return patientView::render('myrequest', [
             'username'    => Session::get('username'),
-            'requests'    => $this->bloodRequestRepo->findByPatientId($this->getUserId()),
+            'requests'    => $requests,
             'unreadCount' => $this->getUnreadCount(),
             'message'     => $message,
             'status'      => $status,
+            'filter'      => $filter,
+            'pageTitle'   => $filter === 'cancelled' ? 'Cancelled Requests' : 'My Requests',
+            'emptyMessage' => $filter === 'cancelled' ? 'You have no cancelled requests.' : 'You have no requests recorded.',
+        ]);
+    }
+
+    public function cancelledRequests()
+    {
+        $this->authGuard();
+
+        $message = Session::get('flash_message', '');
+        $status = Session::get('flash_status', '');
+        Session::remove('flash_message');
+        Session::remove('flash_status');
+
+        $requests = $this->bloodRequestRepo->findByPatientId($this->getUserId());
+        $requests = $this->filterRequests($requests, 'cancelled');
+
+        return patientView::render('myrequest', [
+            'username'     => Session::get('username'),
+            'requests'     => $requests,
+            'unreadCount'  => $this->getUnreadCount(),
+            'message'      => $message,
+            'status'       => $status,
+            'filter'       => 'cancelled',
+            'pageTitle'    => 'Cancelled Requests',
+            'emptyMessage' => 'You have no cancelled requests.',
         ]);
     }
 

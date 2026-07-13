@@ -110,6 +110,7 @@ $router->group(['middleware' => ['auth', 'patient']], function (Router $router) 
     });
     $router->middleware(['can:blood_request.view_own'], function (Router $router) {
         $router->get('/patient/my-requests', [PatientController::class, 'myRequests']);
+        $router->get('/patient/my-requests/cancelled', [PatientController::class, 'cancelledRequests']);
         $router->get('/patient/my-request/view', [PatientController::class, 'viewMyRequest']);
         $router->post('/patient/request/cancel', [PatientController::class, 'cancelRequest']);
     });

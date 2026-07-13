@@ -11,6 +11,7 @@ $metrics = $metrics ?? [
     'pending_requests' => 0,
     'accepted_requests' => 0,
     'completed_requests' => 0,
+    'cancelled_requests' => 0,
 ];
 ?>
 <!DOCTYPE html>
@@ -37,6 +38,7 @@ $metrics = $metrics ?? [
                 opacity: 0;
                 transform: translateY(12px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -52,7 +54,7 @@ $metrics = $metrics ?? [
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
             <div>
                 <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                    Welcome, <span class="text-[#E63946]"><?= htmlspecialchars($username) ?></span> 
+                    Welcome, <span class="text-[#E63946]"><?= htmlspecialchars($username) ?></span>
                     <span class="inline-block origin-bottom animate-[wave_2s_infinite]">👋</span>
                 </h1>
                 <p class="text-sm text-slate-500 mt-0.5">Manage your blood requests status dynamically.</p>
@@ -66,7 +68,7 @@ $metrics = $metrics ?? [
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 animate-fade-in" style="animation-delay: 100ms;">
-            
+
             <div class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm">
                 <div class="w-12 h-12 rounded-xl bg-red-50 text-[#E63946] flex items-center justify-center text-xl shrink-0">
                     <i class="fa-solid fa-droplet animate-pulse"></i>
@@ -99,6 +101,16 @@ $metrics = $metrics ?? [
                     <p class="text-xl font-black text-emerald-600 mt-0.5"><?php echo $metrics['accepted_requests']; ?> Approved</p>
                 </div>
             </div>
+
+            <!-- <a href="/BloodConnect/public/patient/my-requests/cancelled" class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
+                <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl shrink-0">
+                    <i class="fa-solid fa-ban"></i>
+                </div>
+                <div>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Cancelled Requests</p>
+                    <p class="text-xl font-black text-rose-600 mt-0.5"><?php echo $metrics['cancelled_requests']; ?> Cancelled</p>
+                </div>
+            </a> -->
 
         </div>
 
@@ -286,4 +298,5 @@ $metrics = $metrics ?? [
         });
     </script>
 </body>
+
 </html>
