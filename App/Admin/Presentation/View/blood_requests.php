@@ -4,10 +4,21 @@ use App\Shared\Infrastructure\Database\Database;
 
 $db = Database::getConnection();
 
+$filter = $_GET['filter'] ?? '';
+
 /* Fetch blood requests from the database */
 $requests = [];
 
 try {
+    $where = '';
+    if ($filter === 'pending') {
+        $where = 'WHERE r.status = 7';
+    } elseif ($filter === 'accepted') {
+        $where = 'WHERE r.status IN (8, 9)';
+    } elseif ($filter === 'completed') {
+        $where = 'WHERE r.status = 9';
+    }
+
     $stmt = $db->prepare("
         SELECT
             r.request_id,
@@ -20,6 +31,7 @@ try {
             COALESCE(r.created_at, CURRENT_TIMESTAMP) AS required_date
         FROM blood_requests r
         LEFT JOIN master_data md ON md.id = r.status
+        {$where}
         ORDER BY r.created_at DESC
     ");
     $stmt->execute();
@@ -27,6 +39,13 @@ try {
 } catch (Throwable $e) {
     $requests = [];
 }
+
+$pageTitle = match ($filter) {
+    'pending' => 'Pending Blood Requests',
+    'accepted' => 'Accepted Blood Requests',
+    'completed' => 'Completed Blood Requests',
+    default => 'Blood Requests',
+};
 
 function getSeverityClass($level)
 {
@@ -108,7 +127,7 @@ function getBloodTypeClass($type)
                 </svg>
             </div>
             <div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-none">Blood Requests</h1>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-none"><?= htmlspecialchars($pageTitle) ?></h1>
                 <p class="text-xs sm:text-sm text-slate-400 font-medium mt-1.5">Direct system registry controls for live incoming hospital requests.</p>
             </div>
         </div>

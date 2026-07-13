@@ -4,7 +4,6 @@ namespace App\Admin\Presentation\Controller;
 
 use App\User\Domain\Repository\UserRepositoryInterface;
 use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
-use App\Donation\Domain\Repository\DonationRepositoryInterface;
 use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 
 class AdminDashboardController
@@ -12,7 +11,6 @@ class AdminDashboardController
     public function __construct(
         private UserRepositoryInterface $userRepo,
         private BloodRequestRepositoryInterface $requestRepo,
-        private DonationRepositoryInterface $donationRepo,
         private NotificationRepositoryInterface $notificationRepo
     ) {}
 
@@ -30,21 +28,18 @@ class AdminDashboardController
         }
 
         $pendingRequests = 0;
-        $completedRequests = $this->donationRepo->countSuccessfulDonations();
-        $acceptedRequests = $this->requestRepo->countAcceptedByDonors();
+        $acceptedRequests = 0;
 
         foreach ($requests as $request) {
-            $status = strtolower(trim($request['status'] ?? ''));
+            $status = strtolower(trim($request['status_name'] ?? ''));
             if ($status === 'pending') $pendingRequests++;
+            elseif ($status === 'accepted' || $status === 'completed') $acceptedRequests++;
         }
 
         $data = [
-            'totalUsers'        => count($users),
             'totalDonors'       => $totalDonors,
             'totalPatients'     => $totalPatients,
-            'totalRequests'     => count($requests),
             'pendingRequests'   => $pendingRequests,
-            'completedRequests' => $completedRequests,
             'acceptedRequests'  => $acceptedRequests,
             'adminName'         => $_SESSION['user']['username'] ?? 'Admin'
         ];

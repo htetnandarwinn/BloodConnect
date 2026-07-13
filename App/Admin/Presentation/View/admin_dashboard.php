@@ -3,22 +3,22 @@
 if (!isset($data) || !is_array($data)) {
     $data = [
         'adminName' => 'Admin',
-        'totalUsers' => 0,
         'totalDonors' => 0,
-        'totalRequests' => 0,
-        'completedRequests' => 0,
+        'totalPatients' => 0,
+        'pendingRequests' => 0,
         'acceptedRequests' => 0,
     ];
 }
 
 $adminName = $data['adminName'] ?? 'Admin';
 
-// Upgraded modern/vibrant color palette with translucent borders
+$basePath = '/BloodConnect/public';
+
 $stats = [
-    ['label' => 'Total Users', 'value' => $data['totalUsers'], 'icon' => '👥', 'bg' => 'bg-rose-500/10 text-rose-600 border-rose-500/20'],
-    ['label' => 'Total Donors', 'value' => $data['totalDonors'], 'icon' => '💧', 'bg' => 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'],
-    ['label' => 'Total Requests', 'value' => $data['totalRequests'], 'icon' => '📋', 'bg' => 'bg-sky-500/10 text-sky-600 border-sky-500/20'],
-    ['label' => 'Successful Donations', 'value' => $data['completedRequests'], 'sub' => $data['acceptedRequests'] . ' accepted by donors', 'icon' => '🩸', 'bg' => 'bg-red-500/10 text-red-600 border-red-500/20'],
+    ['label' => 'Total Donors', 'value' => $data['totalDonors'], 'icon' => '💧', 'bg' => 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20', 'link' => "$basePath/admin/donor-management?filter=donors"],
+    ['label' => 'Total Patients', 'value' => $data['totalPatients'], 'icon' => '🏥', 'bg' => 'bg-sky-500/10 text-sky-600 border-sky-500/20', 'link' => "$basePath/admin/user-management?filter=patients"],
+    ['label' => 'Pending Requests', 'value' => $data['pendingRequests'], 'icon' => '⏳', 'bg' => 'bg-amber-500/10 text-amber-600 border-amber-500/20', 'link' => "$basePath/admin/blood-requests?filter=pending"],
+    ['label' => 'Accepted Requests', 'value' => $data['acceptedRequests'] ?? 0, 'icon' => '📋', 'bg' => 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20', 'link' => "$basePath/admin/blood-requests?filter=accepted"],
 ];
 
 // ✅ REAL DATABASE ACTIVITY
@@ -111,17 +111,18 @@ function timeAgo($datetime)
         </h1>
     </div>
 
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         <?php foreach ($stats as $index => $stat): ?>
             <?php
             $delayClass = match ($index) {
                 1 => 'animation-delay-100',
                 2 => 'animation-delay-200',
                 3 => 'animation-delay-300',
+                4 => 'animation-delay-300',
                 default => '',
             };
             ?>
-            <div class="animate-fade-in-up opacity-0 <?= $delayClass ?> group relative bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-slate-100 hover:border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out">
+            <a href="<?= $stat['link'] ?>" class="animate-fade-in-up opacity-0 <?= $delayClass ?> group relative bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-slate-100 hover:border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer">
 
                 <div class="absolute inset-0 bg-gradient-to-br from-slate-50/0 to-slate-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
 
@@ -133,16 +134,13 @@ function timeAgo($datetime)
                         <p class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight stat-counter" data-target="<?= htmlspecialchars((string)$stat['value']) ?>">
                             0
                         </p>
-                        <?php if (!empty($stat['sub'])): ?>
-                            <p class="text-[10px] font-medium text-slate-500 mt-1"><?= htmlspecialchars($stat['sub']) ?></p>
-                        <?php endif; ?>
                     </div>
 
                     <div class="<?= $stat['bg'] ?> border w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-inner transform group-hover:scale-110 transition-transform duration-300 ease-out">
                         <?= $stat['icon'] ?>
                     </div>
                 </div>
-            </div>
+            </a>
         <?php endforeach; ?>
     </section>
 

@@ -4,11 +4,18 @@ use App\Shared\Infrastructure\Database\Database;
 
 $db = Database::getConnection();
 
+$filter = $_GET['filter'] ?? 'donors';
+
 /*
 |--------------------------------------------------------------------------
 | FETCH DONORS FROM DATABASE
 |--------------------------------------------------------------------------
 */
+$where = 'u.user_type_id = 2';
+if ($filter === 'available') {
+    $where .= ' AND u.available = 1';
+}
+
 $stmt = $db->prepare("
     SELECT 
         u.user_id,
@@ -25,12 +32,17 @@ $stmt = $db->prepare("
             ELSE 'UNAVAILABLE'
         END AS availability_status
     FROM users u
-    WHERE u.user_type_id = 2
+    WHERE {$where}
     ORDER BY u.user_id DESC
 ");
 
 $stmt->execute();
 $donors = $stmt->fetchAll();
+
+$pageTitle = match ($filter) {
+    'available' => 'Available Donors',
+    default => 'Donor Management',
+};
 ?>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -82,7 +94,7 @@ $donors = $stmt->fetchAll();
                 </svg>
             </div>
             <div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-none"> Donor Management Panel</h1>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-none"><?= htmlspecialchars($pageTitle) ?></h1>
                 <p class="text-xs sm:text-sm text-slate-400 font-medium mt-1.5">Direct system registry controls for live donor entities.</p>
             </div>
         </div>

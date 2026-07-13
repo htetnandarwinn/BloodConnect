@@ -4,11 +4,18 @@ use App\Shared\Infrastructure\Database\Database;
 
 $db = Database::getConnection();
 
+$filter = $_GET['filter'] ?? '';
+
 /*
 |--------------------------------------------------------------------------
 | FETCH USERS
 |--------------------------------------------------------------------------
 */
+$where = '';
+if ($filter === 'patients') {
+    $where = 'WHERE u.user_type_id = 3';
+}
+
 $stmt = $db->prepare("
     SELECT
         u.user_id,
@@ -25,11 +32,17 @@ $stmt = $db->prepare("
     LEFT JOIN master_data md
         ON md.category = 'BLOOD_GROUP'
         AND md.code = u.blood_group
+    {$where}
     ORDER BY u.user_id DESC
 ");
 
 $stmt->execute();
 $users = $stmt->fetchAll();
+
+$pageTitle = match ($filter) {
+    'patients' => 'Patient Management',
+    default => 'User Management',
+};
 ?>
 
 <!-- LINK INTERNET FONTS FOR ADVANCED TYPOGRAPHY -->
@@ -84,7 +97,7 @@ $users = $stmt->fetchAll();
                 </svg>
             </div>
             <div>
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-none">User Management Panel</h1>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-none"><?= htmlspecialchars($pageTitle) ?></h1>
                 <p class="text-xs sm:text-sm text-slate-400 font-medium mt-1.5">Direct system registry controls for live user entities.</p>
             </div>
         </div>

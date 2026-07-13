@@ -79,7 +79,6 @@ $container->singleton(
         return new \App\Admin\Presentation\Controller\AdminDashboardController(
             $c->get(\App\User\Domain\Repository\UserRepositoryInterface::class),
             $c->get(\App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface::class),
-            $c->get(\App\Donation\Domain\Repository\DonationRepositoryInterface::class),
             $c->get(\App\Notification\Domain\Repository\NotificationRepositoryInterface::class)
         );
     }
