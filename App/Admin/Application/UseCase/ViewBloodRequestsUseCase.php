@@ -39,6 +39,13 @@ class ViewBloodRequestsUseCase
         return $this->masterRepo->getId('REQUEST_STATUS', 'PENDING') ?? 7;
     }
 
+    public function isRequestCancelled(array $request): bool
+    {
+        $cancelledStatusId = $this->masterRepo->getId('REQUEST_STATUS', 'CANCELLED') ?? 10;
+        return ((int)($request['status'] ?? 0) === $cancelledStatusId)
+            || (strtolower((string)($request['status_name'] ?? '')) === 'cancelled');
+    }
+
     public function assignDonorToRequest(int $requestId, int $donorId, int $statusId): bool
     {
         return $this->bloodRequestRepo->acceptByAdmin($requestId, $donorId, $statusId);

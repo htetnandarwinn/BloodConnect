@@ -6,6 +6,7 @@ use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
 use App\Shared\Infrastructure\Database\Database;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
 use PDO;
+use PDOException;
 
 class BloodRequestRepository implements BloodRequestRepositoryInterface
 {
@@ -547,6 +548,29 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         ");
         $stmt->execute([$cancelledStatus, $requestId, $patientId]);
         return $stmt->rowCount() > 0;
+    }
+
+    public function deleteRequest(int $requestId): bool
+    {
+        try {
+            $this->db->beginTransaction();
+
+            $stmt = $this->db->prepare("DELETE FROM donation_history WHERE request_id = ?");
+            $stmt->execute([$requestId]);
+
+            $stmt = $this->db->prepare("DELETE FROM request_donors WHERE request_id = ?");
+            $stmt->execute([$requestId]);
+
+            $stmt = $this->db->prepare("DELETE FROM blood_requests WHERE request_id = ?");
+            $stmt->execute([$requestId]);
+
+            $this->db->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            error_log("Failed deleting blood request {$requestId}: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function countAcceptedByDonors(): int

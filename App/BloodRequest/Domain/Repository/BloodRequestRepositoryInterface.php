@@ -18,5 +18,6 @@ interface BloodRequestRepositoryInterface
     public function hasPendingRequest(int $patientId): bool;
     public function updateDonorDecision(int $requestId, int $donorId, int $statusId): bool;
     public function cancelRequest(int $requestId, int $patientId, int $cancelledStatus): bool;
+    public function deleteRequest(int $requestId): bool;
     public function countAcceptedByDonors(): int;
 }

@@ -175,6 +175,7 @@ $router->group(['middleware' => ['auth', 'admin', 'can:blood_request.view_matchi
     $router->get('/admin/blood-requests', [AdminBloodRequestController::class, 'bloodRequests']);
     $router->get('/admin/blood-request/view', [AdminBloodRequestController::class, 'viewBloodRequest']);
     $router->post('/admin/blood-request/accept', [AdminBloodRequestController::class, 'acceptBloodRequest']);
+    $router->post('/admin/blood-request/delete', [AdminBloodRequestController::class, 'deleteBloodRequest']);
     $router->get('/admin/request/complete', [AdminBloodRequestController::class, 'completeRequest']);
 });
 

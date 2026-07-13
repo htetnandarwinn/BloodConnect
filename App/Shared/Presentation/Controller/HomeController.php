@@ -3,19 +3,19 @@
 namespace App\Shared\Presentation\Controller;
 
 use App\Shared\Presentation\View\View;
-use App\Donation\Domain\Repository\DonationRepositoryInterface;
+use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
 use App\User\Domain\Repository\UserRepositoryInterface;
 
 class HomeController
 {
     public function __construct(
-        private DonationRepositoryInterface $donationRepo,
+        private BloodRequestRepositoryInterface $bloodRequestRepo,
         private UserRepositoryInterface $userRepo
     ) {}
 
     public function home()
     {
-        $successfulDonations = $this->donationRepo->countSuccessfulDonations();
+        $successfulDonations = $this->bloodRequestRepo->countAcceptedByDonors();
 
         $users = $this->userRepo->findAll();
         $totalUsers = count($users);
@@ -92,7 +92,7 @@ class HomeController
     {
         return View::render('donors');
     }
-     public function donor_dashboard()
+    public function donor_dashboard()
     {
         return View::render('donor-dashboard');
     }

@@ -56,7 +56,7 @@ use App\Shared\Helpers\Permission;
             <a href="/BloodConnect/public/admin/blood-requests"
                 class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
                 <span class="text-xl">📋</span>
-                Blood Requestsgit 
+                Blood Requests
             </a>
 
             <a href="/BloodConnect/public/admin/donor-management?filter=available"
@@ -158,13 +158,22 @@ use App\Shared\Helpers\Permission;
 
 
         // --- 2. ACTIVE ROUTE CHECKER ---
-        const currentPath = window.location.pathname;
+        const currentUrl = new URL(window.location.href);
+        const currentPath = currentUrl.pathname;
+        const currentSearch = currentUrl.search;
         const navLinks = document.querySelectorAll('.nav-link');
 
         navLinks.forEach(link => {
             const linkHref = link.getAttribute('href');
+            if (!linkHref) return;
 
-            if (currentPath === linkHref || currentPath.endsWith(linkHref)) {
+            const linkUrl = new URL(linkHref, window.location.origin);
+            const samePath = currentPath === linkUrl.pathname || currentPath.endsWith(linkUrl.pathname);
+            const hasAvailableFilter = currentSearch.includes('filter=available');
+            const isAvailableLink = linkUrl.searchParams.get('filter') === 'available';
+            const shouldActivate = samePath && (isAvailableLink ? hasAvailableFilter : !hasAvailableFilter);
+
+            if (shouldActivate) {
                 link.classList.remove('text-slate-600', 'hover:bg-[#ce2424]', 'hover:text-white');
                 link.classList.add('bg-[#ce2424]', 'text-white');
 

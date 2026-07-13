@@ -47,6 +47,7 @@ class AdminBloodRequestController
         }
 
         $isAccepted = $this->viewUseCase->isRequestAccepted($request);
+        $isCancelledRequest = $this->viewUseCase->isRequestCancelled($request);
         $donors = $this->viewUseCase->getMatchingDonors((string)($request['blood_group_needed'] ?? ''));
         $acceptedDonor = null;
         $assignedDonor = null;
@@ -105,6 +106,74 @@ class AdminBloodRequestController
         }
 
         header("Location: /BloodConnect/public/admin/blood-requests");
+        exit;
+    }
+
+    public function deleteBloodRequest(): void
+    {
+        $requestId = (int)($_POST['request_id'] ?? 0);
+
+        if (!$requestId) {
+            header('Location: /BloodConnect/public/admin/blood-requests?error=1');
+            exit;
+        }
+
+        $request = $this->bloodRequestRepo->findById($requestId);
+        if (!$request) {
+            header('Location: /BloodConnect/public/admin/blood-requests?error=1');
+            exit;
+        }
+
+        $isPending = (int)($request['status'] ?? 0) === ($this->masterRepo->getId('REQUEST_STATUS', 'PENDING') ?? 7);
+
+        $deleted = $this->bloodRequestRepo->deleteRequest($requestId);
+
+        if (!$deleted) {
+            header('Location: /BloodConnect/public/admin/blood-requests?error=1');
+            exit;
+        }
+
+        if ($isPending) {
+            $patientId = (int)($request['patient_id'] ?? 0);
+            $donorId = (int)($request['donor_id'] ?? 0);
+            $requestCode = (string)($request['request_code'] ?? 'Unknown');
+            $patientName = (string)($request['patient_name'] ?? 'A patient');
+            $bloodGroup = (string)($request['blood_group_needed'] ?? '');
+            $message = "Admin deleted your pending blood request {$requestCode}.";
+
+            if ($patientId > 0) {
+                $this->notificationRepo->create($patientId, 'Request Deleted', $message, 'REMINDER');
+            }
+
+            $donorIds = [];
+            if ($donorId > 0) {
+                $donorIds[] = $donorId;
+            }
+
+            if ($bloodGroup !== '') {
+                $matchingDonors = $this->bloodRequestRepo->getMatchingDonors($bloodGroup);
+                foreach ($matchingDonors as $matchedDonor) {
+                    $matchedDonorId = (int)($matchedDonor['user_id'] ?? 0);
+                    if ($matchedDonorId > 0) {
+                        $donorIds[] = $matchedDonorId;
+                    }
+                }
+            }
+
+            foreach (array_unique(array_filter($donorIds)) as $notifyDonorId) {
+                $this->notificationRepo->create($notifyDonorId, 'Request Deleted', "The pending blood request {$requestCode} for {$patientName} was removed by admin.", 'REMINDER');
+            }
+
+            $admins = $this->userRepo->getAdmins();
+            foreach ($admins as $admin) {
+                $adminId = (int)($admin['user_id'] ?? 0);
+                if ($adminId > 0) {
+                    $this->notificationRepo->create($adminId, 'Request Deleted', "Pending blood request {$requestCode} was deleted by admin.", 'REMINDER');
+                }
+            }
+        }
+
+        header('Location: /BloodConnect/public/admin/blood-requests?deleted=1');
         exit;
     }
 }
