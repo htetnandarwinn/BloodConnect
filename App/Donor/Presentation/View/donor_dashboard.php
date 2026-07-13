@@ -46,7 +46,7 @@ $pending_requests_count = $pending_requests_count ?? count($blood_requests);
             </div>
 
             <!-- Summary Cards Section -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
                 <!-- Blood Group Card -->
                 <div class="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm hover:shadow-xl hover:shadow-slate-100 hover:-translate-y-1 transition-all duration-300 flex items-center gap-5 group">
@@ -82,6 +82,22 @@ $pending_requests_count = $pending_requests_count ?? count($blood_requests);
                         <?php endif; ?>
                     </div>
                 </div>
+
+                <!-- Total Donations Card -->
+                <a href="/BloodConnect/public/donor/history" class="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm hover:shadow-xl hover:shadow-slate-100 hover:-translate-y-1 transition-all duration-300 flex items-center gap-5 group sm:col-span-2 lg:col-span-1">
+                    <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 shrink-0">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Total Donations</p>
+                        <h4 class="text-2xl font-black text-slate-900 mt-0.5">
+                            <?= (int)($total_donations ?? 0) ?>
+                            <span class="text-sm font-medium text-slate-500 ml-1">Donated</span>
+                        </h4>
+                    </div>
+                </a>
 
                 <!-- Last Donation Card -->
                 <div class="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm hover:shadow-xl hover:shadow-slate-100 hover:-translate-y-1 transition-all duration-300 flex items-center gap-5 group sm:col-span-2 lg:col-span-1">

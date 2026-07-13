@@ -56,11 +56,14 @@ class PatientController
     {
         $filter = strtolower(trim($filter));
 
-        if ($filter !== 'cancelled') {
+        if ($filter === '' || $filter === 'all') {
             return $requests;
         }
 
-        return array_values(array_filter($requests, fn(array $request): bool => $this->isCancelledRequest($request)));
+        return array_values(array_filter($requests, function (array $request) use ($filter): bool {
+            $status = strtolower(trim($request['status'] ?? ''));
+            return $status === $filter;
+        }));
     }
 
     public function patient_dashboard()
@@ -69,9 +72,11 @@ class PatientController
 
         $patientId = $this->getUserId();
 
+        $allRequests = $this->bloodRequestRepo->findByPatientId($patientId);
+
         return patientView::render('patient_dashboard', [
             'username'    => Session::get('username'),
-            'requests'    => $this->bloodRequestRepo->findByPatientId($patientId),
+            'requests'    => array_slice($allRequests, 0, 6),
             'metrics'     => $this->bloodRequestRepo->getPatientStats($patientId),
             'unreadCount' => $this->getUnreadCount()
         ]);
@@ -97,8 +102,18 @@ class PatientController
             'message'     => $message,
             'status'      => $status,
             'filter'      => $filter,
-            'pageTitle'   => $filter === 'cancelled' ? 'Cancelled Requests' : 'My Requests',
-            'emptyMessage' => $filter === 'cancelled' ? 'You have no cancelled requests.' : 'You have no requests recorded.',
+            'pageTitle'   => match ($filter) {
+                'pending'   => 'Pending Requests',
+                'accepted'  => 'Accepted Requests',
+                'cancelled' => 'Cancelled Requests',
+                default     => 'My Requests',
+            },
+            'emptyMessage' => match ($filter) {
+                'pending'   => 'You have no pending requests.',
+                'accepted'  => 'You have no accepted requests.',
+                'cancelled' => 'You have no cancelled requests.',
+                default     => 'You have no requests recorded.',
+            },
         ]);
     }
 

@@ -2,7 +2,14 @@
 
 use App\Shared\Infrastructure\Database\Database;
 
-$db = Database::getConnection();
+$db = Database::getConnection(); ?>
+<style>
+.custom-scroll::-webkit-scrollbar { width: 5px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; }
+.custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+</style>
+<?php
 
 $filter = $_GET['filter'] ?? '';
 
@@ -59,10 +66,10 @@ function getSeverityClass($level)
 function getFulfillmentClass($status)
 {
     return match (strtolower((string) $status)) {
-        'pending' => 'bg-amber-50 text-amber-700 border-amber-200/50',
-        'in progress' => 'bg-blue-50 text-blue-700 border-blue-200/50',
-        'matched' => 'bg-emerald-50 text-emerald-700 border-emerald-200/50',
-        'unfulfilled' => 'bg-rose-50 text-rose-700 border-rose-200/50',
+        'pending' => 'bg-amber-50 text-amber-600 border-amber-200/50',
+        'accepted' => 'bg-emerald-50 text-emerald-600 border-emerald-200/50',
+        'completed' => 'bg-blue-50 text-blue-600 border-blue-200/50',
+        'cancelled', 'canceled' => 'bg-red-50 text-red-600 border-red-200/50',
         default => 'bg-slate-50 text-slate-600 border-slate-200/50',
     };
 }
@@ -151,7 +158,7 @@ function getBloodTypeClass($type)
             </div>
         <?php else: ?>
 
-            <div class="hidden lg:block space-y-3">
+            <div class="hidden lg:block max-h-[500px] overflow-y-auto pr-1 custom-scroll space-y-3">
                 <?php foreach ($requests as $index => $req): ?>
                     <div class="glow-row bg-white border border-slate-200/70 rounded-2xl p-4 grid grid-cols-12 items-center gap-4 transition-all duration-300 transform animate-spring-in shadow-2xs"
                         style="animation-delay: <?= $index * 0.03 ?>s;">
@@ -212,7 +219,7 @@ function getBloodTypeClass($type)
                 <?php endforeach; ?>
             </div>
 
-            <div class="block lg:hidden space-y-3.5">
+            <div class="block lg:hidden max-h-[500px] overflow-y-auto pr-1 custom-scroll space-y-3.5">
                 <?php foreach ($requests as $index => $req): ?>
                     <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-3xs transform transition-all duration-300 hover:shadow-2xs active:scale-[0.99] animate-spring-in"
                         style="animation-delay: <?= $index * 0.03 ?>s;">

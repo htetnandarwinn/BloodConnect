@@ -2,7 +2,14 @@
 
 use App\Shared\Infrastructure\Database\Database;
 
-$db = Database::getConnection();
+$db = Database::getConnection(); ?>
+<style>
+.custom-scroll::-webkit-scrollbar { width: 5px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; }
+.custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+</style>
+<?php
 
 $filter = $_GET['filter'] ?? '';
 
@@ -118,7 +125,7 @@ $pageTitle = match ($filter) {
     <div class="space-y-3">
 
         <!-- DESKTOP CONTINUOUS LIST (STRICT GRID ALIGNMENT ARCHITECTURE) -->
-        <div class="hidden lg:block space-y-3">
+        <div class="hidden lg:block max-h-[500px] overflow-y-auto pr-1 custom-scroll space-y-3">
             <?php foreach ($users as $index => $user): ?>
                 <?php
                 $role = strtolower($user['role'] ?? 'unknown');
@@ -198,7 +205,7 @@ $pageTitle = match ($filter) {
         </div>
 
         <!-- MOBILE / TABLET DISPLAY (FLUID DASHBOARD GRIDS) -->
-        <div class="block lg:hidden space-y-3.5">
+        <div class="block lg:hidden max-h-[500px] overflow-y-auto pr-1 custom-scroll space-y-3.5">
             <?php foreach ($users as $index => $user): ?>
                 <?php
                 $role = strtolower($user['role'] ?? 'unknown');

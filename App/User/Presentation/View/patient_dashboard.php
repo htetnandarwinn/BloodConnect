@@ -67,9 +67,9 @@ $metrics = $metrics ?? [
             </div> -->
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 animate-fade-in" style="animation-delay: 100ms;">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 animate-fade-in" style="animation-delay: 100ms;">
 
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm">
+            <a href="/BloodConnect/public/patient/my-requests" class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
                 <div class="w-12 h-12 rounded-xl bg-red-50 text-[#E63946] flex items-center justify-center text-xl shrink-0">
                     <i class="fa-solid fa-droplet animate-pulse"></i>
                 </div>
@@ -77,9 +77,9 @@ $metrics = $metrics ?? [
                     <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Blood Group / Total</p>
                     <p class="text-xl font-black text-slate-900 mt-0.5"><?php echo $metrics['total_requests']; ?> <span class="text-sm font-medium text-slate-400">Requests</span></p>
                 </div>
-            </div>
+            </a>
 
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm">
+            <a href="/BloodConnect/public/patient/my-requests?filter=pending" class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
                 <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl shrink-0">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
@@ -90,9 +90,9 @@ $metrics = $metrics ?? [
                         <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
                     </div>
                 </div>
-            </div>
+            </a>
 
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm">
+            <a href="/BloodConnect/public/patient/my-requests?filter=accepted" class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
                 <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl shrink-0">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
@@ -100,9 +100,9 @@ $metrics = $metrics ?? [
                     <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Accepted Requests</p>
                     <p class="text-xl font-black text-emerald-600 mt-0.5"><?php echo $metrics['accepted_requests']; ?> Approved</p>
                 </div>
-            </div>
+            </a>
 
-            <!-- <a href="/BloodConnect/public/patient/my-requests/cancelled" class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
+            <a href="/BloodConnect/public/patient/my-requests?filter=cancelled" class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
                 <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl shrink-0">
                     <i class="fa-solid fa-ban"></i>
                 </div>
@@ -110,13 +110,13 @@ $metrics = $metrics ?? [
                     <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Cancelled Requests</p>
                     <p class="text-xl font-black text-rose-600 mt-0.5"><?php echo $metrics['cancelled_requests']; ?> Cancelled</p>
                 </div>
-            </a> -->
+            </a>
 
         </div>
 
         <div class="space-y-4 animate-fade-in" style="animation-delay: 200ms;">
             <div class="flex items-center gap-2">
-                <h2 class="text-lg font-bold text-slate-900">Blood Requests</h2>
+                <h2 class="text-lg font-bold text-slate-900">Recent Blood Requests</h2>
                 <span class="bg-[#E63946] text-white text-xs font-bold px-2 py-0.5 rounded-full"><?= !empty($requests) ? count($requests) : 0 ?></span>
             </div>
 

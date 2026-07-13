@@ -2,7 +2,14 @@
 
 use App\Shared\Infrastructure\Database\Database;
 
-$db = Database::getConnection();
+$db = Database::getConnection(); ?>
+<style>
+.custom-scroll::-webkit-scrollbar { width: 5px; }
+.custom-scroll::-webkit-scrollbar-track { background: transparent; }
+.custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; }
+.custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+</style>
+<?php
 
 $filter = $_GET['filter'] ?? 'donors';
 
@@ -112,7 +119,7 @@ $pageTitle = match ($filter) {
 
     <div class="space-y-3">
 
-        <div class="hidden lg:block space-y-3">
+        <div class="hidden lg:block max-h-[500px] overflow-y-auto pr-1 custom-scroll space-y-3">
             <?php foreach ($donors as $index => $donor): ?>
                 <div class="glow-row bg-white border border-slate-200/70 rounded-2xl p-4 grid grid-cols-12 items-center gap-4 transition-all duration-300 transform animate-spring-in shadow-2xs"
                     style="animation-delay: <?= $index * 0.03 ?>s;">
@@ -188,7 +195,7 @@ $pageTitle = match ($filter) {
             <?php endforeach; ?>
         </div>
 
-        <div class="block lg:hidden space-y-3.5">
+        <div class="block lg:hidden max-h-[500px] overflow-y-auto pr-1 custom-scroll space-y-3.5">
             <?php foreach ($donors as $index => $donor): ?>
                 <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-3xs transform transition-all duration-300 hover:shadow-2xs active:scale-[0.99] animate-spring-in"
                     style="animation-delay: <?= $index * 0.03 ?>s;">

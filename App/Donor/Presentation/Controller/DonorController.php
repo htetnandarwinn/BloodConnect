@@ -96,7 +96,8 @@ class DonorController
                 : 'No donation yet',
             'last_donation_location' => $lastDonation['hospital_name'] ?? 'No location saved',
             'blood_requests' => $combinedRequests,
-            'pending_requests_count' => count($pendingRequests)
+            'pending_requests_count' => count($pendingRequests),
+            'total_donations' => count($this->donationRepo->findByDonor((int)Session::get('user_id')))
         ]);
     }
 
