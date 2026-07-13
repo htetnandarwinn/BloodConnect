@@ -371,6 +371,17 @@ class AuthRepository implements AuthRepositoryInterface
         ]);
     }
 
+    public function setLoginStatus(int $userId, int $status): void
+    {
+        $stmt = $this->db->prepare("
+            UPDATE users SET is_login = :status WHERE user_id = :user_id
+        ");
+        $stmt->execute([
+            ':status' => $status,
+            ':user_id' => $userId,
+        ]);
+    }
+
     public function getPermissionsByUserType(int $userTypeId): array
     {
         // Admin gets every permission

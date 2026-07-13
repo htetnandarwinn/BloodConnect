@@ -190,6 +190,8 @@ class GoogleAuthController
         $permissions = $this->authRepo->getPermissionsByUserType((int)$user['user_type_id']);
         Session::set('permissions', $permissions);
 
+        $this->authRepo->setLoginStatus((int)$user['user_id'], 1);
+
         $this->activityLogger->log(
             $user['user_id'],
             $user['username'],

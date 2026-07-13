@@ -3,12 +3,22 @@
 namespace App\Authentication\Application\UseCase;
 
 use App\Shared\Helpers\Session;
+use App\Authentication\Domain\Repository\AuthRepositoryInterface;
 
 class LogoutUseCase
 {
+    public function __construct(
+        private AuthRepositoryInterface $authRepo
+    ) {}
+
     public function execute(): void
     {
         Session::start();
+
+        $userId = Session::get('user_id');
+        if ($userId) {
+            $this->authRepo->setLoginStatus((int)$userId, 0);
+        }
 
         $_SESSION = [];
 

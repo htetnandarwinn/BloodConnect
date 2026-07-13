@@ -322,10 +322,7 @@ class AuthController
 
             Session::set('permissions', $permissions);
 
-            $method = 'setLoginStatus';
-            if (method_exists($this->authRepo, $method)) {
-                $this->authRepo->{$method}($user['user_id'], 1);
-            }
+            $this->authRepo->setLoginStatus($user['user_id'], 1);
 
             // ==========================
             // REDIRECT BY ROLE
@@ -381,7 +378,7 @@ class AuthController
 
     public function logout()
     {
-        $useCase = new LogoutUseCase();
+        $useCase = new LogoutUseCase($this->authRepo);
         $useCase->execute();
 
         $this->redirect('/');

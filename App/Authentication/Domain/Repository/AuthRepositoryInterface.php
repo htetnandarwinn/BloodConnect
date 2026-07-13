@@ -19,4 +19,5 @@ interface AuthRepositoryInterface
     public function createGoogleUser(string $username, string $email, string $googleId, string $avatar, int $userTypeId, int $statusId, string $bloodGroup = ''): int;
     public function linkGoogleAccount(int $userId, string $googleId, string $avatar): bool;
     public function getPermissionsByUserType(int $userTypeId): array;
+    public function setLoginStatus(int $userId, int $status): void;
 }
