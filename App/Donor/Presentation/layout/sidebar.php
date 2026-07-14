@@ -23,7 +23,9 @@ if (Permission::can('blood_request.view_matching')) {
 
     if ($bloodGroup !== '') {
         $repo = new BloodRequestRepository();
-        $pendingRequestsCount = count($repo->findPendingRequestsForDonor($bloodGroup));
+        $totalPending = count($repo->findPendingRequestsForDonor($bloodGroup));
+        $viewedCount = count($_SESSION['viewed_pending_requests'] ?? []);
+        $pendingRequestsCount = max(0, $totalPending - $viewedCount);
     }
 }
 
@@ -81,11 +83,9 @@ if (Permission::can('blood_request.view_matching')) {
                     </div>
 
                     <?php if ($pendingRequestsCount > 0): ?>
-                        <span class="request-badge inline-flex min-w-6 h-6 px-1.5 items-center justify-center rounded-full bg-red-50 text-[#ce2424] text-[10px] font-bold border border-red-100 shadow-sm">
-                            <?= $pendingRequestsCount ?>
-                        </span>
+                        <span class="pending-badge w-5 h-5 rounded-full bg-[#ce2424] text-white text-[10px] font-black flex items-center justify-center"><?= $pendingRequestsCount ?></span>
                     <?php else: ?>
-                        <span class="request-badge inline-flex min-w-6 h-6 px-1.5 items-center justify-center rounded-full bg-red-50 text-[#ce2424] text-[10px] font-bold border border-red-100 shadow-sm hidden"></span>
+                        <span class="pending-badge w-5 h-5 rounded-full bg-[#ce2424] text-white text-[10px] font-black hidden"></span>
                     <?php endif; ?>
                 </a>
             <?php endif; ?>
@@ -170,17 +170,6 @@ if (Permission::can('blood_request.view_matching')) {
         // --- 2. ACTIVE ROUTE CHECKER ---
         const currentPath = window.location.pathname;
         const navLinks = document.querySelectorAll('.nav-link');
-        const requestBadge = document.querySelector('.request-badge');
-        const viewedKey = 'donorBloodRequestsViewed';
-
-        if (currentPath.includes('/donor/blood-requests')) {
-            sessionStorage.setItem(viewedKey, '1');
-        }
-
-        if (sessionStorage.getItem(viewedKey) === '1' && requestBadge) {
-            requestBadge.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => requestBadge.classList.add('hidden'), 180);
-        }
 
         navLinks.forEach(link => {
             const linkHref = link.getAttribute('href');
@@ -220,4 +209,6 @@ if (Permission::can('blood_request.view_matching')) {
 
     updateNotificationBadges();
     setInterval(updateNotificationBadges, 10000);
+
+
 </script>

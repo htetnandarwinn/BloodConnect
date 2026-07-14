@@ -178,6 +178,7 @@ $router->group(['middleware' => ['auth', 'admin', 'can:blood_request.view_matchi
     $router->post('/admin/blood-request/accept', [AdminBloodRequestController::class, 'acceptBloodRequest']);
     $router->post('/admin/blood-request/delete', [AdminBloodRequestController::class, 'deleteBloodRequest']);
     $router->get('/admin/request/complete', [AdminBloodRequestController::class, 'completeRequest']);
+    $router->get('/admin/pending-blood-requests-count', [AdminBloodRequestController::class, 'pendingBloodRequestsCount']);
 });
 
 // Roles & permissions

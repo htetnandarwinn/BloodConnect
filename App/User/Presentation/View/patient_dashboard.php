@@ -25,6 +25,10 @@ $metrics = $metrics ?? [
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 20px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         body {
             background-color: #FFF9F9;
         }
@@ -67,9 +71,9 @@ $metrics = $metrics ?? [
             </div> -->
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 animate-fade-in" style="animation-delay: 100ms;">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 animate-fade-in" style="animation-delay: 100ms;">
 
-            <a href="/BloodConnect/public/patient/my-requests" class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
+            <a href="/BloodConnect/public/patient/my-requests" class="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
                 <div class="w-12 h-12 rounded-xl bg-red-50 text-[#E63946] flex items-center justify-center text-xl shrink-0">
                     <i class="fa-solid fa-droplet animate-pulse"></i>
                 </div>
@@ -79,7 +83,7 @@ $metrics = $metrics ?? [
                 </div>
             </a>
 
-            <a href="/BloodConnect/public/patient/my-requests?filter=pending" class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
+            <a href="/BloodConnect/public/patient/my-requests?filter=pending" class="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
                 <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl shrink-0">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
@@ -92,7 +96,7 @@ $metrics = $metrics ?? [
                 </div>
             </a>
 
-            <a href="/BloodConnect/public/patient/my-requests?filter=accepted" class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
+            <a href="/BloodConnect/public/patient/my-requests?filter=accepted" class="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
                 <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl shrink-0">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
@@ -102,7 +106,7 @@ $metrics = $metrics ?? [
                 </div>
             </a>
 
-            <a href="/BloodConnect/public/patient/my-requests?filter=cancelled" class="bg-white p-5 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
+            <a href="/BloodConnect/public/patient/my-requests?filter=cancelled" class="bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 transition-all duration-300 hover:shadow-sm hover:-translate-y-0.5">
                 <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl shrink-0">
                     <i class="fa-solid fa-ban"></i>
                 </div>
@@ -120,9 +124,8 @@ $metrics = $metrics ?? [
                 <span class="bg-[#E63946] text-white text-xs font-bold px-2 py-0.5 rounded-full"><?= !empty($requests) ? count($requests) : 0 ?></span>
             </div>
 
-            <div class="hidden lg:block bg-white rounded-2xl border border-slate-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+            <div class="hidden lg:block bg-white rounded-2xl border border-slate-100 max-h-[400px] overflow-y-auto custom-scroll">
+                <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/70 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                                 <th class="py-4 px-6">Request ID</th>
@@ -194,10 +197,9 @@ $metrics = $metrics ?? [
                             <?php endif; ?>
                         </tbody>
                     </table>
-                </div>
             </div>
 
-            <div class="lg:hidden space-y-4">
+            <div class="lg:hidden max-h-[400px] overflow-y-auto custom-scroll space-y-4 pr-1">
                 <?php if (!empty($requests)): ?>
                     <?php foreach ($requests as $request): ?>
                         <div class="bg-white rounded-2xl border-l-4 border-[#E63946] border-y border-r border-slate-100 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative transition-all duration-200 active:scale-[0.99]">

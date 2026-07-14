@@ -151,9 +151,14 @@ $pageTitle = match ($filter) {
                             <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-red-500 text-white border-red-600">
                                 UNAVAILABLE
                             </span>
-                            <?php if (!empty($donor['next_available_date'])): ?>
+                            <?php if (!empty($donor['next_available_date'])):
+                                $remaining = floor((strtotime($donor['next_available_date']) - time()) / 86400);
+                            ?>
                                 <span class="text-[10px] text-slate-500 font-medium mono whitespace-nowrap">
                                     Eligible: <?= date('M d, Y', strtotime($donor['next_available_date'])) ?>
+                                </span>
+                                <span class="text-[10px] font-bold text-amber-600 mono whitespace-nowrap ml-1">
+                                    (<?= max(0, $remaining) ?>d rem.)
                                 </span>
                             <?php endif; ?>
                         <?php else: ?>
@@ -226,10 +231,15 @@ $pageTitle = match ($filter) {
                         </div>
                     </div>
 
-                    <?php if ($donor['availability_status'] === 'UNAVAILABLE' && !empty($donor['next_available_date'])): ?>
+                    <?php if ($donor['availability_status'] === 'UNAVAILABLE' && !empty($donor['next_available_date'])):
+                        $remaining = floor((strtotime($donor['next_available_date']) - time()) / 86400);
+                    ?>
                         <div class="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl">
                             <span class="text-[10px] text-amber-700 font-semibold">
                                 <i class="fa-regular fa-calendar-circle-clock"></i> Next eligible: <?= date('M d, Y', strtotime($donor['next_available_date'])) ?>
+                            </span>
+                            <span class="text-[10px] font-bold text-amber-700">
+                                (<?= max(0, $remaining) ?>d rem.)
                             </span>
                         </div>
                     <?php endif; ?>

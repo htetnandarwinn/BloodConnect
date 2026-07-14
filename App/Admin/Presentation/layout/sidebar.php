@@ -1,6 +1,19 @@
 <?php
 
 use App\Shared\Helpers\Permission;
+use App\Shared\Infrastructure\Database\Database;
+
+$pendingBloodRequests = 0;
+try {
+    $db = Database::getConnection();
+    $stmt = $db->prepare("SELECT COUNT(*) FROM blood_requests WHERE status = 7");
+    $stmt->execute();
+    $totalPending = (int)$stmt->fetchColumn();
+    $viewedCount = count($_SESSION['viewed_pending_requests'] ?? []);
+    $pendingBloodRequests = max(0, $totalPending - $viewedCount);
+} catch (Throwable $e) {
+    $pendingBloodRequests = 0;
+}
 ?>
 
 <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300 lg:hidden"></div>
@@ -54,9 +67,16 @@ use App\Shared\Helpers\Permission;
             </a>
 
             <a href="/BloodConnect/public/admin/blood-requests"
-                class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
-                <span class="text-xl">📋</span>
-                Blood Requests
+                class="nav-link flex items-center justify-between px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
+                <div class="flex items-center gap-3.5">
+                    <span class="text-xl">📋</span>
+                    Blood Requests
+                </div>
+                <?php if ($pendingBloodRequests > 0): ?>
+                    <span class="pending-badge w-5 h-5 rounded-full bg-[#ce2424] text-white text-[10px] font-black flex items-center justify-center"><?= $pendingBloodRequests ?></span>
+                <?php else: ?>
+                    <span class="pending-badge w-5 h-5 rounded-full bg-[#ce2424] text-white text-[10px] font-black hidden"></span>
+                <?php endif; ?>
             </a>
 
             <a href="/BloodConnect/public/admin/donor-management?filter=available"
@@ -177,7 +197,7 @@ use App\Shared\Helpers\Permission;
                 link.classList.remove('text-slate-600', 'hover:bg-[#ce2424]', 'hover:text-white');
                 link.classList.add('bg-[#ce2424]', 'text-white');
 
-                const badge = link.querySelector('.notification-badge');
+                const badge = link.querySelector('.notification-badge, .pending-badge');
                 if (badge) {
                     badge.classList.remove('bg-[#ce2424]', 'text-white');
                     badge.classList.add('bg-white', 'text-[#ce2424]');
@@ -208,4 +228,28 @@ use App\Shared\Helpers\Permission;
 
     updateNotificationBadges();
     setInterval(updateNotificationBadges, 10000);
+
+    // --- 4. PENDING BLOOD REQUESTS POLLING ---
+    async function updatePendingBloodRequests() {
+        try {
+            const res = await fetch("/BloodConnect/public/admin/pending-blood-requests-count");
+            const data = await res.json();
+            const badges = document.querySelectorAll(".pending-badge");
+            badges.forEach(badge => {
+                if (data.count > 0) {
+                    badge.classList.remove('hidden');
+                    badge.textContent = data.count;
+                } else {
+                    badge.classList.add('hidden');
+                }
+            });
+        } catch (error) {
+            console.log("Pending count update failed", error);
+        }
+    }
+
+    updatePendingBloodRequests();
+    setInterval(updatePendingBloodRequests, 15000);
+
+
 </script>

@@ -24,10 +24,31 @@ class AdminBloodRequestController
 
     public function bloodRequests(): void
     {
+        $repo = new \App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository();
+        $db = \App\Shared\Infrastructure\Database\Database::getConnection();
+        $stmt = $db->prepare("SELECT COUNT(*) FROM blood_requests WHERE status = 7");
+        $stmt->execute();
+        $_SESSION['pending_blood_requests_viewed_count'] = (int)$stmt->fetchColumn();
         ob_start();
         require __DIR__ . '/../View/blood_requests.php';
         $content = ob_get_clean();
         require __DIR__ . '/../Layout/adminApp.php';
+    }
+
+    public function pendingBloodRequestsCount(): void
+    {
+        header('Content-Type: application/json');
+        try {
+            $db = \App\Shared\Infrastructure\Database\Database::getConnection();
+            $stmt = $db->prepare("SELECT COUNT(*) FROM blood_requests WHERE status = 7");
+            $stmt->execute();
+            $totalPending = (int)$stmt->fetchColumn();
+            $viewedCount = count($_SESSION['viewed_pending_requests'] ?? []);
+            echo json_encode(['count' => max(0, $totalPending - $viewedCount)]);
+        } catch (Throwable $e) {
+            echo json_encode(['count' => 0]);
+        }
+        exit;
     }
 
     public function viewBloodRequest(): void
@@ -44,6 +65,15 @@ class AdminBloodRequestController
         if (!$request) {
             header('Location: /BloodConnect/public/admin/blood-requests');
             exit;
+        }
+
+        if ((int)$request['status'] === $this->viewUseCase->getPendingStatusId()) {
+            if (!isset($_SESSION['viewed_pending_requests']) || !is_array($_SESSION['viewed_pending_requests'])) {
+                $_SESSION['viewed_pending_requests'] = [];
+            }
+            if (!in_array($requestId, $_SESSION['viewed_pending_requests'])) {
+                $_SESSION['viewed_pending_requests'][] = $requestId;
+            }
         }
 
         $isAccepted = $this->viewUseCase->isRequestAccepted($request);

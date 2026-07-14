@@ -83,13 +83,44 @@ class DonorController
         $availabilityState = $this->donorRepo->syncAvailabilityStatus((int)Session::get('user_id'));
         $eligibility = $this->eligibilityService->evaluate($lastDonationDate, $availabilityState['next_available_date']);
 
+        // Build recent activity feed
+        $activities = [];
+        foreach ($acceptedRequests as $req) {
+            if (!empty($req['created_at'])) {
+                $activities[] = [
+                    'type' => 'accepted',
+                    'label' => 'Accepted request ' . ($req['request_code'] ?? 'BR-' . str_pad((string)($req['request_id'] ?? 0), 3, '0', STR_PAD_LEFT)),
+                    'timestamp' => $req['created_at'],
+                ];
+            }
+        }
+        $donations = $this->donationRepo->findByDonor((int)Session::get('user_id'));
+        foreach ($donations as $donation) {
+            $date = $donation['donation_date'] ?? $donation['created_at'] ?? '';
+            if (!empty($date)) {
+                $activities[] = [
+                    'type' => 'donation',
+                    'label' => 'Donation completed' . (!empty($donation['request_code']) ? ' (' . $donation['request_code'] . ')' : ''),
+                    'timestamp' => $date,
+                ];
+            }
+        }
+        $activities[] = [
+            'type' => 'availability',
+            'label' => 'Changed availability to ' . ($availabilityState['available'] ? 'Available' : 'Unavailable'),
+            'timestamp' => date('Y-m-d H:i:s'),
+        ];
+        usort($activities, function ($a, $b) {
+            return strtotime($b['timestamp']) - strtotime($a['timestamp']);
+        });
+
         donorView::render('donor_dashboard', [
             'user' => $user,
             'blood_group' => $bloodGroup,
             'availability' => $availabilityState['available'] ? 'Available' : 'Unavailable',
             'availability_message' => $availabilityState['available']
                 ? $eligibility['message']
-                : ($availabilityState['next_available_date'] ? 'You will be eligible again after the waiting period.' : $eligibility['message']),
+                : ($availabilityState['next_available_date'] ? '' : $eligibility['message']),
             'next_eligible_date' => $availabilityState['available'] ? '' : ($availabilityState['next_available_date'] ?? $eligibility['next_eligible_date']),
             'last_donation_date' => !empty($lastDonationDate)
                 ? date('d M Y', strtotime($lastDonationDate))
@@ -97,7 +128,8 @@ class DonorController
             'last_donation_location' => $lastDonation['hospital_name'] ?? 'No location saved',
             'blood_requests' => $combinedRequests,
             'pending_requests_count' => count($pendingRequests),
-            'total_donations' => count($this->donationRepo->findByDonor((int)Session::get('user_id')))
+            'total_donations' => count($donations),
+            'recent_activities' => $activities,
         ]);
     }
 
@@ -207,6 +239,16 @@ class DonorController
 
         if (!$request) {
             die('Blood request not found.');
+        }
+
+        $pendingStatusId = $this->masterRepo->getId('REQUEST_STATUS', 'PENDING') ?? 7;
+        if ((int)($request['status'] ?? 0) === $pendingStatusId) {
+            if (!isset($_SESSION['viewed_pending_requests']) || !is_array($_SESSION['viewed_pending_requests'])) {
+                $_SESSION['viewed_pending_requests'] = [];
+            }
+            if (!in_array($requestId, $_SESSION['viewed_pending_requests'])) {
+                $_SESSION['viewed_pending_requests'][] = $requestId;
+            }
         }
 
         donorView::render('blood_request_details', [
