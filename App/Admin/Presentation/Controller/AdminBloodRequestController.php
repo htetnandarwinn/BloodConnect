@@ -82,16 +82,16 @@ class AdminBloodRequestController
         $acceptedDonor = null;
         $assignedDonor = null;
 
-        if ($isAccepted && !empty($request['donor_id'])) {
-            $acceptedDonor = $this->userRepo->findById((int)$request['donor_id']);
-        } elseif (!empty($request['donor_id'])) {
-            $assignedDonor = $this->userRepo->findById((int)$request['donor_id']);
+        $donorId = !empty($request['donor_id']) ? (int)$request['donor_id'] : 0;
+        if ($donorId > 0) {
+            $donorUser = $this->userRepo->findById($donorId);
+            $donorData = $donorUser ?: ['user_id' => $donorId, 'username' => 'Donor #' . $donorId, 'blood_group' => '', 'phone' => '', 'email' => ''];
+            if ($isAccepted) {
+                $acceptedDonor = $donorData;
+            } else {
+                $assignedDonor = $donorData;
+            }
         }
-
-        $currentDonorId = (int)($request['donor_id'] ?? 0);
-        $donors = array_values(array_filter($donors, function ($d) use ($currentDonorId) {
-            return (int)($d['user_id'] ?? 0) !== $currentDonorId;
-        }));
 
         ob_start();
         require __DIR__ . '/../View/blood_request_detail.php';

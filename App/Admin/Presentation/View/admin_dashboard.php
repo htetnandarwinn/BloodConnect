@@ -144,57 +144,92 @@ function timeAgo($datetime)
         <?php endforeach; ?>
     </section>
 
+    <?php
+    // SVG icon map per activity type
+    $typeIcons = [
+        'success' => '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+        'warning' => '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>',
+        'error'   => '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>',
+        'info'    => '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>',
+    ];
+
+    $typeStyles = [
+        'success' => ['ring' => 'ring-emerald-500/20', 'bg' => 'bg-emerald-50', 'icon' => 'text-emerald-600', 'border' => 'border-l-emerald-500'],
+        'warning' => ['ring' => 'ring-amber-500/20', 'bg' => 'bg-amber-50', 'icon' => 'text-amber-600', 'border' => 'border-l-amber-500'],
+        'error'   => ['ring' => 'ring-rose-500/20', 'bg' => 'bg-rose-50', 'icon' => 'text-rose-600', 'border' => 'border-l-rose-500'],
+        'info'    => ['ring' => 'ring-sky-500/20', 'bg' => 'bg-sky-50', 'icon' => 'text-sky-600', 'border' => 'border-l-sky-500'],
+    ];
+    ?>
+
     <section class="animate-fade-in-up opacity-0 animation-delay-300 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
 
-        <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-            <div class="flex items-center space-x-2">
-                <span class="flex h-2 w-2 relative">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-                </span>
-                <h3 class="font-bold text-slate-950 tracking-tight text-base">Recent System Activity</h3>
+        <div class="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-100 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4.5 h-4.5" style="width:18px;height:18px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75H17.25m-5.25 0h5.25m-5.25 0h5.25M3 18h3.75m3 0h3.75M17.25 18h.75" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 tracking-tight text-sm sm:text-base leading-tight">Recent System Activity</h3>
+                    <p class="text-[11px] text-slate-400 font-medium leading-none mt-0.5">Live feed of platform events</p>
+                </div>
             </div>
-            <span class="text-xs font-medium px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full">Real-time</span>
+            <div class="flex items-center gap-2">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md leading-none">LIVE</span>
+            </div>
         </div>
 
-        <div class="divide-y divide-slate-100 max-h-[380px] overflow-y-auto custom-scrollbar">
+        <div class="divide-y divide-slate-50 max-h-[420px] overflow-y-auto custom-scrollbar">
             <?php if (!empty($activities)): ?>
                 <?php foreach ($activities as $act): ?>
                     <?php
                     $type = strtolower($act['type'] ?? 'info');
-
-                    list($dotColor, $pulseColor) = match ($type) {
-                        'success' => ['bg-emerald-500 shadow-emerald-500/40', 'bg-emerald-400'],
-                        'warning' => ['bg-amber-500 shadow-amber-500/40', 'bg-amber-400'],
-                        'error'   => ['bg-rose-500 shadow-rose-500/40', 'bg-rose-400'],
-                        'info'    => ['bg-sky-500 shadow-sky-500/40', 'bg-sky-400'],
-                        default   => ['bg-slate-400 shadow-slate-400/40', 'bg-slate-300'],
-                    };
+                    $style = $typeStyles[$type] ?? $typeStyles['info'];
+                    $icon = $typeIcons[$type] ?? $typeIcons['info'];
+                    $action = htmlspecialchars($act['action'] ?? '');
+                    $userName = htmlspecialchars($act['user_name'] ?? '');
                     ?>
 
-                    <div class="px-6 py-4 flex justify-between items-center gap-x-4 hover:bg-slate-50/80 transition-colors group">
+                    <div class="relative pl-5 sm:pl-6 pr-5 sm:pr-6 py-3.5 flex items-start gap-3.5 hover:bg-slate-50/60 transition-colors group border-l-2 border-transparent hover:<?= $style['border'] ?>">
 
-                        <div class="flex items-center space-x-4 min-w-0">
-                            <span class="relative flex h-2.5 w-2.5 flex-shrink-0 mt-0.5">
-                                <span class="group-hover:animate-ping absolute inline-flex h-full w-full rounded-full <?= $pulseColor ?> opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 shadow-sm <?= $dotColor ?>"></span>
-                            </span>
-
-                            <p class="text-sm text-slate-700 leading-relaxed truncate group-hover:text-slate-900 transition-colors">
-                                <?= htmlspecialchars($act['message']) ?>
-                            </p>
+                        <div class="w-8 h-8 rounded-lg <?= $style['bg'] ?> flex items-center justify-center <?= $style['icon'] ?> shrink-0 mt-0.5 ring-1 <?= $style['ring'] ?> group-hover:scale-105 transition-transform duration-200">
+                            <?= $icon ?>
                         </div>
 
-                        <span class="text-xs font-medium text-slate-400 bg-slate-50 group-hover:bg-white group-hover:text-slate-600 border border-transparent group-hover:border-slate-100 px-2 py-1 rounded-md transition-all duration-200 flex-shrink-0">
+                        <div class="flex-1 min-w-0 pt-0.5">
+                            <p class="text-sm text-slate-700 leading-snug group-hover:text-slate-900 transition-colors">
+                                <?php if ($userName): ?>
+                                    <span class="font-semibold text-slate-800"><?= $userName ?></span>
+                                <?php endif; ?>
+                                <?= htmlspecialchars($act['message']) ?>
+                            </p>
+                            <?php if ($action): ?>
+                                <span class="inline-block mt-1 text-[11px] font-medium text-slate-400 bg-slate-100/80 px-2 py-0.5 rounded leading-none">
+                                    <?= $action ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+
+                        <span class="text-[11px] font-semibold text-slate-400 whitespace-nowrap shrink-0 mt-1 bg-slate-50 group-hover:bg-white group-hover:text-slate-600 border border-transparent group-hover:border-slate-100 px-2 py-1 rounded-md transition-all duration-200">
                             <?= timeAgo($act['created_at']) ?>
                         </span>
 
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
-                <div class="px-6 py-12 text-center text-sm text-slate-400 flex flex-col items-center justify-center space-y-2">
-                    <span class="text-2xl">⚡</span>
-                    <p class="font-medium text-slate-500">No recent system activity found.</p>
+                <div class="px-6 py-16 text-center flex flex-col items-center justify-center">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor" class="w-8 h-8 text-slate-300">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75H17.25m-5.25 0h5.25m-5.25 0h5.25M3 18h3.75m3 0h3.75M17.25 18h.75" />
+                        </svg>
+                    </div>
+                    <p class="text-sm font-semibold text-slate-500">No recent activity</p>
+                    <p class="text-xs text-slate-400 mt-1">System events will appear here in real time.</p>
                 </div>
             <?php endif; ?>
         </div>

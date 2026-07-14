@@ -1,194 +1,173 @@
 <?php
-// Initialize variables for PHP error/success tracking if needed
-
-use App\Shared\Helpers\Session;
-
-Session::start();
-
-$message = '';
-$status = '';
+$message = $message ?? '';
+$status = $status ?? '';
+$user = \App\Shared\Helpers\Session::get('user', []);
 ?>
-<!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request Blood | BloodConnect</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<div class="max-w-3xl mx-auto animate-fade-in space-y-6">
 
-    <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
-    </style>
-</head>
+    <!-- Header -->
+    <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-rose-600 mb-1">Blood Request</p>
+        <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-950">Create a Blood Request</h1>
+        <p class="text-sm text-slate-500 mt-1">Fill out the form below to alert compatible donors in your area.</p>
+    </div>
 
-<body class="bg-[#FFFDFD] text-slate-700 min-h-screen w-full flex flex-col items-center justify-center p-4 sm:p-6 md:p-10 overflow-x-hidden">
-
-    <!-- Card container with reduced width (max-w-xl) and compact padding -->
-    <div class="w-full max-w-xl bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-rose-100/60 mx-auto my-auto transition-all duration-300">
-
-        <div class="text-center mb-6">
-            <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-red-50 text-red-500 mb-3 border border-red-100/80 shadow-sm">
-                <i class="fa-solid fa-droplet text-xl"></i>
+    <?php if (!empty($message)): ?>
+        <div class="p-4 rounded-xl flex items-center gap-3 border shadow-sm <?= $status === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700' ?>">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 <?= $status === 'success' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600' ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                    <?php if ($status === 'success'): ?>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    <?php else: ?>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    <?php endif; ?>
+                </svg>
             </div>
-            <h1 class="text-xl font-extrabold tracking-tight text-slate-900">
-                Create a Blood Request
-            </h1>
-            <p class="text-xs text-slate-400 mt-1">Every second counts. Fill out the details below to alert nearby heroes.</p>
+            <span class="text-sm font-semibold"><?= htmlspecialchars($message) ?></span>
         </div>
+    <?php endif; ?>
 
-        <?php if (!empty($message)): ?>
-            <div id="phpAlert" class="mb-5 p-3.5 rounded-xl flex items-center gap-3 border transition-all duration-300 <?= $status === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-rose-50 border-rose-200 text-rose-700' ?>">
-                <i class="fa-solid <?= $status === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation' ?> text-base"></i>
-                <span class="text-xs font-semibold"><?= htmlspecialchars($message) ?></span>
-            </div>
-        <?php endif; ?>
+    <!-- Form Card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="h-0.5 bg-gradient-to-r from-rose-400 to-rose-500"></div>
 
-        <form action="" method="POST" id="bloodRequestForm" class="space-y-5">
+        <form action="" method="POST" id="bloodRequestForm" class="p-6 sm:p-8 space-y-6">
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="relative group">
-                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 transition-colors group-focus-within:text-red-500">Patient Name</label>
+            <!-- Row 1: Patient Name + Units -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Patient Name</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-red-500 transition-colors">
-                            <i class="fa-solid fa-user text-xs"></i>
-                        </span>
-                        <input type="text" name="patient_name" required placeholder="John Doe"
-                            class="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-300 focus:bg-white focus:border-red-500 focus:ring-4 focus:ring-red-500/10">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                        <input type="text" name="patient_name" required placeholder="e.g. John Doe"
+                            value="<?= htmlspecialchars($user['username'] ?? '') ?>"
+                            class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
                     </div>
                 </div>
 
-                <div class="relative group">
-                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 transition-colors group-focus-within:text-red-500">Units Needed (ml/Bags)</label>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Units Required</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-red-500 transition-colors">
-                            <i class="fa-solid fa-boxes-stacked text-xs"></i>
-                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                        </svg>
                         <input type="number" name="unit" min="1" max="10" required placeholder="2"
-                            class="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-300 focus:bg-white focus:border-red-500 focus:ring-4 focus:ring-red-500/10">
+                            class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
                     </div>
                 </div>
             </div>
 
-            <div>
-                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Required Blood Group</label>
+            <!-- Row 2: Blood Group -->
+            <div class="space-y-2">
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Required Blood Group</label>
                 <input type="hidden" name="blood_group_needed" id="selectedBloodGroup" required>
                 <div class="grid grid-cols-4 gap-2.5">
                     <?php
                     $blood_types = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
                     foreach ($blood_types as $type):
+                        $isPositive = str_contains($type, '+');
                     ?>
                         <button type="button" onclick="selectBloodGroup('<?= $type ?>')" data-type="<?= $type ?>"
-                            class="blood-btn py-2 rounded-xl border border-slate-200 bg-slate-50/70 text-sm font-bold tracking-wide text-slate-700 transition-all duration-300 hover:border-red-500/50 hover:bg-red-50/50 active:scale-95 flex flex-col items-center justify-center gap-0.5">
-                            <?= $type ?>
-                            <span class="w-1 h-1 rounded-full bg-transparent transition-colors duration-300 indicator"></span>
+                            class="blood-btn py-2.5 rounded-xl border-2 border-slate-200 bg-slate-50 text-sm font-bold tracking-wide text-slate-600 transition-all duration-200 hover:border-rose-300 hover:bg-rose-50/50 active:scale-95 flex flex-col items-center gap-0.5">
+                            <span><?= $type ?></span>
+                            <span class="text-[9px] font-semibold uppercase <?= $isPositive ? 'text-emerald-500' : 'text-rose-400' ?>"><?= $isPositive ? 'Pos' : 'Neg' ?></span>
                         </button>
                     <?php endforeach; ?>
                 </div>
             </div>
 
-            <div class="relative group">
-                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 transition-colors group-focus-within:text-red-500">Hospital & Location Address</label>
+            <!-- Row 3: Hospital -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hospital & Location</label>
                 <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-red-500 transition-colors">
-                        <i class="fa-solid fa-hospital text-xs"></i>
-                    </span>
-                    <input type="text" name="hospital_name" required placeholder="City Hospital, Emergency Wing, Ward 4"
-                        class="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-300 focus:bg-white focus:border-red-500 focus:ring-4 focus:ring-red-500/10">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+                    </svg>
+                    <input type="text" name="hospital_name" required placeholder="e.g. City Hospital, Emergency Wing"
+                        class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
                 </div>
             </div>
 
-            <div class="relative group">
-                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 transition-colors group-focus-within:text-red-500">Contact Phone</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-red-500 transition-colors">
-                        <i class="fa-solid fa-phone text-xs"></i>
-                    </span>
-                    <input type="text" name="contact_phone" required placeholder="09xxxxxxxxx"
-                        class="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-300 focus:bg-white focus:border-red-500 focus:ring-4 focus:ring-red-500/10">
+            <!-- Row 4: Phone + Urgency -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Contact Phone</label>
+                    <div class="relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.824-1.802-5.14-4.117-6.942-6.942l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                        </svg>
+                        <input type="text" name="contact_phone" required placeholder="e.g. 09xxxxxxxxx"
+                            class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Urgency Level</label>
+                    <div class="grid grid-cols-3 gap-2 h-11">
+                        <label class="relative flex items-center justify-center gap-1.5 rounded-xl border-2 border-slate-200 bg-slate-50 cursor-pointer transition-all duration-200 hover:border-amber-300 has-[:checked]:border-amber-400 has-[:checked]:bg-amber-50">
+                            <input type="radio" name="urgency" value="Standard" checked class="sr-only">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5 text-amber-500">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="text-xs font-bold text-slate-700">Standard</span>
+                        </label>
+                        <label class="relative flex items-center justify-center gap-1.5 rounded-xl border-2 border-slate-200 bg-slate-50 cursor-pointer transition-all duration-200 hover:border-orange-300 has-[:checked]:border-orange-400 has-[:checked]:bg-orange-50">
+                            <input type="radio" name="urgency" value="Urgent" class="sr-only">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5 text-orange-500">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                            </svg>
+                            <span class="text-xs font-bold text-slate-700">Urgent</span>
+                        </label>
+                        <label class="relative flex items-center justify-center gap-1.5 rounded-xl border-2 border-slate-200 bg-slate-50 cursor-pointer transition-all duration-200 hover:border-rose-300 has-[:checked]:border-rose-400 has-[:checked]:bg-rose-50">
+                            <input type="radio" name="urgency" value="Critical" class="sr-only">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5 text-rose-500">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                            </svg>
+                            <span class="text-xs font-bold text-slate-700">Critical</span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
-            <div>
-                <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Urgency Level</label>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <label class="relative flex items-center justify-between p-3 bg-slate-50/70 border border-slate-200 rounded-xl cursor-pointer transition-all hover:border-amber-500/50 group">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-clock text-amber-500 text-xs"></i>
-                            <span class="text-xs font-semibold text-slate-700">Within 24 Hrs</span>
-                        </div>
-                        <input type="radio" name="urgency" value="Standard" checked class="accent-red-600 w-3.5 h-3.5">
-                    </label>
-
-                    <label class="relative flex items-center justify-between p-3 bg-slate-50/70 border border-slate-200 rounded-xl cursor-pointer transition-all hover:border-orange-500/50 group">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-triangle-exclamation text-orange-500 text-xs"></i>
-                            <span class="text-xs font-semibold text-slate-700">Urgent</span>
-                        </div>
-                        <input type="radio" name="urgency" value="Urgent" class="accent-red-600 w-3.5 h-3.5">
-                    </label>
-
-                    <label class="relative flex items-center justify-between p-3 bg-slate-50/70 border border-slate-200 rounded-xl cursor-pointer transition-all hover:border-red-500/50 group">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-fire text-red-500 animate-pulse text-xs"></i>
-                            <span class="text-xs font-semibold text-slate-700">Critical</span>
-                        </div>
-                        <input type="radio" name="urgency" value="Critical" class="accent-red-600 w-3.5 h-3.5">
-                    </label>
-                </div>
+            <!-- Submit -->
+            <div class="pt-1">
+                <button type="submit" id="submitBtn"
+                    class="w-full h-11 bg-[#ce2424] hover:bg-[#b81e1e] text-white font-bold rounded-xl text-sm shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2.5 relative overflow-hidden group">
+                    <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
+                    <span id="btnText" class="relative z-10">Broadcast Request</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 relative z-10 transition-transform duration-300 group-hover:translate-x-0.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                    </svg>
+                </button>
             </div>
 
-
-            <button type="submit" id="submitBtn"
-                class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-5 rounded-xl text-sm shadow-md hover:shadow-lg shadow-red-600/10 transform transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 group overflow-hidden relative mt-2">
-                <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:animate-[shimmer_1s_ease-in-out]"></span>
-                <span id="btnText">Broadcast Live Request</span>
-                <i class="fa-solid fa-paper-plane text-xs transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-0.5"></i>
-            </button>
         </form>
     </div>
+</div>
 
-    <script>
-        function selectBloodGroup(type) {
-            document.getElementById('selectedBloodGroup').value = type;
+<script>
+    function selectBloodGroup(type) {
+        document.getElementById('selectedBloodGroup').value = type;
 
-            document.querySelectorAll('.blood-btn').forEach(btn => {
-                btn.classList.remove('border-red-500', 'bg-red-50/70', 'text-red-600');
-                btn.classList.add('border-slate-200', 'bg-slate-50/70', 'text-slate-700');
-                btn.querySelector('.indicator').classList.replace('bg-red-500', 'bg-transparent');
-            });
-
-            const selectedBtn = document.querySelector(`[data-type="${type}"]`);
-            selectedBtn.classList.replace('border-slate-200', 'border-red-500');
-            selectedBtn.classList.replace('bg-slate-50/70', 'bg-red-50/70');
-            selectedBtn.classList.replace('text-slate-700', 'text-red-600');
-            selectedBtn.querySelector('.indicator').classList.replace('bg-transparent', 'bg-red-500');
-        }
-
-        const form = document.getElementById('bloodRequestForm');
-        const submitBtn = document.getElementById('submitBtn');
-        const btnText = document.getElementById('btnText');
-
-        form.addEventListener('submit', function() {
-            if (form.checkValidity()) {
-                submitBtn.disabled = true;
-                submitBtn.classList.add('opacity-80', 'cursor-not-allowed');
-                btnText.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin mr-2"></i> Processing Request...';
-            }
+        document.querySelectorAll('.blood-btn').forEach(btn => {
+            btn.classList.remove('border-rose-300', 'bg-rose-50/50', 'shadow-sm');
+            btn.classList.add('border-slate-200', 'bg-slate-50');
         });
 
-        const alertBox = document.getElementById('phpAlert');
-        if (alertBox) {
-            setTimeout(() => {
-                alertBox.classList.add('opacity-0', '-translate-y-2');
-                setTimeout(() => alertBox.remove(), 300);
-            }, 4000);
-        }
-    </script>
-</body>
+        const btn = document.querySelector(`[data-type="${type}"]`);
+        btn.classList.remove('border-slate-200', 'bg-slate-50');
+        btn.classList.add('border-rose-300', 'bg-rose-50/50', 'shadow-sm');
+    }
 
-</html>
+    document.getElementById('bloodRequestForm').addEventListener('submit', function() {
+        if (this.checkValidity()) {
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.classList.add('opacity-80', 'cursor-not-allowed');
+            document.getElementById('btnText').textContent = 'Broadcasting...';
+        }
+    });
+</script>

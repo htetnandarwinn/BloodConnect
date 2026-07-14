@@ -35,9 +35,13 @@ try {
             r.unit AS units_requested,
             COALESCE(UPPER(r.urgency), 'ROUTINE') AS severity_level,
             COALESCE(md.label, 'Pending') AS fulfillment_status,
-            COALESCE(r.created_at, CURRENT_TIMESTAMP) AS required_date
+            r.status AS status_id,
+            COALESCE(r.created_at, CURRENT_TIMESTAMP) AS required_date,
+            r.donor_id,
+            donor.username AS donor_name
         FROM blood_requests r
         LEFT JOIN master_data md ON md.id = r.status
+        LEFT JOIN users donor ON donor.user_id = r.donor_id
         {$where}
         ORDER BY r.created_at DESC
     ");
@@ -189,10 +193,15 @@ function getBloodTypeClass($type)
                             </span>
                         </div>
 
-                        <div class="col-span-2 flex justify-start pl-2">
+                        <div class="col-span-2 flex flex-col items-start gap-1 pl-2">
                             <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs <?= getFulfillmentClass($req['fulfillment_status']) ?>">
                                 <?= htmlspecialchars($req['fulfillment_status']) ?>
                             </span>
+                            <?php if (!empty($req['donor_name']) && (int)$req['status_id'] !== 7): ?>
+                                <span class="text-[10px] font-medium text-slate-500 truncate max-w-full">
+                                    Accepted by: <span class="font-bold text-slate-700"><?= htmlspecialchars($req['donor_name']) ?></span>
+                                </span>
+                            <?php endif; ?>
                         </div>
 
                         <div class="col-span-1 flex justify-center">
@@ -250,9 +259,16 @@ function getBloodTypeClass($type)
                         </div>
 
                         <div class="flex items-center justify-between gap-2 pt-1">
-                            <span class="inline-block px-2.5 py-1 text-[9px] font-extrabold rounded-md uppercase tracking-widest border <?= getFulfillmentClass($req['fulfillment_status']) ?>">
-                                <?= htmlspecialchars($req['fulfillment_status']) ?>
-                            </span>
+                            <div class="flex flex-col gap-1">
+                                <span class="inline-block px-2.5 py-1 text-[9px] font-extrabold rounded-md uppercase tracking-widest border <?= getFulfillmentClass($req['fulfillment_status']) ?>">
+                                    <?= htmlspecialchars($req['fulfillment_status']) ?>
+                                </span>
+                                <?php if (!empty($req['donor_name']) && (int)$req['status_id'] !== 7): ?>
+                                    <span class="text-[10px] text-slate-500 font-medium">
+                                        by <span class="font-bold text-slate-700"><?= htmlspecialchars($req['donor_name']) ?></span>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                             <a href="/BloodConnect/public/admin/blood-request/view?id=<?= (int)$req['request_id'] ?>"
                                 class="flex items-center justify-center gap-2 py-2 px-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all active:scale-95">
                                 Inspect Request

@@ -70,9 +70,12 @@ $availabilityDotClass = ($availability === 'Available') ? 'bg-emerald-500' : 'bg
                 </div>
                 <p class="text-xs text-slate-500 font-medium">
                     <?= htmlspecialchars($availability_message) ?>
-                    <?php if (!empty($next_eligible_date)): ?>
+                    <?php if (!empty($next_eligible_date)):
+                        $remaining = floor((strtotime($next_eligible_date) - time()) / 86400);
+                    ?>
                         <span class="block mt-1 font-semibold <?= $availability === 'Available' ? 'text-emerald-600' : 'text-red-600' ?>">
                             Next eligible: <?= htmlspecialchars(date('d M Y', strtotime($next_eligible_date))) ?>
+                            <span class="text-amber-600">(<?= max(0, $remaining) ?>d rem.)</span>
                         </span>
                     <?php endif; ?>
                 </p>

@@ -159,6 +159,23 @@ class PatientController
             exit;
         }
 
+        if (!empty($request['donor_id']) && empty($request['donor_name'])) {
+            $donorUser = $this->userRepo->findById((int)$request['donor_id']);
+            if ($donorUser) {
+                $request['donor_name'] = $donorUser['username'] ?? 'Donor #' . $request['donor_id'];
+                $request['donor_email'] = $donorUser['email'] ?? '';
+                $request['donor_phone'] = $donorUser['phone'] ?? '';
+                $request['donor_blood_group'] = $donorUser['blood_group'] ?? '';
+                $request['donor_address'] = $donorUser['address'] ?? '';
+            } else {
+                $request['donor_name'] = 'Donor #' . $request['donor_id'];
+                $request['donor_email'] = '';
+                $request['donor_phone'] = '';
+                $request['donor_blood_group'] = '';
+                $request['donor_address'] = '';
+            }
+        }
+
         return patientView::render('request_detail', [
             'username'    => Session::get('username'),
             'request'     => $request,

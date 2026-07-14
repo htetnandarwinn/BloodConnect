@@ -160,7 +160,9 @@ $role = $user['role'] ?? 'Unknown';
                 </div>
             </div>
 
-            <?php if (strtolower($role) === 'donor' && (int)($user['available'] ?? 1) !== 1 && !empty($user['next_available_date'])): ?>
+            <?php if (strtolower($role) === 'donor' && !empty($user['next_available_date'])):
+                $remaining = floor((strtotime($user['next_available_date']) - time()) / 86400);
+            ?>
                 <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-1.5">
                     <span class="text-[11px] uppercase font-bold tracking-wider text-slate-400 block">Next Eligible Date</span>
                     <div class="flex items-center gap-2.5 text-amber-700">
@@ -170,6 +172,7 @@ $role = $user['role'] ?? 'Unknown';
                         <span class="text-sm font-semibold text-slate-800 font-mono">
                             <?= date('F j, Y', strtotime($user['next_available_date'])) ?>
                         </span>
+                        <span class="text-xs font-bold text-amber-600 font-mono">(<?= max(0, $remaining) ?>d rem.)</span>
                     </div>
                 </div>
             <?php endif; ?>
