@@ -45,7 +45,7 @@ class AdminBloodRequestController
             $totalPending = (int)$stmt->fetchColumn();
             $viewedCount = count($_SESSION['viewed_pending_requests'] ?? []);
             echo json_encode(['count' => max(0, $totalPending - $viewedCount)]);
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             echo json_encode(['count' => 0]);
         }
         exit;

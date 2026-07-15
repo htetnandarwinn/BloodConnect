@@ -10,8 +10,8 @@ $contacts = [
     [
         'icon' => 'map',
         'label' => 'Visit Us',
-        'value' => '123 BloodConnect Plaza, Medical District',
-        'detail' => 'Mon–Fri, 8AM – 6PM',
+        'value' => 'Ywadan, Yamethin, Myanmar',
+        'detail' => 'We are open 24/7 for emergencies',
     ],
     [
         'icon' => 'mail',
@@ -32,51 +32,70 @@ $contacts = [
         background: #ffffff;
         min-height: calc(100vh - 6rem);
     }
+
     .contact-card {
         transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .contact-card:hover .icon-wrapper {
         background: #ce2424;
         color: white;
         transform: scale(1.05);
     }
+
     .icon-wrapper {
         transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .form-input {
         transition: all 0.2s ease;
     }
+
     .form-input:focus {
         border-color: #ce2424;
-        box-shadow: 0 0 0 4px rgba(206,36,36,0.08);
+        box-shadow: 0 0 0 4px rgba(206, 36, 36, 0.08);
         outline: none;
     }
+
     .social-link {
         transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .social-link:hover {
         background: #ce2424;
         color: white;
         border-color: #ce2424;
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(206,36,36,0.15);
+        box-shadow: 0 8px 20px rgba(206, 36, 36, 0.15);
     }
+
     .submit-btn {
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .submit-btn:hover {
         transform: translateY(-1px);
-        box-shadow: 0 12px 28px rgba(206,36,36,0.25);
+        box-shadow: 0 12px 28px rgba(206, 36, 36, 0.25);
     }
+
     .submit-btn:active {
         transform: translateY(0);
     }
+
     .toast {
         animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
+
     @keyframes toastIn {
-        0% { opacity: 0; transform: translateY(-12px) scale(0.96); }
-        100% { opacity: 1; transform: translateY(0) scale(1); }
+        0% {
+            opacity: 0;
+            transform: translateY(-12px) scale(0.96);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
     }
 
     /* Scroll-triggered animations */
@@ -84,27 +103,57 @@ $contacts = [
         opacity: 0;
         transform: translateY(30px);
         transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-                    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .reveal.visible {
         opacity: 1;
         transform: translateY(0);
     }
-    .reveal-delay-1 { transition-delay: 0.1s; }
-    .reveal-delay-2 { transition-delay: 0.2s; }
-    .reveal-delay-3 { transition-delay: 0.3s; }
-    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    .reveal-delay-1 {
+        transition-delay: 0.1s;
+    }
+
+    .reveal-delay-2 {
+        transition-delay: 0.2s;
+    }
+
+    .reveal-delay-3 {
+        transition-delay: 0.3s;
+    }
+
+    .reveal-delay-4 {
+        transition-delay: 0.4s;
+    }
 
     @keyframes fadeUp {
-        0% { opacity: 0; transform: translateY(24px) scale(0.97); }
-        100% { opacity: 1; transform: translateY(0) scale(1); }
+        0% {
+            opacity: 0;
+            transform: translateY(24px) scale(0.97);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
     }
+
     .animate-fade-up {
         animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    .animate-fade-up-d1 { animation-delay: 0.15s; }
-    .animate-fade-up-d2 { animation-delay: 0.25s; }
-    .animate-fade-up-d3 { animation-delay: 0.35s; }
+
+    .animate-fade-up-d1 {
+        animation-delay: 0.15s;
+    }
+
+    .animate-fade-up-d2 {
+        animation-delay: 0.25s;
+    }
+
+    .animate-fade-up-d3 {
+        animation-delay: 0.35s;
+    }
 </style>
 
 <section class="relative contact-section py-16 sm:py-20 lg:py-28 overflow-hidden">
@@ -129,35 +178,44 @@ $contacts = [
         <!-- Success / Error Toast -->
         <?php if ($success): ?>
             <div class="toast max-w-xl mx-auto mb-8 px-5 py-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-3 shadow-lg shadow-emerald-100/40">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-emerald-600 shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 text-emerald-600 shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
                 <span class="text-sm font-semibold text-emerald-800"><?= htmlspecialchars($success) ?></span>
             </div>
         <?php endif; ?>
 
         <!-- Contact Info -->
         <div class="max-w-3xl mx-auto space-y-6">
-                <div class="space-y-6">
-                    <?php foreach ($contacts as $i => $item): ?>
-                        <div class="contact-card reveal reveal-delay-<?= $i + 1 ?> bg-white rounded-2xl border border-slate-200/70 p-6 sm:p-8 shadow-sm hover:shadow-md hover:border-rose-200">
-                            <div class="flex items-start gap-5">
-                                <div class="icon-wrapper w-14 h-14 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
-                                    <?php if ($item['icon'] === 'map'): ?>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
-                                    <?php elseif ($item['icon'] === 'mail'): ?>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0l-7.5-4.615a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
-                                    <?php else: ?>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.824-1.802-5.14-4.117-6.942-6.942l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg>
-                                    <?php endif; ?>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-0.5"><?= $item['label'] ?></p>
-                                    <p class="text-base font-bold text-slate-900"><?= $item['value'] ?></p>
-                                    <p class="text-sm text-slate-400 mt-0.5"><?= $item['detail'] ?></p>
-                                </div>
+            <div class="space-y-6">
+                <?php foreach ($contacts as $i => $item): ?>
+                    <div class="contact-card reveal reveal-delay-<?= $i + 1 ?> bg-white rounded-2xl border border-slate-200/70 p-6 sm:p-8 shadow-sm hover:shadow-md hover:border-rose-200">
+                        <div class="flex items-start gap-5">
+                            <div class="icon-wrapper w-14 h-14 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
+                                <?php if ($item['icon'] === 'map'): ?>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                                    </svg>
+                                <?php elseif ($item['icon'] === 'mail'): ?>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0l-7.5-4.615a2.25 2.25 0 01-1.07-1.916V6.75" />
+                                    </svg>
+                                <?php else: ?>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.824-1.802-5.14-4.117-6.942-6.942l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                                    </svg>
+                                <?php endif; ?>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-0.5"><?= $item['label'] ?></p>
+                                <p class="text-base font-bold text-slate-900"><?= $item['value'] ?></p>
+                                <p class="text-sm text-slate-400 mt-0.5"><?= $item['detail'] ?></p>
                             </div>
                         </div>
-                    <?php endforeach; ?>
-                </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
 
         </div>
     </div>
@@ -174,10 +232,16 @@ $contacts = [
                         observer.unobserve(entry.target);
                     }
                 });
-            }, { threshold: 0.15 });
-            reveals.forEach(function(el) { observer.observe(el); });
+            }, {
+                threshold: 0.15
+            });
+            reveals.forEach(function(el) {
+                observer.observe(el);
+            });
         } else {
-            reveals.forEach(function(el) { el.classList.add('visible'); });
+            reveals.forEach(function(el) {
+                el.classList.add('visible');
+            });
         }
     })();
 </script>

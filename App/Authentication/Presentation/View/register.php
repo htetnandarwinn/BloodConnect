@@ -10,7 +10,7 @@ $success = $_SESSION['success'] ?? '';
 $old = $_SESSION['old'] ?? [];
 unset($_SESSION['errors'], $_SESSION['success'], $_SESSION['old']);
 
-$current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
+$current_role = $old['role'] ?? ($_GET['role'] ?? '');
 ?>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -30,6 +30,26 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
 
     .animate-fade-in {
         animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    #roleSelect {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    #roleSelect:focus,
+    #roleSelect:hover {
+        border-color: #ef4444 !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    #roleSelect option {
+        color: #334155;
+        background-color: #ffffff;
     }
 </style>
 
@@ -227,15 +247,21 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
                                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-base transition-colors group-focus-within:text-red-500">
                                     <i class="fa-solid fa-user-gear"></i>
                                 </span>
-                                <select id="roleSelect" name="role" required onchange="updateRoleLayout(this.value)"
-                                    class="w-full bg-white border border-slate-200 rounded-xl pl-11 pr-10 py-3 text-sm text-slate-700 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/5 transition duration-150 font-medium appearance-none cursor-pointer">
-                                    <option value="" disabled>Choose role</option>
+                                <button type="button" id="roleTrigger"
+                                    class="w-full bg-white border border-slate-200 rounded-xl pl-11 pr-10 py-3 text-sm text-slate-700 focus:outline-none focus:border-red-500 transition duration-150 font-medium cursor-pointer flex items-center justify-between">
+                                    <span id="roleTriggerText"><?= empty($current_role) ? 'Choose Role' : ($current_role === 'donor' ? 'Donor' : 'Patient') ?></span>
+                                    <i class="fa-solid fa-chevron-down text-slate-400"></i>
+                                </button>
+                                <div id="roleMenu" class="hidden absolute z-20 mt-2 w-full rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden">
+                                    <button type="button" class="role-option w-full px-4 py-3 text-left text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition" data-value="" data-label="Choose Role">Choose Role</button>
+                                    <button type="button" class="role-option w-full px-4 py-3 text-left text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition" data-value="donor" data-label="Donor">Donor</button>
+                                    <button type="button" class="role-option w-full px-4 py-3 text-left text-sm text-slate-700 hover:bg-red-50 hover:text-red-600 transition" data-value="patient" data-label="Patient">Patient</button>
+                                </div>
+                                <select id="roleSelect" name="role" required class="sr-only">
+                                    <option value="" disabled <?= empty($current_role) ? 'selected' : '' ?>>Choose Role</option>
                                     <option value="donor" <?= $current_role === 'donor' ? 'selected' : '' ?>>Donor</option>
                                     <option value="patient" <?= $current_role === 'patient' ? 'selected' : '' ?>>Patient</option>
                                 </select>
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">
-                                    <i class="fa-solid fa-chevron-down"></i>
-                                </span>
                             </div>
                             <p id="regRoleFieldError" class="text-red-600 text-xs font-semibold mt-1 items-center gap-1.5 animate-fade-in <?= empty($errors['role']) ? 'hidden' : 'flex' ?>">
                                 <i class="fa-solid fa-circle-exclamation"></i> <?= htmlspecialchars($errors['role'] ?? '', ENT_QUOTES) ?>
@@ -316,7 +342,42 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? 'donor');
 
     document.addEventListener("DOMContentLoaded", function() {
         const roleSelect = document.getElementById("roleSelect");
-        updateRoleLayout(roleSelect.value || 'donor');
+        const roleTrigger = document.getElementById("roleTrigger");
+        const roleTriggerText = document.getElementById("roleTriggerText");
+        const roleMenu = document.getElementById("roleMenu");
+        const roleOptions = document.querySelectorAll(".role-option");
+
+        function setRoleSelection(value, label) {
+            roleSelect.value = value;
+            roleTriggerText.textContent = label;
+            roleMenu.classList.add("hidden");
+            updateRoleLayout(value || '');
+        }
+
+        roleTrigger.addEventListener("click", function() {
+            roleMenu.classList.toggle("hidden");
+        });
+
+        roleOptions.forEach(function(option) {
+            option.addEventListener("click", function() {
+                setRoleSelection(option.dataset.value, option.dataset.label);
+            });
+        });
+
+        document.addEventListener("click", function(event) {
+            if (!roleTrigger.contains(event.target) && !roleMenu.contains(event.target)) {
+                roleMenu.classList.add("hidden");
+            }
+        });
+
+        const initialValue = roleSelect.value || '';
+        const initialLabel = initialValue === 'donor' ?
+            'Donor' :
+            initialValue === 'patient' ?
+            'Patient' :
+            'Choose Role';
+        roleTriggerText.textContent = initialLabel;
+        updateRoleLayout(initialValue);
     });
 
     const registerForm = document.getElementById("unifiedRegisterForm");

@@ -8,8 +8,22 @@ $currentPath = strtok($_SERVER['REQUEST_URI'], '?');
 
 function activeLink($url, $currentPath)
 {
-    // Enhanced to text-lg and font-bold for a commanding presence
-    return str_contains($currentPath, $url)
+    $basePath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+    if ($basePath === '/' || $basePath === '\\') {
+        $basePath = '';
+    }
+
+    $normalizedCurrentPath = '/' . trim(str_replace($basePath, '', $currentPath), '/');
+    if ($normalizedCurrentPath === '//') {
+        $normalizedCurrentPath = '/';
+    }
+
+    $normalizedUrl = '/' . trim($url, '/');
+    if ($normalizedUrl === '//') {
+        $normalizedUrl = '/';
+    }
+
+    return $normalizedCurrentPath === $normalizedUrl
         ? 'text-red-600 border-b-2 border-red-600 pb-1 lg:pb-1 font-bold'
         : 'text-gray-700 hover:text-red-600 transition font-semibold';
 }

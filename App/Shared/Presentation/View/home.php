@@ -37,7 +37,7 @@
                 </h1>
 
                 <p class="text-base md:text-xl text-gray-500 font-medium max-w-xl leading-relaxed">
-                    BloodConnect simplifies peer-to-peer blood validation matching. Request urgent reserves, trace local ecosystems, and discover live-giving networks instantly.
+                    BloodConnect is a secure and reliable platform that connects blood donors with patients, making it easier to find life-saving blood when it is needed most.
                 </p>
 
                 <!-- Call to Action Buttons with Hover Pop Effects -->
@@ -180,7 +180,9 @@
                     observer.unobserve(entry.target);
                 }
             });
-        }, { threshold: 0.5 });
+        }, {
+            threshold: 0.5
+        });
 
         counters.forEach(c => observer.observe(c));
     });
