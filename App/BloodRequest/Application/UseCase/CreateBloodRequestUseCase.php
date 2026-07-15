@@ -20,6 +20,11 @@ class CreateBloodRequestUseCase
 
     public function execute(int $patientId, string $patientName, array $data): array
     {
+        $patient = $this->userRepo->findById($patientId);
+        if (!$patient) {
+            return ['success' => false, 'error' => 'Your account could not be verified. Please log out and log in again.'];
+        }
+
         if ($this->bloodRequestRepo->hasPendingRequest($patientId)) {
             $this->notificationRepo->create(
                 $patientId,
@@ -42,6 +47,9 @@ class CreateBloodRequestUseCase
             'patient_name'      => $patientName,
             'blood_group_needed'=> $data['blood_group_needed'],
             'hospital_name'     => $data['hospital_name'],
+            'state_region'      => $data['state_region'] ?? null,
+            'township'          => $data['township'] ?? null,
+            'hospital_address'  => $data['hospital_address'] ?? null,
             'urgency'           => $data['urgency'],
             'contact_phone'     => $data['contact_phone'],
             'unit'              => (int)($data['unit'] ?? 1),

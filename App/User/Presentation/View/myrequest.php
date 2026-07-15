@@ -131,6 +131,11 @@
                                 <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mono block">REQ___<?= str_pad($rid, 4, '0', STR_PAD_LEFT) ?></span>
                                 <span class="font-bold text-slate-800 text-sm tracking-tight truncate block mt-0.5"><?= htmlspecialchars($hospital) ?></span>
                                 <span class="text-xs text-slate-400 font-medium block truncate">Pt: <?= htmlspecialchars($patient) ?></span>
+                                <?php
+                                $loc = array_filter([$req['township'] ?? '', $req['state_region'] ?? '']);
+                                if (!empty($loc)): ?>
+                                    <span class="text-[10px] text-slate-400 font-medium block truncate mt-0.5"><?= htmlspecialchars(implode(', ', $loc)) ?></span>
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -204,6 +209,11 @@
                             <div class="space-y-1 truncate">
                                 <h4 class="font-extrabold text-slate-900 text-base tracking-tight truncate leading-tight"><?= htmlspecialchars($hospital) ?></h4>
                                 <p class="text-xs font-medium text-slate-666 truncate">Patient: <?= htmlspecialchars($patient) ?></p>
+                                <?php
+                                $loc = array_filter([$req['township'] ?? '', $req['state_region'] ?? '']);
+                                if (!empty($loc)): ?>
+                                    <p class="text-[11px] text-slate-400 font-medium truncate"><?= htmlspecialchars(implode(', ', $loc)) ?></p>
+                                <?php endif; ?>
                                 <p class="text-xs text-slate-400 font-bold pt-1"><?= htmlspecialchars($units) ?> Units Required</p>
                             </div>
                             <div class="w-11 h-11 rounded-xl border font-black text-sm flex items-center justify-center font-mono shrink-0 <?= getBloodTypeClass($blood) ?>">

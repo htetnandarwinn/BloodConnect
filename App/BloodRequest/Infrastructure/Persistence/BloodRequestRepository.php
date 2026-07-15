@@ -23,6 +23,8 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 
     public function findByPatientId(int $patientId): array
     {
+        $this->ensureRequestLocationColumns();
+
         $sql = "
         SELECT
             br.request_id,
@@ -32,6 +34,9 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
             br.blood_group_needed,
             br.unit,
             br.hospital_name,
+            br.state_region,
+            br.township,
+            br.hospital_address,
             br.urgency,
             br.contact_phone,
             br.created_at,
@@ -77,6 +82,8 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 
     public function findPatientRequestDetail(int $requestId, int $patientId): array
     {
+        $this->ensureRequestLocationColumns();
+
         $stmt = $this->db->prepare(
             "
             SELECT
@@ -87,6 +94,9 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                 br.blood_group_needed,
                 br.unit,
                 br.hospital_name,
+                br.state_region,
+                br.township,
+                br.hospital_address,
                 br.urgency,
                 br.contact_phone,
                 br.created_at,
@@ -98,10 +108,13 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                 donor.email AS donor_email,
                 donor.phone AS donor_phone,
                 donor.blood_group AS donor_blood_group,
-                donor.address AS donor_address
+                donor.address AS donor_address,
+                dnr.state_region AS donor_state_region,
+                dnr.township AS donor_township
             FROM blood_requests br
             LEFT JOIN master_data md ON md.id = br.status
             LEFT JOIN users donor ON donor.user_id = br.donor_id
+            LEFT JOIN donors dnr ON dnr.user_id = br.donor_id
             WHERE br.request_id = ?
               AND br.patient_id = ?
             LIMIT 1
@@ -158,6 +171,8 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 
     public function findDonorRequestDetail(int $requestId, int $donorId, int $acceptedStatus): array
     {
+        $this->ensureRequestLocationColumns();
+
         $stmt = $this->db->prepare(
             "
             SELECT
@@ -168,6 +183,9 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                 br.blood_group_needed,
                 br.unit,
                 br.hospital_name,
+                br.state_region,
+                br.township,
+                br.hospital_address,
                 br.urgency,
                 br.contact_phone,
                 br.created_at,
@@ -198,6 +216,7 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 
     public function create(array $data): bool
     {
+        $this->ensureRequestLocationColumns();
 
         $sql = "
             INSERT INTO blood_requests
@@ -208,6 +227,9 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                 blood_group_needed,
                 unit,
                 hospital_name,
+                state_region,
+                township,
+                hospital_address,
                 urgency,
                 contact_phone,
                 status
@@ -221,54 +243,38 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                 :blood_group_needed,
                 :unit,
                 :hospital_name,
+                :state_region,
+                :township,
+                :hospital_address,
                 :urgency,
                 :contact_phone,
                 :status
             )
         ";
 
-
         $stmt = $this->db->prepare($sql);
 
-
-        return $stmt->execute([
-
-            ':request_code' =>
-            $data['request_code'],
-
-
-            ':patient_id' =>
-            $data['patient_id'],
-
-
-            ':patient_name' =>
-            $data['patient_name'],
-
-
-            ':blood_group_needed' =>
-            $data['blood_group_needed'],
-
-
-            ':unit' =>
-            $data['unit'],
-
-
-            ':hospital_name' =>
-            $data['hospital_name'],
-
-
-            ':urgency' =>
-            $data['urgency'],
-
-
-            ':contact_phone' =>
-            $data['contact_phone'],
-
-
-            ':status' =>
-            $data['status']
-
-        ]);
+        try {
+            return $stmt->execute([
+                ':request_code' => $data['request_code'],
+                ':patient_id' => $data['patient_id'],
+                ':patient_name' => $data['patient_name'],
+                ':blood_group_needed' => $data['blood_group_needed'],
+                ':unit' => $data['unit'],
+                ':hospital_name' => $data['hospital_name'],
+                ':state_region' => $data['state_region'] ?? null,
+                ':township' => $data['township'] ?? null,
+                ':hospital_address' => $data['hospital_address'] ?? null,
+                ':urgency' => $data['urgency'],
+                ':contact_phone' => $data['contact_phone'],
+                ':status' => $data['status']
+            ]);
+        } catch (\PDOException $e) {
+            if (str_contains($e->getMessage(), 'a foreign key constraint fails')) {
+                throw new \RuntimeException('Your account could not be verified. Please log out and log in again.');
+            }
+            throw $e;
+        }
     }
 
 
@@ -311,6 +317,252 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 
 
 
+
+    // ================= ENSURE REQUEST LOCATION COLUMNS =================
+
+    public function ensureRequestLocationColumns(): void
+    {
+        try {
+            $stmt = $this->db->query("SHOW COLUMNS FROM blood_requests LIKE 'state_region'");
+            if ($stmt->rowCount() === 0) {
+                $this->db->exec("ALTER TABLE blood_requests ADD COLUMN state_region VARCHAR(100) DEFAULT NULL AFTER hospital_name");
+            }
+        } catch (\PDOException $e) {
+            if (strpos($e->getMessage(), 'state_region') !== false) {
+                $this->db->exec("ALTER TABLE blood_requests ADD COLUMN state_region VARCHAR(100) DEFAULT NULL AFTER hospital_name");
+            } else {
+                throw $e;
+            }
+        }
+
+        try {
+            $stmt = $this->db->query("SHOW COLUMNS FROM blood_requests LIKE 'township'");
+            if ($stmt->rowCount() === 0) {
+                $this->db->exec("ALTER TABLE blood_requests ADD COLUMN township VARCHAR(100) DEFAULT NULL AFTER state_region");
+            }
+        } catch (\PDOException $e) {
+            if (strpos($e->getMessage(), 'township') !== false) {
+                $this->db->exec("ALTER TABLE blood_requests ADD COLUMN township VARCHAR(100) DEFAULT NULL AFTER state_region");
+            } else {
+                throw $e;
+            }
+        }
+
+        try {
+            $stmt = $this->db->query("SHOW COLUMNS FROM blood_requests LIKE 'hospital_address'");
+            if ($stmt->rowCount() === 0) {
+                $this->db->exec("ALTER TABLE blood_requests ADD COLUMN hospital_address TEXT DEFAULT NULL AFTER township");
+            }
+        } catch (\PDOException $e) {
+            if (strpos($e->getMessage(), 'hospital_address') !== false) {
+                $this->db->exec("ALTER TABLE blood_requests ADD COLUMN hospital_address TEXT DEFAULT NULL AFTER township");
+            } else {
+                throw $e;
+            }
+        }
+    }
+
+    // ================= FIND DONORS BY BLOOD GROUP AND LOCATION =================
+
+    public function findDonorsByBloodGroupAndLocation(string $bloodGroup, ?string $township = null, ?string $stateRegion = null): array
+    {
+        if ($bloodGroup === '') {
+            return [];
+        }
+
+        (new \App\Donor\Infrastructure\Persistence\DonorRepository())->ensureLocationColumns();
+
+        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $pendingStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'PENDING') ?? 7;
+        $donationEligibilityService = new \App\Donor\Application\UseCase\DonorDonationEligibilityService();
+        $donorEligibilityService = new \App\Donor\Domain\Service\DonorEligibilityService();
+
+        $sql = "
+            SELECT
+                u.user_id,
+                u.username,
+                u.email,
+                u.phone,
+                u.blood_group,
+                u.address,
+                u.available,
+                u.is_active,
+                u.next_available_date,
+                d.date_of_birth,
+                d.weight,
+                d.state_region,
+                d.township,
+                latest_request.created_at AS last_donation_date
+            FROM users u
+            JOIN donors d ON d.user_id = u.user_id
+            LEFT JOIN (
+                SELECT donor_id, MAX(created_at) AS created_at
+                FROM blood_requests
+                WHERE donor_id IS NOT NULL
+                  AND status = ?
+                GROUP BY donor_id
+            ) latest_request ON latest_request.donor_id = u.user_id
+            WHERE u.user_type_id = 2
+              AND u.is_active = 1
+              AND u.blood_group = ?
+              AND d.date_of_birth IS NOT NULL
+              AND d.weight IS NOT NULL
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM request_donors rd
+                  JOIN blood_requests br ON br.request_id = rd.request_id
+                  WHERE rd.donor_id = u.user_id
+                    AND br.status IN (?, ?)
+              )
+        ";
+
+        $params = [$acceptedStatus, $bloodGroup, $pendingStatus, $acceptedStatus];
+
+        if ($township !== null && $township !== '') {
+            $sql .= " AND d.township = ?";
+            $params[] = $township;
+        } elseif ($stateRegion !== null && $stateRegion !== '') {
+            $sql .= " AND d.state_region = ?";
+            $params[] = $stateRegion;
+        }
+
+        $sql .= " ORDER BY u.username ASC";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        $donors = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return array_values(array_filter($donors, function (array $donor) use ($donationEligibilityService, $donorEligibilityService): bool {
+            $donationEligibility = $donationEligibilityService->evaluate(
+                (string)($donor['last_donation_date'] ?? ''),
+                (string)($donor['next_available_date'] ?? '')
+            );
+            if (!$donationEligibility['is_available']) {
+                return false;
+            }
+
+            $profileEligibility = $donorEligibilityService->evaluate(
+                (string)($donor['date_of_birth'] ?? ''),
+                (string)($donor['weight'] ?? '')
+            );
+            if (!$profileEligibility['eligible']) {
+                return false;
+            }
+
+            return true;
+        }));
+    }
+
+    // ================= ASSIGN DONORS TO REQUEST =================
+
+    public function assignDonorsToRequest(int $requestId, array $donorIds, int $statusId): bool
+    {
+        if (empty($donorIds)) {
+            return false;
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            $pendingStatus = (new MasterDataRepository())->getId('RESPONSE_STATUS', 'PENDING') ?? 11;
+
+            $stmt = $this->db->prepare(
+                "INSERT INTO request_donors (request_id, donor_id, response_status_id) VALUES (?, ?, ?)"
+            );
+
+            foreach ($donorIds as $donorId) {
+                $stmt->execute([$requestId, (int)$donorId, $pendingStatus]);
+            }
+
+            // Set the first donor as the primary assigned donor on the request
+            $firstDonorId = (int)$donorIds[0];
+            $updateStmt = $this->db->prepare(
+                "UPDATE blood_requests SET donor_id = ? WHERE request_id = ?"
+            );
+            $updateStmt->execute([$firstDonorId, $requestId]);
+
+            $this->db->commit();
+            return true;
+        } catch (\PDOException $e) {
+            $this->db->rollBack();
+            error_log("Failed assigning donors to request {$requestId}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // ================= GET ASSIGNED DONORS =================
+
+    public function getAssignedDonors(int $requestId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                rd.request_donor_id,
+                rd.donor_id,
+                rd.response_status_id,
+                rd.response_date,
+                u.username,
+                u.email,
+                u.phone,
+                u.blood_group,
+                d.state_region,
+                d.township
+            FROM request_donors rd
+            JOIN users u ON u.user_id = rd.donor_id
+            LEFT JOIN donors d ON d.user_id = rd.donor_id
+            WHERE rd.request_id = ?
+            ORDER BY rd.response_date ASC
+        ");
+        $stmt->execute([$requestId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // ================= CHECK DONORS ALREADY ASSIGNED ELSEWHERE =================
+
+    public function getDonorsAssignedToOtherRequests(array $donorIds, int $excludeRequestId): array
+    {
+        if (empty($donorIds)) {
+            return [];
+        }
+
+        $pendingStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'PENDING') ?? 7;
+        $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+
+        $placeholders = implode(',', array_fill(0, count($donorIds), '?'));
+        $sql = "
+            SELECT
+                rd.donor_id,
+                br.request_id,
+                br.request_code,
+                br.patient_name,
+                br.urgency,
+                br.blood_group_needed,
+                br.township,
+                br.state_region
+            FROM request_donors rd
+            JOIN blood_requests br ON br.request_id = rd.request_id
+            WHERE rd.donor_id IN ({$placeholders})
+              AND br.request_id != ?
+              AND br.status IN (?, ?)
+            ORDER BY
+                CASE UPPER(br.urgency)
+                    WHEN 'CRITICAL' THEN 0
+                    WHEN 'URGENT' THEN 1
+                    ELSE 2
+                END
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(array_merge($donorIds, [$excludeRequestId, $pendingStatus, $acceptedStatus]));
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $grouped = [];
+        foreach ($rows as $row) {
+            $did = (int)$row['donor_id'];
+            $grouped[$did][] = $row;
+        }
+        return $grouped;
+    }
 
     // ================= FIND DONOR MATCHING REQUESTS =================
 
@@ -371,6 +623,51 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function findCompetingRequests(
+        string $bloodGroup,
+        string $township,
+        string $stateRegion,
+        int $excludeRequestId
+    ): array {
+        if ($bloodGroup === '' || ($township === '' && $stateRegion === '')) {
+            return [];
+        }
+
+        $pendingStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'PENDING') ?? 7;
+
+        $sql = "
+            SELECT
+                br.request_id,
+                br.request_code,
+                br.patient_name,
+                br.blood_group_needed,
+                br.unit,
+                br.hospital_name,
+                br.urgency,
+                br.township,
+                br.state_region,
+                br.donor_id,
+                br.created_at
+            FROM blood_requests br
+            WHERE br.blood_group_needed = :blood_group
+              AND br.township = :township
+              AND br.state_region = :state_region
+              AND br.request_id != :exclude_id
+              AND br.status = :status
+            ORDER BY br.created_at ASC
+        ";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            ':blood_group' => $bloodGroup,
+            ':township' => $township,
+            ':state_region' => $stateRegion,
+            ':exclude_id' => $excludeRequestId,
+            ':status' => $pendingStatus,
+        ]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     public function getMatchingDonors(string $bloodGroup): array
     {
@@ -379,7 +676,8 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         }
 
         $acceptedStatus = (new MasterDataRepository())->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
-        $eligibilityService = new \App\Donor\Application\UseCase\DonorDonationEligibilityService();
+        $donationEligibilityService = new \App\Donor\Application\UseCase\DonorDonationEligibilityService();
+        $donorEligibilityService = new \App\Donor\Domain\Service\DonorEligibilityService();
 
         $stmt = $this->db->prepare(
             "
@@ -393,8 +691,11 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                 u.available,
                 u.is_active,
                 u.next_available_date,
+                d.date_of_birth,
+                d.weight,
                 latest_request.created_at AS last_donation_date
             FROM users u
+            JOIN donors d ON d.user_id = u.user_id
             LEFT JOIN (
                 SELECT donor_id, MAX(created_at) AS created_at
                 FROM blood_requests
@@ -405,6 +706,8 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
             WHERE u.user_type_id = 2
               AND u.is_active = 1
               AND u.blood_group = ?
+              AND d.date_of_birth IS NOT NULL
+              AND d.weight IS NOT NULL
             ORDER BY u.username ASC
             "
         );
@@ -413,12 +716,24 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 
         $donors = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        return array_values(array_filter($donors, function (array $donor) use ($eligibilityService): bool {
-            $eligibility = $eligibilityService->evaluate(
+        return array_values(array_filter($donors, function (array $donor) use ($donationEligibilityService, $donorEligibilityService): bool {
+            $donationEligibility = $donationEligibilityService->evaluate(
                 (string)($donor['last_donation_date'] ?? ''),
                 (string)($donor['next_available_date'] ?? '')
             );
-            return $eligibility['is_available'];
+            if (!$donationEligibility['is_available']) {
+                return false;
+            }
+
+            $profileEligibility = $donorEligibilityService->evaluate(
+                (string)($donor['date_of_birth'] ?? ''),
+                (string)($donor['weight'] ?? '')
+            );
+            if (!$profileEligibility['eligible']) {
+                return false;
+            }
+
+            return true;
         }));
     }
 

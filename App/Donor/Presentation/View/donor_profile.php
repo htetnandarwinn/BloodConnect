@@ -3,6 +3,14 @@ $user = $user ?? [];
 $availability = $availability ?? 'Available';
 $availability_message = $availability_message ?? 'You are ready to donate';
 $next_eligible_date = $next_eligible_date ?? '';
+$donorDetails = $donorDetails ?? [];
+
+$age = null;
+if (!empty($donorDetails['date_of_birth'])) {
+    $dob = new \DateTime($donorDetails['date_of_birth']);
+    $now = new \DateTime();
+    $age = (int)$dob->diff($now)->y;
+}
 $availabilityBadgeClass = ($availability === 'Available')
     ? 'bg-emerald-50 border-emerald-100 text-emerald-700'
     : 'bg-red-50 border-red-100 text-red-700';
@@ -146,6 +154,51 @@ $availabilityDotClass = ($availability === 'Available') ? 'bg-emerald-500' : 'bg
                     <label class="text-xs font-bold text-slate-400 tracking-wide uppercase">Blood Group</label>
                     <div class="px-4 py-3 border border-slate-100 rounded-xl bg-slate-50/60 font-semibold text-slate-800 text-sm transition-colors focus-within:border-slate-200">
                         <?= htmlspecialchars($user['blood_group'] ?? '—') ?>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 tracking-wide uppercase">Date of Birth</label>
+                    <div class="px-4 py-3 border border-slate-100 rounded-xl bg-slate-50/60 font-semibold text-slate-800 text-sm transition-colors focus-within:border-slate-200">
+                        <?php if (!empty($donorDetails['date_of_birth'])): ?>
+                            <?= htmlspecialchars($donorDetails['date_of_birth']) ?>
+                            <span class="text-slate-400 font-medium"> (<?= $age ?> years)</span>
+                        <?php else: ?>
+                            <span class="text-slate-400">—</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 tracking-wide uppercase">Weight</label>
+                    <div class="px-4 py-3 border border-slate-100 rounded-xl bg-slate-50/60 font-semibold text-slate-800 text-sm transition-colors focus-within:border-slate-200">
+                        <?php if (!empty($donorDetails['weight'])): ?>
+                            <?= htmlspecialchars($donorDetails['weight']) ?> kg
+                        <?php else: ?>
+                            <span class="text-slate-400">—</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 tracking-wide uppercase">State / Region</label>
+                    <div class="px-4 py-3 border border-slate-100 rounded-xl bg-slate-50/60 font-semibold text-slate-800 text-sm transition-colors focus-within:border-slate-200">
+                        <?php if (!empty($donorDetails['state_region'])): ?>
+                            <?= htmlspecialchars($donorDetails['state_region']) ?>
+                        <?php else: ?>
+                            <span class="text-slate-400">—</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-slate-400 tracking-wide uppercase">Township</label>
+                    <div class="px-4 py-3 border border-slate-100 rounded-xl bg-slate-50/60 font-semibold text-slate-800 text-sm transition-colors focus-within:border-slate-200">
+                        <?php if (!empty($donorDetails['township'])): ?>
+                            <?= htmlspecialchars($donorDetails['township']) ?>
+                        <?php else: ?>
+                            <span class="text-slate-400">—</span>
+                        <?php endif; ?>
                     </div>
                 </div>
 

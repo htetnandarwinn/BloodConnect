@@ -52,6 +52,9 @@ class BloodRequestController
         $data = [
             'blood_group_needed' => trim($_POST['blood_group_needed']),
             'hospital_name'      => trim($_POST['hospital_name']),
+            'state_region'       => trim($_POST['state_region'] ?? ''),
+            'township'           => trim($_POST['township'] ?? ''),
+            'hospital_address'   => trim($_POST['hospital_address'] ?? ''),
             'urgency'            => trim($_POST['urgency']),
             'contact_phone'      => trim($_POST['contact_phone']),
             'unit'               => (int)($_POST['unit'] ?? 1),

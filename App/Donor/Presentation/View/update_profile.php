@@ -10,6 +10,11 @@ $email     = $user['email'] ?? '';
 $contact   = $user['phone'] ?? '';
 $bloodType = $user['blood_group'] ?? 'Not set';
 $address   = $user['address'] ?? '';
+$donorDetails = $donorDetails ?? [];
+
+$dateOfBirth = $donorDetails['date_of_birth'] ?? '';
+$weight = $donorDetails['weight'] ?? '';
+$hasSavedDob = !empty($dateOfBirth);
 
 $errorMessage = null;
 
@@ -149,6 +154,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_profile']
                             </div>
                         </div>
                         <p class="text-xs text-slate-400">This value is managed by the system and cannot be changed here.</p>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Date of Birth</label>
+                        <div class="relative rounded-xl transition-all focus-within:ring-2 focus-within:ring-red-500/20">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-calendar text-xs"></i></span>
+                            <?php if ($hasSavedDob): ?>
+                                <div class="w-full bg-slate-100 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-600">
+                                    <?= htmlspecialchars($dateOfBirth) ?>
+                                </div>
+                            <?php else: ?>
+                                <input type="date" name="date_of_birth" value="<?= htmlspecialchars($dateOfBirth) ?>"
+                                    max="<?= date('Y-m-d', strtotime('-18 years')) ?>"
+                                    class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
+                            <?php endif; ?>
+                        </div>
+                        <p class="text-xs text-slate-400"><?= $hasSavedDob ? 'Date of birth cannot be changed after saving.' : 'Required for eligibility verification.' ?></p>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Weight (kg)</label>
+                        <div class="relative rounded-xl transition-all focus-within:ring-2 focus-within:ring-red-500/20">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-weight-scale text-xs"></i></span>
+                            <input type="number" name="weight" step="0.1" min="1" max="300"
+                                value="<?= htmlspecialchars($weight) ?>"
+                                placeholder="e.g. 70"
+                                class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
+                            <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-xs font-medium text-slate-400">kg</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Minimum 50 kg required for donation eligibility.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">State / Region</label>
+                        <div class="relative rounded-xl transition-all focus-within:ring-2 focus-within:ring-red-500/20">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-map-location-dot text-xs"></i></span>
+                            <input type="text" name="state_region" value="<?= htmlspecialchars($donorDetails['state_region'] ?? '') ?>"
+                                placeholder="e.g. Yangon Region"
+                                class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Township</label>
+                        <div class="relative rounded-xl transition-all focus-within:ring-2 focus-within:ring-red-500/20">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-location-dot text-xs"></i></span>
+                            <input type="text" name="township" value="<?= htmlspecialchars($donorDetails['township'] ?? '') ?>"
+                                placeholder="e.g. Hlaingthaya"
+                                class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
+                        </div>
                     </div>
                 </div>
 

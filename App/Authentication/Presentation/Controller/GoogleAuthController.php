@@ -201,7 +201,7 @@ class GoogleAuthController
 
         $redirectMap = [
             1 => '/BloodConnect/public/admin/dashboard',
-            2 => '/BloodConnect/public/donor/dashboard',
+            2 => '/BloodConnect/public/donor/complete-profile',
             3 => '/BloodConnect/public/patient/dashboard',
         ];
         $redirect = $redirectMap[(int)$user['user_type_id']] ?? '/BloodConnect/public/';

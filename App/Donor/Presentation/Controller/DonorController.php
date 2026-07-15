@@ -16,6 +16,8 @@ use App\Donor\Application\UseCase\DonorDonationEligibilityService;
 use App\Donor\Application\UseCase\GetDonorProfileUseCase;
 use App\Donor\Application\UseCase\GetDonationHistoryUseCase;
 use App\Donor\Application\UseCase\UpdateDonorProfileUseCase;
+use App\Donor\Application\UseCase\CompleteDonorProfileUseCase;
+use App\Donor\Domain\Service\DonorEligibilityService;
 
 class DonorController
 {
@@ -31,7 +33,9 @@ class DonorController
         private DeclineBloodRequestUseCase $declineUseCase,
         private GetDonorProfileUseCase $getDonorProfileUseCase,
         private GetDonationHistoryUseCase $getDonationHistoryUseCase,
-        private UpdateDonorProfileUseCase $updateDonorProfileUseCase
+        private UpdateDonorProfileUseCase $updateDonorProfileUseCase,
+        private CompleteDonorProfileUseCase $completeDonorProfileUseCase,
+        private DonorEligibilityService $donorEligibilityService
     ) {}
 
     private function authGuard()
@@ -81,6 +85,14 @@ class DonorController
         $combinedRequests = array_merge($pendingRequests, $acceptedRequests);
         $lastDonationDate = !empty($lastDonation['created_at']) ? (string)$lastDonation['created_at'] : '';
         $availabilityState = $this->donorRepo->syncAvailabilityStatus((int)Session::get('user_id'));
+
+        // Check profile eligibility (age/weight) for dashboard message
+        $donorDetails = $this->donorRepo->getDonorDetails((int)Session::get('user_id'));
+        $profileEligibility = $donorDetails ? (new \App\Donor\Domain\Service\DonorEligibilityService())->evaluate(
+            (string)($donorDetails['date_of_birth'] ?? ''),
+            (string)($donorDetails['weight'] ?? '')
+        ) : ['eligible' => true, 'message' => '', 'reasons' => []];
+
         $eligibility = $this->eligibilityService->evaluate($lastDonationDate, $availabilityState['next_available_date']);
 
         // Build recent activity feed
@@ -114,13 +126,19 @@ class DonorController
             return strtotime($b['timestamp']) - strtotime($a['timestamp']);
         });
 
+        $availMessage = $availabilityState['available']
+            ? $eligibility['message']
+            : ($availabilityState['next_available_date']
+                ? ''
+                : (!empty($profileEligibility['reasons'])
+                    ? 'Not eligible: ' . implode(', ', $profileEligibility['reasons'])
+                    : $eligibility['message']));
+
         donorView::render('donor_dashboard', [
             'user' => $user,
             'blood_group' => $bloodGroup,
             'availability' => $availabilityState['available'] ? 'Available' : 'Unavailable',
-            'availability_message' => $availabilityState['available']
-                ? $eligibility['message']
-                : ($availabilityState['next_available_date'] ? '' : $eligibility['message']),
+            'availability_message' => $availMessage,
             'next_eligible_date' => $availabilityState['available'] ? '' : ($availabilityState['next_available_date'] ?? $eligibility['next_eligible_date']),
             'last_donation_date' => !empty($lastDonationDate)
                 ? date('d M Y', strtotime($lastDonationDate))
@@ -184,10 +202,18 @@ class DonorController
     {
         $this->authGuard();
 
-        $profile = $this->getDonorProfileUseCase->execute((int)Session::get('user_id'));
+        $userId = (int)Session::get('user_id');
+        $donorDetails = $this->donorRepo->getDonorDetails($userId);
+        if (!$donorDetails) {
+            $this->donorRepo->createDonorProfile($userId);
+            $donorDetails = $this->donorRepo->getDonorDetails($userId);
+        }
+
+        $profile = $this->getDonorProfileUseCase->execute($userId);
 
         donorView::render('donor_profile', [
             'user' => Session::get('user'),
+            'donorDetails' => $donorDetails,
             'availability' => $profile['availability_state']['available'] ? 'Available' : 'Unavailable',
             'availability_message' => $profile['availability_state']['available']
                 ? $profile['eligibility']['message']
@@ -286,9 +312,12 @@ class DonorController
             exit;
         }
 
+        $donorDetails = $this->donorRepo->getDonorDetails((int)Session::get('user_id'));
+
         donorView::render('donor_request_history_detail', [
             'user' => Session::get('user'),
             'request' => $request,
+            'donorDetails' => $donorDetails,
         ]);
     }
 
@@ -296,8 +325,16 @@ class DonorController
     {
         $this->authGuard();
 
+        $userId = (int)Session::get('user_id');
+        $donorDetails = $this->donorRepo->getDonorDetails($userId);
+        if (!$donorDetails) {
+            $this->donorRepo->createDonorProfile($userId);
+            $donorDetails = $this->donorRepo->getDonorDetails($userId);
+        }
+
         donorView::render('update_profile', [
-            'user' => Session::get('user')
+            'user' => Session::get('user'),
+            'donorDetails' => $donorDetails
         ]);
     }
 
@@ -351,6 +388,66 @@ class DonorController
         exit;
     }
 
+    public function completeProfile()
+    {
+        $this->authGuard();
+
+        $userId = (int)Session::get('user_id');
+        $donorDetails = $this->donorRepo->getDonorDetails($userId);
+        if (!$donorDetails) {
+            $this->donorRepo->createDonorProfile($userId);
+            $donorDetails = $this->donorRepo->getDonorDetails($userId);
+        }
+        $isUpdate = $donorDetails && !empty($donorDetails['date_of_birth']);
+
+        $eligibility = null;
+        if ($donorDetails && !empty($donorDetails['date_of_birth']) && !empty($donorDetails['weight'])) {
+            $eligibility = $this->donorEligibilityService->evaluate(
+                $donorDetails['date_of_birth'],
+                $donorDetails['weight']
+            );
+        }
+
+        donorView::render('complete_profile', [
+            'user' => Session::get('user'),
+            'donorDetails' => $donorDetails,
+            'errors' => Session::get('errors', []),
+            'old' => Session::get('old', []),
+            'eligibility' => $eligibility,
+            'isUpdate' => $isUpdate,
+        ]);
+
+        Session::remove('errors');
+        Session::remove('old');
+    }
+
+    public function saveCompleteProfile()
+    {
+        $this->authGuard();
+
+        $userId = (int)Session::get('user_id');
+        $username = (string)Session::get('username');
+
+        $result = $this->completeDonorProfileUseCase->execute($userId, $username, $_POST);
+
+        if (!$result['success']) {
+            Session::set('errors', $result['errors'] ?? []);
+            Session::set('old', $_POST);
+            header('Location: /BloodConnect/public/donor/complete-profile');
+            exit;
+        }
+
+        // Update session weight info
+        $userSession = Session::get('user');
+        if (is_array($userSession)) {
+            $userSession['weight'] = $_POST['weight'] ?? '';
+            Session::set('user', $userSession);
+        }
+
+        header('Location: /BloodConnect/public/donor/dashboard');
+        exit;
+    }
+
     public function updateProfile()
     {
         $this->authGuard();
@@ -387,6 +484,25 @@ class DonorController
 
         if (!$result['success']) {
             die($result['error']);
+        }
+
+        // Save donor-specific fields (DOB if not set, weight/location always updatable)
+        $donorDetails = $this->donorRepo->getDonorDetails($userId);
+        $donorSaveData = [];
+        if (!empty($_POST['date_of_birth']) && empty($donorDetails['date_of_birth'])) {
+            $donorSaveData['date_of_birth'] = trim($_POST['date_of_birth']);
+        }
+        if (isset($_POST['weight']) && $_POST['weight'] !== '') {
+            $donorSaveData['weight'] = trim($_POST['weight']);
+        }
+        if (isset($_POST['state_region']) && $_POST['state_region'] !== '') {
+            $donorSaveData['state_region'] = trim($_POST['state_region']);
+        }
+        if (isset($_POST['township']) && $_POST['township'] !== '') {
+            $donorSaveData['township'] = trim($_POST['township']);
+        }
+        if (!empty($donorSaveData)) {
+            $this->donorRepo->saveDonorDetails($userId, $donorSaveData);
         }
 
         Session::set('username', $data['username']);

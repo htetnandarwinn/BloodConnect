@@ -334,6 +334,10 @@ class AuthController
                     break;
 
                 case 2:
+                    $donorProfileComplete = $this->donorRepo->isProfileComplete((int)$user['user_id']);
+                    if (!$donorProfileComplete) {
+                        $this->redirect('/donor/complete-profile');
+                    }
                     $this->redirect('/donor/dashboard');
                     break;
 

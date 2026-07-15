@@ -176,6 +176,7 @@ $router->group(['middleware' => ['auth', 'admin', 'can:blood_request.view_matchi
     $router->get('/admin/blood-requests', [AdminBloodRequestController::class, 'bloodRequests']);
     $router->get('/admin/blood-request/view', [AdminBloodRequestController::class, 'viewBloodRequest']);
     $router->post('/admin/blood-request/accept', [AdminBloodRequestController::class, 'acceptBloodRequest']);
+    $router->post('/admin/blood-request/assign-donors', [AdminBloodRequestController::class, 'assignDonors']);
     $router->post('/admin/blood-request/delete', [AdminBloodRequestController::class, 'deleteBloodRequest']);
     $router->get('/admin/request/complete', [AdminBloodRequestController::class, 'completeRequest']);
     $router->get('/admin/pending-blood-requests-count', [AdminBloodRequestController::class, 'pendingBloodRequestsCount']);
@@ -197,6 +198,10 @@ $router->group(['middleware' => ['auth', 'admin', 'can:permission.manage']], fun
 |--------------------------------------------------------------------------
 */
 $router->group(['middleware' => ['auth', 'donor']], function (Router $router) {
+    // Complete donor profile (no permission check - always accessible to donors)
+    $router->get('/donor/complete-profile', [DonorController::class, 'completeProfile']);
+    $router->post('/donor/complete-profile', [DonorController::class, 'saveCompleteProfile']);
+
     $router->middleware(['can:dashboard.view'], function (Router $router) {
         $router->get('/donor/dashboard', [DonorController::class, 'donor_dashboard']);
     });

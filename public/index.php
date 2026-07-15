@@ -103,7 +103,9 @@ $container->singleton(
             $c->get(\App\User\Domain\Repository\UserRepositoryInterface::class),
             $c->get(\App\Shared\Infrastructure\Persistence\MasterDataRepository::class),
             $c->get(\App\Admin\Application\UseCase\ViewBloodRequestsUseCase::class),
-            $c->get(\App\Admin\Application\UseCase\ConfirmDonationUseCase::class)
+            $c->get(\App\Admin\Application\UseCase\ConfirmDonationUseCase::class),
+            $c->get(\App\Admin\Application\UseCase\FindMatchingDonorsUseCase::class),
+            $c->get(\App\Admin\Application\UseCase\AssignDonorsUseCase::class)
         );
     }
 );

@@ -4,26 +4,19 @@ if ($basePath === '/' || $basePath === '\\') {
     $basePath = '';
 }
 
-$currentPath = strtok($_SERVER['REQUEST_URI'], '?');
+$currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 function activeLink($url, $currentPath)
 {
-    $basePath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
-    if ($basePath === '/' || $basePath === '\\') {
-        $basePath = '';
-    }
+    $basePath = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
 
-    $normalizedCurrentPath = '/' . trim(str_replace($basePath, '', $currentPath), '/');
-    if ($normalizedCurrentPath === '//') {
-        $normalizedCurrentPath = '/';
-    }
+    $cleanPath = '/' . trim(str_replace($basePath, '', $currentPath), '/');
+    $cleanPath = $cleanPath === '/' ? '/' : rtrim($cleanPath, '/');
 
     $normalizedUrl = '/' . trim($url, '/');
-    if ($normalizedUrl === '//') {
-        $normalizedUrl = '/';
-    }
+    $normalizedUrl = $normalizedUrl === '/' ? '/' : rtrim($normalizedUrl, '/');
 
-    return $normalizedCurrentPath === $normalizedUrl
+    return $cleanPath === $normalizedUrl
         ? 'text-red-600 border-b-2 border-red-600 pb-1 lg:pb-1 font-bold'
         : 'text-gray-700 hover:text-red-600 transition font-semibold';
 }

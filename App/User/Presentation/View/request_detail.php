@@ -6,6 +6,7 @@ $donorBlood = htmlspecialchars((string)($request['donor_blood_group'] ?? ''));
 $donorPhone = htmlspecialchars((string)($request['donor_phone'] ?? ''));
 $donorEmail = htmlspecialchars((string)($request['donor_email'] ?? ''));
 $donorAddress = htmlspecialchars((string)($request['donor_address'] ?? ''));
+$donorLocation = htmlspecialchars((string)($request['donor_township'] ?? '')) . (($request['donor_township'] ?? '') && ($request['donor_state_region'] ?? '') ? ', ' : '') . htmlspecialchars((string)($request['donor_state_region'] ?? ''));
 $hasDonor = !empty($donorName);
 $isAccepted = (stripos((string)($request['status_name'] ?? $request['status'] ?? 'Pending'), 'accepted') !== false)
     || (int)($request['status'] ?? 0) === 8;
@@ -60,7 +61,20 @@ $showPendingAssignment = $hasDonor && !$isAccepted;
                     <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Hospital</p>
                     <p class="mt-2 text-base font-semibold text-slate-800"><?= htmlspecialchars((string)($request['hospital_name'] ?? '-')) ?></p>
                 </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Location</p>
+                    <p class="mt-2 text-base font-semibold text-slate-800">
+                        <?= htmlspecialchars((string)($request['township'] ?? '—')) ?>, <?= htmlspecialchars((string)($request['state_region'] ?? '—')) ?>
+                    </p>
+                </div>
             </div>
+
+            <?php if (!empty($request['hospital_address'])): ?>
+                <div class="mt-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                    <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Hospital Address</p>
+                    <p class="mt-2 text-base font-semibold text-slate-800"><?= nl2br(htmlspecialchars((string)($request['hospital_address']))) ?></p>
+                </div>
+            <?php endif; ?>
 
             <div class="mt-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
                 <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Contact</p>
@@ -100,6 +114,12 @@ $showPendingAssignment = $hasDonor && !$isAccepted;
                             <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Address</p>
                             <p class="mt-1 text-sm font-semibold text-slate-800"><?= $donorAddress ?></p>
                         </div>
+                        <?php if (!empty($donorLocation)): ?>
+                        <div class="rounded-lg bg-white/80 p-3">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Location</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-800"><?= $donorLocation ?></p>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             <?php elseif ($showPendingAssignment): ?>
@@ -130,6 +150,12 @@ $showPendingAssignment = $hasDonor && !$isAccepted;
                             <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Address</p>
                             <p class="mt-1 text-sm font-semibold text-slate-800"><?= $donorAddress ?></p>
                         </div>
+                        <?php if (!empty($donorLocation)): ?>
+                        <div class="rounded-lg bg-white/80 p-3">
+                            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Location</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-800"><?= $donorLocation ?></p>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             <?php else: ?>

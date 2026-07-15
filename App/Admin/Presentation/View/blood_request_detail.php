@@ -4,6 +4,10 @@ $donors = $donors ?? [];
 $isAccepted = $isAccepted ?? false;
 $acceptedDonor = $acceptedDonor ?? null;
 $assignedDonor = $assignedDonor ?? null;
+$assignedDonors = $assignedDonors ?? [];
+$matchingTier = $matchingTier ?? 'none';
+$competingRequests = $competingRequests ?? [];
+$isCancelledRequest = $isCancelledRequest ?? false;
 $hasAssignedDonor = !empty($request['donor_id']) || !empty($assignedDonor);
 $isPendingAssignment = $hasAssignedDonor && !$isAccepted;
 
@@ -102,6 +106,14 @@ if (!function_exists('getAdminBloodGroupStyle')) {
             </div>
         </div>
 
+        <?php if (!empty($_SESSION['flash_message'])): ?>
+        <div class="mb-6 px-5 py-4 rounded-2xl border text-sm font-bold <?= ($_SESSION['flash_status'] ?? 'error') === 'error' ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700' ?> animate-fade-in-up">
+            <?= htmlspecialchars($_SESSION['flash_message']) ?>
+            <button onclick="this.parentElement.remove()" class="float-right text-slate-400 hover:text-slate-600">&times;</button>
+        </div>
+        <?php unset($_SESSION['flash_message'], $_SESSION['flash_status']); ?>
+        <?php endif; ?>
+
         <div class="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
 
             <div class="bg-white border border-slate-200/70 rounded-3xl p-6 shadow-2xs space-y-6 opacity-0 animate-fade-in-up" style="animation-delay: 0.05s;">
@@ -139,6 +151,20 @@ if (!function_exists('getAdminBloodGroupStyle')) {
                         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Target Facility</span>
                         <p class="text-sm font-bold text-slate-800 truncate"><?= $hospitalName ?></p>
                     </div>
+
+                    <div class="rounded-2xl border border-slate-200/60 bg-slate-50/50 p-4 space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Location</span>
+                        <p class="text-sm font-bold text-slate-800">
+                            <?= htmlspecialchars((string)($request['township'] ?? '—')) ?> / <?= htmlspecialchars((string)($request['state_region'] ?? '—')) ?>
+                        </p>
+                    </div>
+
+                    <?php if (!empty($request['hospital_address'])): ?>
+                    <div class="rounded-2xl border border-slate-200/60 bg-slate-50/50 p-4 space-y-1 sm:col-span-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Hospital Address</span>
+                        <p class="text-sm font-semibold text-slate-700"><?= nl2br(htmlspecialchars((string)($request['hospital_address']))) ?></p>
+                    </div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="rounded-2xl border border-slate-200/60 bg-slate-50/50 p-4 space-y-2">
@@ -159,177 +185,247 @@ if (!function_exists('getAdminBloodGroupStyle')) {
                         <h3 class="text-lg font-black text-slate-900 tracking-tight">Matchmaking Disabled</h3>
                         <p class="mt-2 text-sm font-medium text-slate-500">This request was cancelled by the patient, so donor matching is no longer required.</p>
                     </div>
-                <?php else: ?>
-                    <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-5">
-                        <div>
-                            <h3 class="text-lg font-black text-slate-900 tracking-tight">Matchmaking Node</h3>
-                            <p class="text-xs text-slate-400 font-medium mt-0.5">Assign compatible verified system donors.</p>
+                <?php elseif ($isAccepted && $acceptedDonor): ?>
+                    <div class="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 space-y-4">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <span class="text-[9px] font-extrabold uppercase tracking-widest text-emerald-600 block">Fulfillment Active</span>
+                                <h4 class="mt-1 text-base font-black text-slate-900 tracking-tight">
+                                    <?= htmlspecialchars((string)($acceptedDonor['username'] ?? 'Donor')) ?>
+                                </h4>
+                            </div>
+                            <span class="rounded-full bg-emerald-600 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-xs shadow-emerald-600/10">Accepted</span>
                         </div>
-                        <span class="inline-block px-2.5 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/60">
-                            <?= count($donors) ?> Matches
-                        </span>
+                        <div class="mt-4 grid gap-3">
+                            <div class="rounded-lg bg-white/80 p-3">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Blood Type</span>
+                                <p class="mt-1 text-sm font-semibold text-slate-800"><?= htmlspecialchars((string)($acceptedDonor['blood_group'] ?? '-')) ?></p>
+                            </div>
+                            <div class="rounded-lg bg-white/80 p-3">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Direct Line</span>
+                                <p class="mt-1 text-sm font-semibold text-slate-800"><?= htmlspecialchars((string)($acceptedDonor['phone'] ?? '-')) ?></p>
+                            </div>
+                            <div class="rounded-lg bg-white/80 p-3">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Email</span>
+                                <p class="mt-1 text-sm font-semibold text-slate-800 truncate"><?= htmlspecialchars((string)($acceptedDonor['email'] ?? '-')) ?></p>
+                            </div>
+                            <div class="rounded-lg bg-white/80 p-3">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Address</span>
+                                <p class="mt-1 text-sm font-semibold text-slate-800"><?= htmlspecialchars((string)($acceptedDonor['address'] ?? '-')) ?></p>
+                            </div>
+                            <div class="rounded-lg bg-white/80 p-3">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Location</span>
+                                <p class="mt-1 text-sm font-semibold text-slate-800">
+                                    <?php
+                                    $loc = array_filter([$acceptedDonor['township'] ?? '', $acceptedDonor['state_region'] ?? '']);
+                                    echo !empty($loc) ? htmlspecialchars(implode(', ', $loc)) : '—';
+                                    ?>
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
-                    <?php if ($isAccepted && $acceptedDonor): ?>
-                        <div class="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 space-y-4">
-                            <div class="flex items-center justify-between gap-3">
-                                <div>
-                                    <span class="text-[9px] font-extrabold uppercase tracking-widest text-emerald-600 block">Fulfillment Active</span>
-                                    <h4 class="mt-1 text-base font-black text-slate-900 tracking-tight">
-                                        <?= htmlspecialchars((string)($acceptedDonor['username'] ?? 'Donor')) ?>
-                                    </h4>
-                                </div>
-                                <span class="rounded-full bg-emerald-600 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-xs shadow-emerald-600/10">Accepted</span>
+                <?php elseif (!empty($assignedDonors)): ?>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                            <div>
+                                <h3 class="text-lg font-black text-slate-900 tracking-tight">Assigned Donors</h3>
+                                <p class="text-xs text-slate-400 font-medium mt-0.5">Waiting for donor responses.</p>
                             </div>
-
-                            <div class="grid gap-3 sm:grid-cols-2 text-xs">
-                                <div class="rounded-xl bg-white border border-emerald-200/40 p-3">
-                                    <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Blood Type</span>
-                                    <p class="mt-0.5 font-bold text-slate-800 font-mono"><?= htmlspecialchars((string)($acceptedDonor['blood_group'] ?? '-')) ?></p>
+                            <span class="inline-block px-2.5 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-wider bg-amber-50 text-amber-600 border border-amber-200/60">
+                                <?= count($assignedDonors) ?> Pending
+                            </span>
+                        </div>
+                        <?php foreach ($assignedDonors as $ad): ?>
+                            <div class="rounded-2xl border border-amber-200 bg-amber-50/30 p-4 space-y-2">
+                                <div class="flex items-center justify-between gap-3">
+                                    <h4 class="text-sm font-black text-slate-900"><?= htmlspecialchars((string)($ad['username'] ?? 'Donor')) ?></h4>
+                                    <span class="text-[9px] font-bold text-amber-600 uppercase tracking-wider">Pending</span>
                                 </div>
-                                <div class="rounded-xl bg-white border border-emerald-200/40 p-3">
-                                    <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Direct Line</span>
-                                    <p class="mt-0.5 font-bold text-slate-800 font-mono"><?= htmlspecialchars((string)($acceptedDonor['phone'] ?? '-')) ?></p>
-                                </div>
-                                <div class="rounded-xl bg-white border border-emerald-200/40 p-3 sm:col-span-2 truncate">
-                                    <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Secure Mailing Alias</span>
-                                    <p class="mt-0.5 font-semibold text-slate-600 truncate"><?= htmlspecialchars((string)($acceptedDonor['email'] ?? '-')) ?></p>
+                                <div class="flex gap-3 text-xs text-slate-600">
+                                    <span class="font-mono font-bold"><?= htmlspecialchars((string)($ad['blood_group'] ?? '-')) ?></span>
+                                    <span>&middot;</span>
+                                    <span><?= htmlspecialchars((string)($ad['phone'] ?? '-')) ?></span>
                                 </div>
                             </div>
+                        <?php endforeach; ?>
+                    </div>
 
-                            <?php if (!empty($donors)): ?>
-                                <div x-data="{ open: false }" class="pt-2 border-t border-emerald-200/40">
-                                    <button @click="open = !open" type="button" class="inline-flex items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-4 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 hover:bg-slate-50 transition-all active:scale-95 shadow-3xs">
-                                        <i class="fa-solid fa-arrows-rotate"></i> Change Donor
-                                    </button>
-                                    <form action="/BloodConnect/public/admin/blood-request/accept" method="POST" x-show="open" x-cloak class="mt-4 space-y-4">
-                                        <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
-                                        <div class="space-y-2">
-                                            <label class="text-xs font-bold uppercase tracking-wider text-slate-400 block" for="donor_id_reassign_accepted">
-                                                Reassign To
-                                            </label>
-                                            <div class="relative">
-                                                <select id="donor_id_reassign_accepted" name="donor_id" class="w-full rounded-xl border border-slate-200/80 bg-white pl-4 pr-10 py-3 text-xs font-bold text-slate-700 appearance-none focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 shadow-3xs transition-all" required>
-                                                    <option value="" class="font-semibold text-slate-400">-- Choose allocation node --</option>
-                                                    <?php foreach ($donors as $donor): ?>
-                                                        <option value="<?= (int)($donor['user_id'] ?? 0) ?>" class="font-medium text-slate-700">
-                                                            <?= htmlspecialchars((string)($donor['username'] ?? 'Donor')) ?> &middot; [<?= htmlspecialchars((string)($donor['blood_group'] ?? '-')) ?>] &middot; <?= htmlspecialchars((string)($donor['phone'] ?? '-')) ?>
-                                                        </option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-                                                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#ce2424] px-4 py-3 text-xs font-bold text-white hover:bg-[#a61c1c] transition-all active:scale-95 shadow-md shadow-red-600/10">
-                                            <i class="fa-solid fa-truck-medical"></i> Reassign & Dispatch
-                                        </button>
-                                    </form>
-                                </div>
-                            <?php endif; ?>
+                <?php elseif ($matchingTier === 'none'): ?>
+                    <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center text-xs font-medium text-slate-400">
+                        <i class="fa-solid fa-users-slash text-xl block text-slate-300 mb-2"></i>
+                        No active verified network donors match this blood group registry.
+                    </div>
+
+                <?php else: ?>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                            <div>
+                                <h3 class="text-lg font-black text-slate-900 tracking-tight">Matching Donors</h3>
+                                <p class="text-xs text-slate-400 font-medium mt-0.5">Auto-filtered by location proximity.</p>
+                            </div>
+                            <span class="inline-block px-2.5 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/60">
+                                <?= count($donors) ?> Matches
+                            </span>
                         </div>
 
-                    <?php elseif ($isPendingAssignment && $assignedDonor): ?>
-                        <div class="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 space-y-4">
-                            <div class="flex items-center justify-between gap-3">
-                                <div>
-                                    <span class="text-[9px] font-extrabold uppercase tracking-widest text-amber-600 block">Dispatched Target</span>
-                                    <h4 class="mt-1 text-base font-black text-slate-900 tracking-tight">
-                                        <?= htmlspecialchars((string)($assignedDonor['username'] ?? 'Donor')) ?>
-                                    </h4>
-                                </div>
-                                <span class="rounded-full bg-amber-500 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-xs shadow-amber-500/10">Pending</span>
-                            </div>
+                        <?php
+                        $tierLabels = [
+                            'township' => ['label' => 'Same Township', 'class' => 'bg-emerald-50 text-emerald-600 border-emerald-200'],
+                            'region' => ['label' => 'Same State/Region', 'class' => 'bg-blue-50 text-blue-600 border-blue-200'],
+                            'all' => ['label' => 'All Donors (broadcast)', 'class' => 'bg-amber-50 text-amber-600 border-amber-200'],
+                        ];
+                        $tierInfo = $tierLabels[$matchingTier] ?? ['label' => 'Unknown', 'class' => 'bg-slate-50 text-slate-600 border-slate-200'];
+                        ?>
 
-                            <p class="text-xs font-semibold text-amber-700 leading-relaxed">This donor has been successfully dispatched to this node but has not verified acceptance metrics yet.</p>
-
-                            <div class="grid gap-3 sm:grid-cols-2 text-xs">
-                                <div class="rounded-xl bg-white border border-amber-200/30 p-3">
-                                    <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Blood Type</span>
-                                    <p class="mt-0.5 font-bold text-slate-800 font-mono"><?= htmlspecialchars((string)($assignedDonor['blood_group'] ?? '-')) ?></p>
-                                </div>
-                                <div class="rounded-xl bg-white border border-amber-200/30 p-3">
-                                    <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Direct Line</span>
-                                    <p class="mt-0.5 font-bold text-slate-800 font-mono"><?= htmlspecialchars((string)($assignedDonor['phone'] ?? '-')) ?></p>
-                                </div>
-                                <div class="rounded-xl bg-white border border-amber-200/30 p-3 sm:col-span-2 truncate">
-                                    <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">Secure Mailing Alias</span>
-                                    <p class="mt-0.5 font-semibold text-slate-600 truncate"><?= htmlspecialchars((string)($assignedDonor['email'] ?? '-')) ?></p>
-                                </div>
-                            </div>
-
-                            <?php if (!empty($donors)): ?>
-                                <div x-data="{ open: false }" class="pt-2 border-t border-amber-200/30">
-                                    <button @click="open = !open" type="button" class="inline-flex items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-4 py-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 hover:bg-slate-50 transition-all active:scale-95 shadow-3xs">
-                                        <i class="fa-solid fa-arrows-rotate"></i> Change Donor
-                                    </button>
-                                    <form action="/BloodConnect/public/admin/blood-request/accept" method="POST" x-show="open" x-cloak class="mt-4 space-y-4">
-                                        <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
-                                        <div class="space-y-2">
-                                            <label class="text-xs font-bold uppercase tracking-wider text-slate-400 block" for="donor_id_reassign_pending">
-                                                Reassign To
-                                            </label>
-                                            <div class="relative">
-                                                <select id="donor_id_reassign_pending" name="donor_id" class="w-full rounded-xl border border-slate-200/80 bg-white pl-4 pr-10 py-3 text-xs font-bold text-slate-700 appearance-none focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 shadow-3xs transition-all" required>
-                                                    <option value="" class="font-semibold text-slate-400">-- Choose allocation node --</option>
-                                                    <?php foreach ($donors as $donor): ?>
-                                                        <option value="<?= (int)($donor['user_id'] ?? 0) ?>" class="font-medium text-slate-700">
-                                                            <?= htmlspecialchars((string)($donor['username'] ?? 'Donor')) ?> &middot; [<?= htmlspecialchars((string)($donor['blood_group'] ?? '-')) ?>] &middot; <?= htmlspecialchars((string)($donor['phone'] ?? '-')) ?>
-                                                        </option>
-                                                    <?php endforeach; ?>
-                                                </select>
-                                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-                                                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#ce2424] px-4 py-3 text-xs font-bold text-white hover:bg-[#a61c1c] transition-all active:scale-95 shadow-md shadow-red-600/10">
-                                            <i class="fa-solid fa-truck-medical"></i> Reassign & Dispatch
-                                        </button>
-                                    </form>
-                                </div>
-                            <?php endif; ?>
+                        <div class="rounded-xl border p-3 <?= $tierInfo['class'] ?> flex items-center justify-between">
+                            <span class="text-xs font-extrabold uppercase tracking-wider"><?= $tierInfo['label'] ?></span>
+                            <span class="text-[10px] font-bold"><?= count($donors) ?> donor<?= count($donors) !== 1 ? 's' : '' ?></span>
                         </div>
 
-                    <?php elseif (empty($donors)): ?>
-                        <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center text-xs font-medium text-slate-400">
-                            <i class="fa-solid fa-users-slash text-xl block text-slate-300 mb-2"></i>
-                            No active verified network donors match this blood group group registry.
-                        </div>
-
-                    <?php else: ?>
-                        <form action="/BloodConnect/public/admin/blood-request/accept" method="POST" class="space-y-4">
+                        <form action="/BloodConnect/public/admin/blood-request/assign-donors" method="POST" class="space-y-4">
                             <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
 
-                            <div class="space-y-2">
-                                <label class="text-xs font-bold uppercase tracking-wider text-slate-400 block" for="donor_id">
-                                    Target Allocation Donor
-                                </label>
-                                <div class="relative">
-                                    <select id="donor_id" name="donor_id" class="w-full rounded-xl border border-slate-200/80 bg-white pl-4 pr-10 py-3 text-xs font-bold text-slate-700 appearance-none focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 shadow-3xs transition-all" required>
-                                        <option value="" class="font-semibold text-slate-400">-- Choose allocation node --</option>
-                                        <?php foreach ($donors as $donor): ?>
-                                            <option value="<?= (int)($donor['user_id'] ?? 0) ?>" class="font-medium text-slate-700">
-                                                <?= htmlspecialchars((string)($donor['username'] ?? 'Donor')) ?> &middot; [<?= htmlspecialchars((string)($donor['blood_group'] ?? '-')) ?>] &middot; <?= htmlspecialchars((string)($donor['phone'] ?? '-')) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-                                        <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                                    </div>
-                                </div>
+                             <div class="space-y-2 max-h-80 overflow-y-auto pr-1">
+                                <?php
+                                $allReserved = !empty($donors);
+                                foreach ($donors as $donor):
+                                    $did = (int)($donor['user_id'] ?? 0);
+                                    $dloc = array_filter([$donor['township'] ?? '', $donor['state_region'] ?? '']);
+                                    $reserved = $donor['reserved_for'] ?? null;
+                                    if ($reserved === null) {
+                                        $allReserved = false;
+                                    }
+                                ?>
+                                    <label class="flex items-start gap-3 p-3 rounded-xl border transition-all <?= $reserved !== null ? 'border-amber-200 bg-amber-50/40 opacity-80 cursor-not-allowed' : 'border-slate-200/70 bg-white hover:bg-slate-50/50 cursor-pointer has-[:checked]:border-rose-300 has-[:checked]:bg-rose-50/30' ?>">
+                                        <input type="checkbox" name="donor_ids[]" value="<?= $did ?>" <?= $reserved !== null ? 'disabled' : '' ?>
+                                            class="mt-0.5 w-4 h-4 rounded accent-[#ce24224]">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <span class="text-sm font-bold text-slate-800 truncate"><?= htmlspecialchars((string)($donor['username'] ?? 'Donor')) ?></span>
+                                                <span class="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded border <?= getAdminBloodGroupStyle($donor['blood_group'] ?? '') ?>">
+                                                    <?= htmlspecialchars((string)($donor['blood_group'] ?? '-')) ?>
+                                                </span>
+                                            </div>
+                                            <div class="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-slate-500 font-medium">
+                                                <span><?= htmlspecialchars((string)($donor['phone'] ?? '-')) ?></span>
+                                                <?php if (!empty($dloc)): ?>
+                                                    <span>&middot;</span>
+                                                    <span class="truncate"><?= htmlspecialchars(implode(', ', $dloc)) ?></span>
+                                                <?php endif; ?>
+                                                <?php if ($reserved !== null): ?>
+                                                    <span class="inline-flex items-center gap-1 mt-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5">
+                                                        Reserved &rarr; <?= htmlspecialchars($reserved['request_code']) ?> (<?= htmlspecialchars($reserved['urgency']) ?>)
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </label>
+                                <?php endforeach; ?>
                             </div>
 
-                            <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#ce2424] px-4 py-3 text-xs font-bold text-white hover:bg-[#a61c1c] transition-all active:scale-95 shadow-md shadow-red-600/10">
-                                <i class="fa-solid fa-truck-medical"></i> Dispatch Assigned Node
-                            </button>
+                            <?php if ($allReserved): ?>
+                                <div class="rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-[11px] font-semibold text-amber-700">
+                                    All matching donors are reserved for a higher-priority request. Assign donors to the top-priority request first.
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if (!empty($donors)): ?>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="toggleAllCheckboxes()" class="text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors">
+                                        Toggle All
+                                    </button>
+                                    <span class="text-slate-300">|</span>
+                                    <span id="selectedCount" class="text-xs font-semibold text-slate-400">0 selected</span>
+                                </div>
+
+                                <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#ce2424] px-4 py-3 text-xs font-bold text-white hover:bg-[#a61c1c] transition-all active:scale-95 shadow-md shadow-red-600/10">
+                                    <i class="fa-solid fa-truck-medical"></i> Assign Selected Donors
+                                </button>
+                            <?php endif; ?>
                         </form>
-                    <?php endif; ?>
+
+                        <script>
+                            function toggleAllCheckboxes() {
+                                const checkboxes = document.querySelectorAll('input[name="donor_ids[]"]');
+                                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                                checkboxes.forEach(cb => cb.checked = !allChecked);
+                                updateSelectedCount();
+                            }
+
+                            function updateSelectedCount() {
+                                const checked = document.querySelectorAll('input[name="donor_ids[]"]:checked').length;
+                                const el = document.getElementById('selectedCount');
+                                if (el) el.textContent = checked + ' selected';
+                            }
+
+                            document.addEventListener('change', function(e) {
+                                if (e.target.matches('input[name="donor_ids[]"]')) {
+                                    updateSelectedCount();
+                                }
+                            });
+
+                            document.addEventListener('DOMContentLoaded', updateSelectedCount);
+                        </script>
+                    </div>
                 <?php endif; ?>
             </div>
 
         </div>
+
+        <?php if (!empty($competingRequests)): ?>
+        <div class="mt-6 bg-white border border-slate-200/70 rounded-3xl p-6 shadow-2xs opacity-0 animate-fade-in-up" style="animation-delay: 0.15s;">
+            <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-4 mb-4">
+                <div>
+                    <h3 class="text-lg font-black text-slate-900 tracking-tight">Competing Requests</h3>
+                    <p class="text-xs text-slate-400 font-medium mt-0.5">
+                        <?= count($competingRequests) ?> other pending request<?= count($competingRequests) !== 1 ? 's' : '' ?>
+                        with same blood type and location — ordered by urgency (Critical &rarr; Standard).
+                        Assign donors to the top-priority request first.
+                    </p>
+                </div>
+                <span class="inline-block px-2.5 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/60">
+                    <?= count($competingRequests) ?> pending
+                </span>
+            </div>
+            <div class="space-y-2.5">
+                <?php foreach ($competingRequests as $ci => $cr):
+                    $crUrgency = htmlspecialchars((string)($cr['urgency'] ?? 'ROUTINE'));
+                    $crLoc = array_filter([$cr['township'] ?? '', $cr['state_region'] ?? '']);
+                    $isTopPriority = $ci === 0;
+                ?>
+                <a href="/BloodConnect/public/admin/blood-request/view?id=<?= (int)$cr['request_id'] ?>"
+                   class="block rounded-2xl border p-4 transition-all active:scale-[0.99] <?= $isTopPriority ? 'border-rose-300 bg-rose-50/40 hover:bg-rose-50 hover:border-rose-400' : 'border-slate-200/70 bg-slate-50/30 hover:bg-slate-50 hover:border-slate-300' ?>">
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <?php if ($isTopPriority): ?>
+                            <span class="shrink-0 text-[9px] font-extrabold uppercase tracking-wider rounded-md bg-rose-600 text-white px-1.5 py-0.5">Top</span>
+                            <?php endif; ?>
+                            <span class="shrink-0 text-[10px] font-bold text-slate-400 font-mono">#<?= (int)$cr['request_id'] ?></span>
+                            <div class="min-w-0">
+                                <span class="text-sm font-bold text-slate-800 truncate block"><?= htmlspecialchars($cr['patient_name']) ?></span>
+                                <span class="text-[11px] text-slate-500 font-medium block truncate"><?= htmlspecialchars($cr['hospital_name']) ?></span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <span class="text-xs font-bold text-slate-600"><?= (int)$cr['unit'] ?> units</span>
+                            <span class="inline-block px-2.5 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border <?= getAdminUrgencyStyle($crUrgency) ?>">
+                                <?= strtoupper($crUrgency) ?>
+                            </span>
+                            <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-md border font-black text-xs font-mono <?= getAdminBloodGroupStyle($cr['blood_group_needed'] ?? '') ?>">
+                                <?= htmlspecialchars($cr['blood_group_needed']) ?>
+                            </span>
+                            <?php if (!empty($crLoc)): ?>
+                            <span class="text-[11px] text-slate-400 font-medium hidden sm:inline"><?= htmlspecialchars(implode(', ', $crLoc)) ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
     </div>
 </body>
 

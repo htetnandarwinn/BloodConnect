@@ -79,15 +79,52 @@ $user = \App\Shared\Helpers\Session::get('user', []);
                 </div>
             </div>
 
-            <!-- Row 3: Hospital -->
+            <!-- Row 3: Hospital Name -->
             <div class="space-y-1.5">
-                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hospital & Location</label>
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hospital Name</label>
                 <div class="relative">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
                     </svg>
                     <input type="text" name="hospital_name" required placeholder="e.g. City Hospital, Emergency Wing"
                         class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
+                </div>
+            </div>
+
+            <!-- Row 3b: State/Region + Township -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">State / Region</label>
+                    <div class="relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                        </svg>
+                        <input type="text" name="state_region" required placeholder="e.g. Yangon Region"
+                            class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Township</label>
+                    <div class="relative">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
+                        </svg>
+                        <input type="text" name="township" required placeholder="e.g. Hlaingthaya"
+                            class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 3c: Hospital Address -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hospital Address</label>
+                <div class="relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="absolute left-3.5 top-3 w-4 h-4 text-slate-400 pointer-events-none">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <textarea name="hospital_address" required rows="2" placeholder="Street address, building, landmark"
+                        class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10 resize-none"></textarea>
                 </div>
             </div>
 

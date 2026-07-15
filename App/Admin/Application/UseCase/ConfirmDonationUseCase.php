@@ -95,6 +95,23 @@ class ConfirmDonationUseCase
             return ['success' => false, 'error' => 'This donor is already assigned to this request.'];
         }
 
+        // Business rule: donor must not be assigned to another active request
+        $assignedGroups = $this->bloodRequestRepo->getDonorsAssignedToOtherRequests([$donorId], $requestId);
+        if (!empty($assignedGroups)) {
+            $otherRequests = $assignedGroups[$donorId] ?? [];
+            $parts = [];
+            foreach ($otherRequests as $other) {
+                $parts[] = ($other['request_code'] ?? '#' . $other['request_id']) . ' (' . strtoupper($other['urgency'] ?? 'ROUTINE') . ')';
+            }
+            return [
+                'success' => false,
+                'error' => sprintf(
+                    'This donor is already assigned to: %s. Unassign from the less urgent request first, or pick a different donor.',
+                    implode(', ', $parts)
+                ),
+            ];
+        }
+
         $pendingStatus = $this->masterRepo->getId('REQUEST_STATUS', 'PENDING') ?? 7;
 
         $updated = $this->bloodRequestRepo->acceptByAdmin($requestId, $donorId, $pendingStatus);

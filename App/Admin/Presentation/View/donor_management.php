@@ -32,6 +32,8 @@ $stmt = $db->prepare("
         u.is_active,
         u.blood_group,
         u.next_available_date,
+        d.date_of_birth,
+        d.weight,
         CONCAT('DNR-', u.user_id + 4200) AS donor_id,
         CASE
             WHEN u.is_active != 1 THEN 'INACTIVE'
@@ -39,12 +41,46 @@ $stmt = $db->prepare("
             ELSE 'UNAVAILABLE'
         END AS availability_status
     FROM users u
+    LEFT JOIN donors d ON d.user_id = u.user_id
     WHERE {$where}
     ORDER BY u.user_id DESC
 ");
 
 $stmt->execute();
 $donors = $stmt->fetchAll();
+
+// Override availability status with eligibility check (age 18-65, weight >= 50kg)
+foreach ($donors as &$donor) {
+    $eligible = true;
+    $reasons = [];
+
+    // Age check
+    if (!empty($donor['date_of_birth'])) {
+        $dob = \DateTime::createFromFormat('Y-m-d', $donor['date_of_birth']);
+        if ($dob) {
+            $age = (int)$dob->diff(new \DateTime())->y;
+            if ($age < 18) {
+                $eligible = false;
+                $reasons[] = 'Under 18';
+            } elseif ($age > 65) {
+                $eligible = false;
+                $reasons[] = 'Over 65';
+            }
+        }
+    }
+
+    // Weight check
+    if (empty($donor['weight']) || (float)$donor['weight'] < 50) {
+        $eligible = false;
+        $reasons[] = 'Weight < 50kg';
+    }
+
+    if (!$eligible && $donor['availability_status'] === 'AVAILABLE') {
+        $donor['availability_status'] = 'UNAVAILABLE';
+    }
+    $donor['eligibility_reasons'] = $reasons;
+}
+unset($donor);
 
 $pageTitle = match ($filter) {
     'available' => 'Available Donors',
@@ -148,10 +184,16 @@ $pageTitle = match ($filter) {
                                 AVAILABLE
                             </span>
                         <?php elseif ($donor['availability_status'] === 'UNAVAILABLE'): ?>
-                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-red-500 text-white border-red-600">
+                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-red-500 text-white border-red-600"
+                                  title="<?= !empty($donor['eligibility_reasons']) ? 'Eligibility: ' . implode(', ', $donor['eligibility_reasons']) : '' ?>">
                                 UNAVAILABLE
                             </span>
-                            <?php if (!empty($donor['next_available_date'])):
+                            <?php if (!empty($donor['eligibility_reasons'])): ?>
+                                <span class="text-[10px] text-red-500 font-medium mono whitespace-nowrap">
+                                    <?= htmlspecialchars(implode(', ', $donor['eligibility_reasons'])) ?>
+                                </span>
+                            <?php endif; ?>
+                            <?php if (!empty($donor['next_available_date'])): 
                                 $remaining = floor((strtotime($donor['next_available_date']) - time()) / 86400);
                             ?>
                                 <span class="text-[10px] text-slate-500 font-medium mono whitespace-nowrap">
@@ -231,17 +273,26 @@ $pageTitle = match ($filter) {
                         </div>
                     </div>
 
-                    <?php if ($donor['availability_status'] === 'UNAVAILABLE' && !empty($donor['next_available_date'])):
-                        $remaining = floor((strtotime($donor['next_available_date']) - time()) / 86400);
-                    ?>
-                        <div class="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl">
-                            <span class="text-[10px] text-amber-700 font-semibold">
-                                <i class="fa-regular fa-calendar-circle-clock"></i> Next eligible: <?= date('M d, Y', strtotime($donor['next_available_date'])) ?>
-                            </span>
-                            <span class="text-[10px] font-bold text-amber-700">
-                                (<?= max(0, $remaining) ?>d rem.)
-                            </span>
-                        </div>
+                    <?php if ($donor['availability_status'] === 'UNAVAILABLE'): ?>
+                        <?php if (!empty($donor['eligibility_reasons'])): ?>
+                            <div class="flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-100 rounded-xl">
+                                <span class="text-[10px] text-red-600 font-semibold">
+                                    <?= htmlspecialchars(implode(', ', $donor['eligibility_reasons'])) ?>
+                                </span>
+                            </div>
+                        <?php endif; ?>
+                        <?php if (!empty($donor['next_available_date'])):
+                            $remaining = floor((strtotime($donor['next_available_date']) - time()) / 86400);
+                        ?>
+                            <div class="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl">
+                                <span class="text-[10px] text-amber-700 font-semibold">
+                                    Next eligible: <?= date('M d, Y', strtotime($donor['next_available_date'])) ?>
+                                </span>
+                                <span class="text-[10px] font-bold text-amber-700">
+                                    (<?= max(0, $remaining) ?>d rem.)
+                                </span>
+                            </div>
+                        <?php endif; ?>
                     <?php endif; ?>
 
                     <div class="flex items-center gap-2 pt-1">

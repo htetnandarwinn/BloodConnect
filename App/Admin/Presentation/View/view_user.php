@@ -28,13 +28,19 @@ $stmt = $db->prepare("
         u.available,
         u.next_available_date,
         u.created_at,
-        COALESCE(md.label, u.blood_group, 'N/A') AS blood_group
+        COALESCE(md.label, u.blood_group, 'N/A') AS blood_group,
+        d.date_of_birth,
+        d.weight,
+        d.state_region,
+        d.township
     FROM users u
     LEFT JOIN user_types ut
         ON u.user_type_id = ut.id
     LEFT JOIN master_data md
         ON md.category = 'BLOOD_GROUP'
         AND md.code = u.blood_group
+    LEFT JOIN donors d
+        ON d.user_id = u.user_id
     WHERE u.user_id = :user_id
     LIMIT 1
 ");
@@ -160,9 +166,50 @@ $role = $user['role'] ?? 'Unknown';
                 </div>
             </div>
 
-            <?php if (strtolower($role) === 'donor' && !empty($user['next_available_date'])):
-                $remaining = floor((strtotime($user['next_available_date']) - time()) / 86400);
-            ?>
+            <?php if (strtolower($role) === 'donor'): ?>
+                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-1.5">
+                    <span class="text-[11px] uppercase font-bold tracking-wider text-slate-400 block">Date of Birth</span>
+                    <div class="flex items-center gap-2.5 text-slate-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-slate-400 shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                        </svg>
+                        <span class="text-sm font-semibold text-slate-800">
+                            <?= !empty($user['date_of_birth']) ? htmlspecialchars($user['date_of_birth']) : '—' ?>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-1.5">
+                    <span class="text-[11px] uppercase font-bold tracking-wider text-slate-400 block">Weight</span>
+                    <div class="flex items-center gap-2.5 text-slate-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-slate-400 shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                        </svg>
+                        <span class="text-sm font-semibold text-slate-800">
+                            <?= !empty($user['weight']) ? htmlspecialchars($user['weight']) . ' kg' : '—' ?>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-1.5">
+                    <span class="text-[11px] uppercase font-bold tracking-wider text-slate-400 block">Location</span>
+                    <div class="flex items-center gap-2.5 text-slate-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-slate-400 shrink-0">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                        </svg>
+                        <span class="text-sm font-semibold text-slate-800">
+                            <?php
+                            $loc = array_filter([$user['township'] ?? '', $user['state_region'] ?? '']);
+                            echo !empty($loc) ? htmlspecialchars(implode(', ', $loc)) : '—';
+                            ?>
+                        </span>
+                    </div>
+                </div>
+
+                <?php if (!empty($user['next_available_date'])):
+                    $remaining = floor((strtotime($user['next_available_date']) - time()) / 86400);
+                ?>
                 <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-1.5">
                     <span class="text-[11px] uppercase font-bold tracking-wider text-slate-400 block">Next Eligible Date</span>
                     <div class="flex items-center gap-2.5 text-amber-700">
@@ -175,6 +222,7 @@ $role = $user['role'] ?? 'Unknown';
                         <span class="text-xs font-bold text-amber-600 font-mono">(<?= max(0, $remaining) ?>d rem.)</span>
                     </div>
                 </div>
+            <?php endif; ?>
             <?php endif; ?>
 
             <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-1.5">

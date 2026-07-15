@@ -9,6 +9,8 @@ use App\User\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
 use App\Admin\Application\UseCase\ViewBloodRequestsUseCase;
 use App\Admin\Application\UseCase\ConfirmDonationUseCase;
+use App\Admin\Application\UseCase\FindMatchingDonorsUseCase;
+use App\Admin\Application\UseCase\AssignDonorsUseCase;
 
 class AdminBloodRequestController
 {
@@ -19,7 +21,9 @@ class AdminBloodRequestController
         private UserRepositoryInterface $userRepo,
         private MasterDataRepository $masterRepo,
         private ViewBloodRequestsUseCase $viewUseCase,
-        private ConfirmDonationUseCase $confirmUseCase
+        private ConfirmDonationUseCase $confirmUseCase,
+        private FindMatchingDonorsUseCase $findMatchingUseCase,
+        private AssignDonorsUseCase $assignUseCase
     ) {}
 
     public function bloodRequests(): void
@@ -78,13 +82,29 @@ class AdminBloodRequestController
 
         $isAccepted = $this->viewUseCase->isRequestAccepted($request);
         $isCancelledRequest = $this->viewUseCase->isRequestCancelled($request);
-        $donors = $this->viewUseCase->getMatchingDonors((string)($request['blood_group_needed'] ?? ''));
+
+        $matchingResult = $this->findMatchingUseCase->execute($requestId);
+        $matchingTier = $matchingResult['tier'] ?? 'none';
+        $townshipDonors = $matchingResult['township_matches'] ?? [];
+        $regionDonors = $matchingResult['region_matches'] ?? [];
+        $allDonors = $matchingResult['all_matches'] ?? [];
+
+        $donors = !empty($townshipDonors) ? $townshipDonors
+                : (!empty($regionDonors) ? $regionDonors
+                : $allDonors);
+
+        $competingRequests = $matchingResult['competing_requests'] ?? [];
+
+        $assignedDonors = $this->bloodRequestRepo->getAssignedDonors($requestId);
+
         $acceptedDonor = null;
         $assignedDonor = null;
 
         $donorId = !empty($request['donor_id']) ? (int)$request['donor_id'] : 0;
         if ($donorId > 0) {
-            $donorUser = $this->userRepo->findById($donorId);
+            $donorRepo = new \App\Donor\Infrastructure\Persistence\DonorRepository();
+            $donorDetails = $donorRepo->getDonorDetails($donorId);
+            $donorUser = $donorDetails ?: $this->userRepo->findById($donorId);
             $donorData = $donorUser ?: ['user_id' => $donorId, 'username' => 'Donor #' . $donorId, 'blood_group' => '', 'phone' => '', 'email' => ''];
             if ($isAccepted) {
                 $acceptedDonor = $donorData;
@@ -112,11 +132,48 @@ class AdminBloodRequestController
         $result = $this->confirmUseCase->assignDonor($requestId, $donorId);
 
         if (!$result['success']) {
-            header('Location: /BloodConnect/public/admin/blood-requests');
+            $_SESSION['flash_message'] = $result['error'];
+            $_SESSION['flash_status'] = 'error';
+            header('Location: /BloodConnect/public/admin/blood-request/view?id=' . $requestId);
             exit;
         }
 
         header('Location: /BloodConnect/public/admin/blood-requests?success=1');
+        exit;
+    }
+
+    public function assignDonors(): void
+    {
+        $requestId = (int)($_POST['request_id'] ?? 0);
+        $donorIds = $_POST['donor_ids'] ?? [];
+
+        if (!$requestId || empty($donorIds)) {
+            $_SESSION['flash_message'] = 'No donors selected.';
+            $_SESSION['flash_status'] = 'error';
+            header('Location: /BloodConnect/public/admin/blood-request/view?id=' . $requestId);
+            exit;
+        }
+
+        $donorIds = array_map('intval', (array)$donorIds);
+        $donorIds = array_unique(array_filter($donorIds));
+
+        if (empty($donorIds)) {
+            $_SESSION['flash_message'] = 'No valid donors selected.';
+            $_SESSION['flash_status'] = 'error';
+            header('Location: /BloodConnect/public/admin/blood-request/view?id=' . $requestId);
+            exit;
+        }
+
+        $result = $this->assignUseCase->execute($requestId, $donorIds);
+
+        if (!$result['success']) {
+            $_SESSION['flash_message'] = $result['error'];
+            $_SESSION['flash_status'] = 'error';
+            header('Location: /BloodConnect/public/admin/blood-request/view?id=' . $requestId);
+            exit;
+        }
+
+        header('Location: /BloodConnect/public/admin/blood-requests?assigned=1');
         exit;
     }
 

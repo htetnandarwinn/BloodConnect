@@ -6,6 +6,7 @@ use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
 use App\Donor\Domain\Repository\DonorRepositoryInterface;
 use App\Donation\Domain\Repository\DonationRepositoryInterface;
 use App\Donor\Application\UseCase\DonorDonationEligibilityService;
+use App\Donor\Domain\Service\DonorEligibilityService;
 use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 use App\User\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
@@ -21,11 +22,23 @@ class AcceptBloodRequestUseCase
         private NotificationRepositoryInterface $notificationRepo,
         private UserRepositoryInterface $userRepo,
         private MasterDataRepository $masterRepo,
-        private ActivityLogger $activityLogger
+        private ActivityLogger $activityLogger,
+        private DonorEligibilityService $donorEligibilityService
     ) {}
 
     public function execute(int $requestId, int $donorId): array
     {
+        $donorProfile = $this->donorRepo->getDonorDetails($donorId);
+        if ($donorProfile) {
+            $profileEligibility = $this->donorEligibilityService->evaluate(
+                (string)($donorProfile['date_of_birth'] ?? ''),
+                (string)($donorProfile['weight'] ?? '')
+            );
+            if (!$profileEligibility['eligible']) {
+                return ['success' => false, 'error' => 'You cannot accept this request: ' . implode(', ', $profileEligibility['reasons'])];
+            }
+        }
+
         $availability = $this->donorRepo->syncAvailabilityStatus($donorId);
         $acceptedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
 
