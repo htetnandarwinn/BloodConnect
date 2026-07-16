@@ -81,34 +81,65 @@ class AssignDonorsUseCase
         }
 
         $assignedGroups = $this->bloodRequestRepo->getDonorsAssignedToOtherRequests($validDonorIds, $requestId);
-        $alreadyAssignedDonorIds = array_keys($assignedGroups);
-        $finalDonorIds = array_diff($validDonorIds, $alreadyAssignedDonorIds);
+        $reassignedDonorIds = [];
 
         foreach ($assignedGroups as $donorId => $otherRequests) {
             $donor = $this->userRepo->findById((int)$donorId);
             $donorName = $donor['username'] ?? 'Donor #' . $donorId;
+            $newRequestRank = $this->prioritizationService->rank((string)($request['urgency'] ?? ''));
 
-            $requestParts = [];
             foreach ($otherRequests as $other) {
+                $existingRank = $this->prioritizationService->rank((string)($other['urgency'] ?? ''));
                 $reqCode = $other['request_code'] ?? '#' . $other['request_id'];
-                $urgency = strtoupper($other['urgency'] ?? 'ROUTINE');
-                $requestParts[] = "{$reqCode} ({$urgency})";
-            }
+                $existingUrgency = strtoupper($other['urgency'] ?? 'ROUTINE');
 
-            $skippedDonors[] = sprintf(
-                '%s is already assigned to: %s — unassign from the less urgent request first, or pick a different donor.',
-                $donorName,
-                implode(', ', $requestParts)
-            );
+                if ($newRequestRank < $existingRank) {
+                    $this->bloodRequestRepo->unassignDonorFromRequest((int)$other['request_id'], (int)$donorId);
+                    $reassignedDonorIds[] = (int)$donorId;
+
+                    $this->notificationRepo->create(
+                        (int)$other['patient_id'] ?? 0,
+                        'Donor Reassigned',
+                        sprintf(
+                            'Donor %s has been reassigned from your blood request %s (%s) to a higher-priority request.',
+                            $donorName,
+                            $reqCode,
+                            $existingUrgency
+                        ),
+                        'WARNING'
+                    );
+                    break;
+                }
+            }
+        }
+
+        $finalDonorIds = $validDonorIds;
+        foreach ($assignedGroups as $donorId => $otherRequests) {
+            if (!in_array((int)$donorId, $reassignedDonorIds, true)) {
+                $finalDonorIds = array_values(array_diff($finalDonorIds, [(int)$donorId]));
+                $donor = $this->userRepo->findById((int)$donorId);
+                $donorName = $donor['username'] ?? 'Donor #' . $donorId;
+                $requestParts = [];
+                foreach ($otherRequests as $other) {
+                    $reqCode = $other['request_code'] ?? '#' . $other['request_id'];
+                    $urgency = strtoupper($other['urgency'] ?? 'ROUTINE');
+                    $requestParts[] = "{$reqCode} ({$urgency})";
+                }
+                $skippedDonors[] = sprintf(
+                    '%s is already assigned to: %s — request urgency is equal or higher, unassign manually first.',
+                    $donorName,
+                    implode(', ', $requestParts)
+                );
+            }
         }
 
         if (empty($finalDonorIds)) {
-            return ['success' => false, 'error' => 'All selected donors are already assigned to other active requests. Review the urgency of each competing request and prioritize accordingly.'];
+            return ['success' => false, 'error' => 'All selected donors are already assigned to equal or higher-priority requests.'];
         }
 
-        $pendingStatus = $this->masterRepo->getId('REQUEST_STATUS', 'PENDING') ?? 7;
+        $assignedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ASSIGNED') ?? 42;
 
-        $assigned = $this->bloodRequestRepo->assignDonorsToRequest($requestId, array_values($finalDonorIds), $pendingStatus);
+        $assigned = $this->bloodRequestRepo->assignDonorsToRequest($requestId, array_values($finalDonorIds), $assignedStatus);
 
         if (!$assigned) {
             return ['success' => false, 'error' => 'Failed to assign donors.'];
@@ -185,10 +216,9 @@ class AssignDonorsUseCase
     private function findReservingRequest(array $request): ?array
     {
         $bloodGroup = (string)($request['blood_group_needed'] ?? '');
-        $township = (string)($request['township'] ?? '');
         $stateRegion = (string)($request['state_region'] ?? '');
 
-        if ($bloodGroup === '' || ($township === '' && $stateRegion === '')) {
+        if ($bloodGroup === '' || $stateRegion === '') {
             return null;
         }
 
@@ -197,7 +227,6 @@ class AssignDonorsUseCase
 
         $competing = $this->bloodRequestRepo->findCompetingRequests(
             $bloodGroup,
-            $township,
             $stateRegion,
             $requestId
         );

@@ -43,7 +43,6 @@ class FindMatchingDonorsUseCase
         // request should be fulfilled first.
         $competing = $this->bloodRequestRepo->findCompetingRequests(
             $bloodGroup,
-            $township,
             $stateRegion,
             $requestId
         );

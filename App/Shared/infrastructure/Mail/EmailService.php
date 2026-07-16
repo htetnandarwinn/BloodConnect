@@ -136,6 +136,74 @@ class EmailService
         }
     }
 
+    public function sendBloodRequestAlert(string $toEmail, array $request): bool
+    {
+        $mail = new PHPMailer(true);
+
+        $patientName = htmlspecialchars((string)($request['patient_name'] ?? 'A patient'));
+        $bloodGroup = htmlspecialchars((string)($request['blood_group_needed'] ?? ''));
+        $hospital = htmlspecialchars((string)($request['hospital_name'] ?? 'the hospital'));
+        $urgency = htmlspecialchars(strtoupper((string)($request['urgency'] ?? 'ROUTINE')));
+        $requestCode = htmlspecialchars((string)($request['request_code'] ?? ''));
+
+        try {
+            $host = $this->getEnvValue('MAIL_HOST');
+            $username = $this->getEnvValue('MAIL_USERNAME');
+            $password = $this->getEnvValue('MAIL_PASSWORD');
+
+            if ($host && $username && $password) {
+                $mail->isSMTP();
+                $mail->Host = $host;
+                $mail->SMTPAuth = true;
+                $mail->Username = $username;
+                $mail->Password = $password;
+                $mail->SMTPSecure = $this->getEnvValue('MAIL_ENCRYPTION', PHPMailer::ENCRYPTION_STARTTLS);
+                $mail->Port = (int) $this->getEnvValue('MAIL_PORT', 587);
+                $mail->SMTPDebug = 0;
+                $mail->SMTPOptions = [
+                    'ssl' => [
+                        'verify_peer' => false,
+                        'verify_peer_name' => false,
+                        'allow_self_signed' => true,
+                    ],
+                ];
+            } else {
+                $mail->isMail();
+            }
+
+            $mail->setFrom($this->fromAddress, $this->fromName);
+            $mail->addAddress($toEmail);
+            $mail->isHTML(true);
+            $mail->Subject = "BloodConnect: Urgent {$bloodGroup} Blood Request ({$requestCode})";
+            $mail->Body = "
+                <div style='font-family:Arial, sans-serif; line-height:1.6;'>
+                    <h2>New Blood Request Alert</h2>
+                    <p>Hello,</p>
+                    <p>A blood request has been registered that matches your blood group.</p>
+                    <p><strong>Request Code:</strong> {$requestCode}</p>
+                    <p><strong>Patient:</strong> {$patientName}</p>
+                    <p><strong>Blood Group Needed:</strong> {$bloodGroup}</p>
+                    <p><strong>Urgency:</strong> {$urgency}</p>
+                    <p><strong>Hospital:</strong> {$hospital}</p>
+                    <p>Please log in to your BloodConnect donor account to review and respond to the request.</p>
+                    <p>Thank you for being a lifesaver.</p>
+                </div>
+            ";
+            $mail->AltBody = "A {$bloodGroup} blood request ({$requestCode}) from {$patientName} at {$hospital} needs your help. Log in to BloodConnect to respond.";
+
+            $sent = $mail->send();
+
+            if (!$sent) {
+                error_log('Blood request alert mail failed: ' . $mail->ErrorInfo);
+            }
+
+            return $sent;
+        } catch (Exception $e) {
+            error_log('Blood request alert mail error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
     private function getEnvValue(string $key, mixed $default = null): mixed
     {
         $value = getenv($key);

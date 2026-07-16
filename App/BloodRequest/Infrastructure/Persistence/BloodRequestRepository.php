@@ -496,11 +496,12 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
             }
 
             // Set the first donor as the primary assigned donor on the request
+            // and mark the request as ASSIGNED (awaiting donor acceptance).
             $firstDonorId = (int)$donorIds[0];
             $updateStmt = $this->db->prepare(
-                "UPDATE blood_requests SET donor_id = ? WHERE request_id = ?"
+                "UPDATE blood_requests SET donor_id = ?, status = ? WHERE request_id = ?"
             );
-            $updateStmt->execute([$firstDonorId, $requestId]);
+            $updateStmt->execute([$firstDonorId, $statusId, $requestId]);
 
             $this->db->commit();
             return true;
@@ -554,6 +555,7 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                 rd.donor_id,
                 br.request_id,
                 br.request_code,
+                br.patient_id,
                 br.patient_name,
                 br.urgency,
                 br.blood_group_needed,
@@ -645,11 +647,10 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 
     public function findCompetingRequests(
         string $bloodGroup,
-        string $township,
         string $stateRegion,
         int $excludeRequestId
     ): array {
-        if ($bloodGroup === '' || ($township === '' && $stateRegion === '')) {
+        if ($bloodGroup === '' || $stateRegion === '') {
             return [];
         }
 
@@ -670,7 +671,6 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                 br.created_at
             FROM blood_requests br
             WHERE br.blood_group_needed = :blood_group
-              AND br.township = :township
               AND br.state_region = :state_region
               AND br.request_id != :exclude_id
               AND br.status = :status
@@ -680,7 +680,6 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
             ':blood_group' => $bloodGroup,
-            ':township' => $township,
             ':state_region' => $stateRegion,
             ':exclude_id' => $excludeRequestId,
             ':status' => $pendingStatus,
@@ -867,16 +866,16 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         ]);
     }
 
-    public function cancelRequest(int $requestId, int $patientId, int $cancelledStatus): bool
+    public function cancelRequest(int $requestId, int $patientId, int $cancelledStatus, int $assignedStatus = 42): bool
     {
         $stmt = $this->db->prepare("
             UPDATE blood_requests
             SET status = ?
             WHERE request_id = ?
               AND patient_id = ?
-              AND status = 7
+              AND status IN (7, ?)
         ");
-        $stmt->execute([$cancelledStatus, $requestId, $patientId]);
+        $stmt->execute([$cancelledStatus, $requestId, $patientId, $assignedStatus]);
         return $stmt->rowCount() > 0;
     }
 
@@ -917,6 +916,63 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         $stmt->execute([$acceptedStatus]);
 
         return (int)$stmt->fetchColumn();
+    }
+
+    public function unassignDonorFromRequest(int $requestId, int $donorId): bool
+    {
+        try {
+            $this->db->beginTransaction();
+
+            $this->db->prepare("DELETE FROM request_donors WHERE request_id = ? AND donor_id = ?")
+                ->execute([$requestId, $donorId]);
+
+            $this->db->prepare("UPDATE blood_requests SET donor_id = NULL WHERE request_id = ? AND donor_id = ?")
+                ->execute([$requestId, $donorId]);
+
+            $this->db->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->db->rollBack();
+            error_log("Failed unassigning donor {$donorId} from request {$requestId}: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function findAssignedRequestsForDonor(int $donorId, int $assignedStatus): array
+    {
+        $stmt = $this->db->prepare(
+            "
+            SELECT
+                br.request_id,
+                br.request_code,
+                br.patient_id,
+                br.patient_name,
+                br.blood_group_needed,
+                br.unit,
+                br.hospital_name,
+                br.urgency,
+                br.contact_phone,
+                br.created_at,
+                br.donor_id,
+                br.status,
+                md.label AS status_name,
+                patient.user_id AS patient_user_id,
+                patient.username AS patient_username,
+                patient.email AS patient_email,
+                patient.phone AS patient_phone,
+                patient.address AS patient_address
+            FROM blood_requests br
+            LEFT JOIN master_data md ON md.id = br.status
+            LEFT JOIN users patient ON patient.user_id = br.patient_id
+            WHERE br.donor_id = ?
+              AND br.status = ?
+            ORDER BY br.created_at DESC
+            "
+        );
+
+        $stmt->execute([$donorId, $assignedStatus]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 

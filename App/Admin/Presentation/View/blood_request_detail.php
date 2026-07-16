@@ -249,6 +249,16 @@ if (!function_exists('getAdminBloodGroupStyle')) {
                                 </div>
                             </div>
                         <?php endforeach; ?>
+
+                        <form action="/BloodConnect/public/admin/blood-request/notify-donors" method="POST" class="pt-2">
+                            <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
+                            <?php foreach ($assignedDonors as $ad): ?>
+                                <input type="hidden" name="donor_ids[]" value="<?= (int)($ad['donor_id'] ?? 0) ?>">
+                            <?php endforeach; ?>
+                            <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-[#ce2424] bg-white px-4 py-3 text-xs font-bold text-[#ce2424] hover:bg-rose-50 transition-all active:scale-95">
+                                <i class="fa-solid fa-envelope"></i> Send Email Alert to Assigned Donors
+                            </button>
+                        </form>
                     </div>
 
                 <?php elseif ($matchingTier === 'none'): ?>
@@ -353,6 +363,10 @@ if (!function_exists('getAdminBloodGroupStyle')) {
 
                                 <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#ce2424] px-4 py-3 text-xs font-bold text-white hover:bg-[#a61c1c] transition-all active:scale-95 shadow-md shadow-red-600/10">
                                     <i class="fa-solid fa-truck-medical"></i> Assign Selected Donors
+                                </button>
+
+                                <button type="submit" formaction="/BloodConnect/public/admin/blood-request/notify-donors" class="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-[#ce2424] bg-white px-4 py-3 text-xs font-bold text-[#ce2424] hover:bg-rose-50 transition-all active:scale-95">
+                                    <i class="fa-solid fa-envelope"></i> Send Email Alert to Selected Donors
                                 </button>
                             <?php endif; ?>
                         </form>

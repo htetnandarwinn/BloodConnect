@@ -29,6 +29,18 @@ class ViewBloodRequestsUseCase
             || (strtolower((string)($request['status_name'] ?? '')) === 'accepted');
     }
 
+    public function isRequestAssigned(array $request): bool
+    {
+        $assignedStatusId = $this->getAssignedStatusId();
+        return ((int)($request['status'] ?? 0) === $assignedStatusId)
+            || (strtolower((string)($request['status_name'] ?? '')) === 'assigned');
+    }
+
+    public function getAssignedStatusId(): int
+    {
+        return $this->masterRepo->getId('REQUEST_STATUS', 'ASSIGNED') ?? 42;
+    }
+
     public function getAcceptedStatusId(): int
     {
         return $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;

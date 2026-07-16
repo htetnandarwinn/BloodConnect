@@ -13,6 +13,7 @@ use App\Admin\Application\UseCase\ConfirmDonationUseCase;
 use App\Admin\Application\UseCase\FindMatchingDonorsUseCase;
 use App\Admin\Application\UseCase\AssignDonorsUseCase;
 use App\Admin\Application\UseCase\DeleteBloodRequestUseCase;
+use App\Admin\Application\UseCase\NotifyDonorsUseCase;
 
 class AdminBloodRequestController
 {
@@ -27,7 +28,8 @@ class AdminBloodRequestController
         private ConfirmDonationUseCase $confirmUseCase,
         private FindMatchingDonorsUseCase $findMatchingUseCase,
         private AssignDonorsUseCase $assignUseCase,
-        private DeleteBloodRequestUseCase $deleteUseCase
+        private DeleteBloodRequestUseCase $deleteUseCase,
+        private NotifyDonorsUseCase $notifyUseCase
     ) {}
 
     public function bloodRequests(): void
@@ -187,6 +189,33 @@ class AdminBloodRequestController
         }
 
         header('Location: /BloodConnect/public/admin/blood-requests?assigned=1');
+        exit;
+    }
+
+    public function notifyDonors(): void
+    {
+        $requestId = (int)($_POST['request_id'] ?? 0);
+        $donorIds = $_POST['donor_ids'] ?? [];
+
+        if (!$requestId) {
+            header('Location: /BloodConnect/public/admin/blood-requests');
+            exit;
+        }
+
+        $donorIds = array_map('intval', (array)$donorIds);
+        $donorIds = array_unique(array_filter($donorIds));
+
+        $result = $this->notifyUseCase->execute($requestId, $donorIds);
+
+        if (!$result['success']) {
+            $_SESSION['flash_message'] = $result['error'];
+            $_SESSION['flash_status'] = 'error';
+        } else {
+            $_SESSION['flash_message'] = $result['message'];
+            $_SESSION['flash_status'] = 'success';
+        }
+
+        header('Location: /BloodConnect/public/admin/blood-request/view?id=' . $requestId);
         exit;
     }
 

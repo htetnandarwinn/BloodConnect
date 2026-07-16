@@ -129,7 +129,7 @@ $showPendingAssignment = $hasDonor && !$isAccepted;
                             <p class="text-xs font-bold uppercase tracking-wider text-amber-600">Assigned Donor</p>
                             <h4 class="mt-1 text-lg font-black text-slate-900"><?= $donorName ?></h4>
                         </div>
-                        <span class="rounded-full bg-white px-3 py-1 text-sm font-semibold text-amber-600">Pending</span>
+                        <span class="rounded-full bg-white px-3 py-1 text-sm font-semibold text-amber-600"><?= $statusLabel ?></span>
                     </div>
                     <p class="mt-3 text-sm text-amber-700">This donor has been assigned but has not accepted the request yet.</p>
 

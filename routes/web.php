@@ -177,6 +177,7 @@ $router->group(['middleware' => ['auth', 'admin', 'can:blood_request.view_matchi
     $router->get('/admin/blood-request/view', [AdminBloodRequestController::class, 'viewBloodRequest']);
     $router->post('/admin/blood-request/accept', [AdminBloodRequestController::class, 'acceptBloodRequest']);
     $router->post('/admin/blood-request/assign-donors', [AdminBloodRequestController::class, 'assignDonors']);
+    $router->post('/admin/blood-request/notify-donors', [AdminBloodRequestController::class, 'notifyDonors']);
     $router->post('/admin/blood-request/delete', [AdminBloodRequestController::class, 'deleteBloodRequest']);
     $router->get('/admin/request/complete', [AdminBloodRequestController::class, 'completeRequest']);
     $router->get('/admin/pending-blood-requests-count', [AdminBloodRequestController::class, 'pendingBloodRequestsCount']);

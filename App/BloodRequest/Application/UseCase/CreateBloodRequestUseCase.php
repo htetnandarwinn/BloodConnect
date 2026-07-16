@@ -7,7 +7,6 @@ use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 use App\User\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
 use App\Shared\Infrastructure\Activity\ActivityLogger;
-use App\BloodRequest\Application\UseCase\AutoAssignBestDonorUseCase;
 
 class CreateBloodRequestUseCase
 {
@@ -16,8 +15,7 @@ class CreateBloodRequestUseCase
         private NotificationRepositoryInterface $notificationRepo,
         private UserRepositoryInterface $userRepo,
         private MasterDataRepository $masterRepo,
-        private ActivityLogger $activityLogger,
-        private AutoAssignBestDonorUseCase $autoAssignUseCase
+        private ActivityLogger $activityLogger
     ) {}
 
     public function execute(int $patientId, string $patientName, array $data): array
@@ -61,20 +59,6 @@ class CreateBloodRequestUseCase
         $saved = $this->bloodRequestRepo->create($requestData);
         if (!$saved) {
             return ['success' => false, 'error' => 'Failed to create blood request.'];
-        }
-
-        // System auto-assigns the highest-priority available donor following
-        // the location hierarchy: same township -> same region -> any region.
-        $created = $this->bloodRequestRepo->findByCode($requestCode);
-        $autoTier = 'none';
-        if ($created) {
-            $autoResult = $this->autoAssignUseCase->execute(
-                (int)$created['request_id'],
-                (string)($data['blood_group_needed'] ?? ''),
-                $data['township'] ?? null,
-                $data['state_region'] ?? null
-            );
-            $autoTier = $autoResult['tier'] ?? 'none';
         }
 
         $this->activityLogger->log(
@@ -124,6 +108,6 @@ class CreateBloodRequestUseCase
             );
         }
 
-        return ['success' => true, 'request_code' => $requestCode, 'auto_assign_tier' => $autoTier];
+        return ['success' => true, 'request_code' => $requestCode];
     }
 }

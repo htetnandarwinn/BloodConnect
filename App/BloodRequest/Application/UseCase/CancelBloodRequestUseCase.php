@@ -30,7 +30,8 @@ class CancelBloodRequestUseCase
         }
 
         $cancelledStatus = $this->masterRepo->getId('REQUEST_STATUS', 'CANCELLED') ?? 10;
-        $cancelled = $this->bloodRequestRepo->cancelRequest($requestId, $patientId, $cancelledStatus);
+        $assignedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ASSIGNED') ?? 42;
+        $cancelled = $this->bloodRequestRepo->cancelRequest($requestId, $patientId, $cancelledStatus, $assignedStatus);
 
         if (!$cancelled) {
             return ['success' => false, 'error' => 'Cannot cancel this request. Only pending requests can be cancelled.'];

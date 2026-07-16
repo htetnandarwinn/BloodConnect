@@ -25,6 +25,8 @@ $status = (string)($request['status_name'] ?? $request['status'] ?? 'Pending');
 $statusClass = 'bg-slate-50 text-slate-500 border-slate-200/50';
 if (stripos($status, 'accepted') !== false || (int)($request['status'] ?? 0) === 8) {
     $statusClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/50';
+} elseif (stripos($status, 'assigned') !== false || (int)($request['status'] ?? 0) === 42) {
+    $statusClass = 'bg-violet-50 text-violet-700 border-violet-200/50';
 } elseif (stripos($status, 'declined') !== false || (int)($request['status'] ?? 0) === 10) {
     $statusClass = 'bg-rose-50 text-rose-700 border-rose-200/50';
 } elseif (stripos($status, 'completed') !== false || (int)($request['status'] ?? 0) === 9) {
@@ -32,6 +34,7 @@ if (stripos($status, 'accepted') !== false || (int)($request['status'] ?? 0) ===
 }
 
 $isAccepted = (stripos((string)($request['status_name'] ?? $request['status'] ?? 'Pending'), 'accepted') !== false) || (int)($request['status'] ?? 0) === 8;
+$isAssigned = (stripos((string)($request['status_name'] ?? $request['status'] ?? ''), 'assigned') !== false) || (int)($request['status'] ?? 0) === 42;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -138,17 +141,29 @@ $isAccepted = (stripos((string)($request['status_name'] ?? $request['status'] ??
             </div>
 
             <div class="border-t border-slate-100 pt-6">
-                <?php if (!$isAccepted): ?>
+                <?php if ($isAccepted): ?>
+                    <div class="rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3 text-xs font-bold text-emerald-700 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i> This hospital ticket has already been claimed and accepted.
+                    </div>
+                <?php elseif ($isAssigned): ?>
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div class="rounded-xl border border-violet-200 bg-violet-50/60 px-4 py-3 text-xs font-bold text-violet-700 flex items-center gap-2">
+                            <i class="fa-solid fa-user-check text-violet-500"></i> You have been assigned to this request by the admin.
+                        </div>
+                        <form action="/BloodConnect/public/donor/request/accept" method="POST">
+                            <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
+                            <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-xs font-bold text-white hover:bg-emerald-700 transition-all active:scale-95 shadow-md shadow-emerald-600/10">
+                                <i class="fa-solid fa-check"></i> Accept Medical Request
+                            </button>
+                        </form>
+                    </div>
+                <?php else: ?>
                     <form action="/BloodConnect/public/donor/request/accept" method="POST" class="w-full sm:w-auto">
                         <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
                         <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-xs font-bold text-white hover:bg-emerald-700 transition-all active:scale-95 shadow-md shadow-emerald-600/10">
                             <i class="fa-solid fa-check"></i> Accept Medical Request
                         </button>
                     </form>
-                <?php else: ?>
-                    <div class="rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3 text-xs font-bold text-emerald-700 flex items-center gap-2">
-                        <i class="fa-solid fa-circle-check text-emerald-500"></i> This hospital ticket has already been claimed and accepted.
-                    </div>
                 <?php endif; ?>
             </div>
 

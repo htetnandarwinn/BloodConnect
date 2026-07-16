@@ -3,6 +3,7 @@
 namespace App\Admin\Application\UseCase;
 
 use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
+use App\BloodRequest\Domain\Service\RequestPrioritizationService;
 use App\Donation\Domain\Repository\DonationRepositoryInterface;
 use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 use App\User\Domain\Repository\UserRepositoryInterface;
@@ -15,7 +16,8 @@ class ConfirmDonationUseCase
         private DonationRepositoryInterface $donationRepo,
         private NotificationRepositoryInterface $notificationRepo,
         private UserRepositoryInterface $userRepo,
-        private MasterDataRepository $masterRepo
+        private MasterDataRepository $masterRepo,
+        private RequestPrioritizationService $prioritizationService
     ) {}
 
     /**
@@ -94,25 +96,49 @@ class ConfirmDonationUseCase
         }
 
         // Business rule: donor must not be assigned to another active request
+        // unless the new request has higher urgency — then auto-reassign.
+        $newRequestRank = $this->prioritizationService->rank((string)($request['urgency'] ?? ''));
         $assignedGroups = $this->bloodRequestRepo->getDonorsAssignedToOtherRequests([$donorId], $requestId);
         if (!empty($assignedGroups)) {
             $otherRequests = $assignedGroups[$donorId] ?? [];
-            $parts = [];
             foreach ($otherRequests as $other) {
-                $parts[] = ($other['request_code'] ?? '#' . $other['request_id']) . ' (' . strtoupper($other['urgency'] ?? 'ROUTINE') . ')';
+                $existingRank = $this->prioritizationService->rank((string)($other['urgency'] ?? ''));
+                if ($newRequestRank < $existingRank) {
+                    $this->bloodRequestRepo->unassignDonorFromRequest((int)$other['request_id'], $donorId);
+                    $this->notificationRepo->create(
+                        (int)($other['patient_id'] ?? 0),
+                        'Donor Reassigned',
+                        sprintf(
+                            'Donor %s has been reassigned from your blood request %s (%s) to a higher-priority request.',
+                            $donor['username'] ?? 'Donor',
+                            $other['request_code'] ?? '#' . $other['request_id'],
+                            strtoupper($other['urgency'] ?? 'ROUTINE')
+                        ),
+                        'WARNING'
+                    );
+                    break;
+                }
             }
-            return [
-                'success' => false,
-                'error' => sprintf(
-                    'This donor is already assigned to: %s. Unassign from the less urgent request first, or pick a different donor.',
-                    implode(', ', $parts)
-                ),
-            ];
+
+            $stillAssigned = $this->bloodRequestRepo->getDonorsAssignedToOtherRequests([$donorId], $requestId);
+            if (!empty($stillAssigned)) {
+                $parts = [];
+                foreach ($stillAssigned[$donorId] ?? [] as $other) {
+                    $parts[] = ($other['request_code'] ?? '#' . $other['request_id']) . ' (' . strtoupper($other['urgency'] ?? 'ROUTINE') . ')';
+                }
+                return [
+                    'success' => false,
+                    'error' => sprintf(
+                        'This donor is already assigned to: %s. Request urgency is equal or higher — unassign manually first.',
+                        implode(', ', $parts)
+                    ),
+                ];
+            }
         }
 
-        $pendingStatus = $this->masterRepo->getId('REQUEST_STATUS', 'PENDING') ?? 7;
+        $assignedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ASSIGNED') ?? 42;
 
-        $updated = $this->bloodRequestRepo->acceptByAdmin($requestId, $donorId, $pendingStatus);
+        $updated = $this->bloodRequestRepo->acceptByAdmin($requestId, $donorId, $assignedStatus);
         if (!$updated) {
             return ['success' => false, 'error' => 'Failed to assign donor.'];
         }

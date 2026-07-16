@@ -108,7 +108,8 @@ $container->singleton(
             $c->get(\App\Admin\Application\UseCase\ConfirmDonationUseCase::class),
             $c->get(\App\Admin\Application\UseCase\FindMatchingDonorsUseCase::class),
             $c->get(\App\Admin\Application\UseCase\AssignDonorsUseCase::class),
-            $c->get(\App\Admin\Application\UseCase\DeleteBloodRequestUseCase::class)
+            $c->get(\App\Admin\Application\UseCase\DeleteBloodRequestUseCase::class),
+            $c->get(\App\Admin\Application\UseCase\NotifyDonorsUseCase::class)
         );
     }
 );
