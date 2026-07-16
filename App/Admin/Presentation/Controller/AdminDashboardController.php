@@ -5,13 +5,15 @@ namespace App\Admin\Presentation\Controller;
 use App\User\Domain\Repository\UserRepositoryInterface;
 use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
 use App\Notification\Domain\Repository\NotificationRepositoryInterface;
+use App\Shared\Infrastructure\Activity\ActivityLogger;
 
 class AdminDashboardController
 {
     public function __construct(
         private UserRepositoryInterface $userRepo,
         private BloodRequestRepositoryInterface $requestRepo,
-        private NotificationRepositoryInterface $notificationRepo
+        private NotificationRepositoryInterface $notificationRepo,
+        private ActivityLogger $activityLogger
     ) {}
 
     public function admin_dashboard(): void
@@ -41,7 +43,8 @@ class AdminDashboardController
             'totalPatients'     => $totalPatients,
             'pendingRequests'   => $pendingRequests,
             'acceptedRequests'  => $acceptedRequests,
-            'adminName'         => $_SESSION['user']['username'] ?? 'Admin'
+            'adminName'         => $_SESSION['user']['username'] ?? 'Admin',
+            'activities'        => $this->activityLogger->getLatest(10)
         ];
 
         ob_start();

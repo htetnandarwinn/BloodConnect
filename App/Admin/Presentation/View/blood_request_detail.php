@@ -313,6 +313,18 @@ if (!function_exists('getAdminBloodGroupStyle')) {
                                                     <span>&middot;</span>
                                                     <span class="truncate"><?= htmlspecialchars(implode(', ', $dloc)) ?></span>
                                                 <?php endif; ?>
+                                                <?php
+                                                $tierBadge = [
+                                                    'township' => ['label' => 'Same Township', 'class' => 'bg-emerald-100 text-emerald-700 border-emerald-200'],
+                                                    'region'   => ['label' => 'Same Region', 'class' => 'bg-blue-100 text-blue-700 border-blue-200'],
+                                                    'all'      => ['label' => 'Other Region', 'class' => 'bg-amber-100 text-amber-700 border-amber-200'],
+                                                ];
+                                                $dt = $donor['match_tier'] ?? 'all';
+                                                $dbadge = $tierBadge[$dt] ?? $tierBadge['all'];
+                                                ?>
+                                                <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider <?= $dbadge['class'] ?> border rounded px-1.5 py-0.5">
+                                                    <?= htmlspecialchars($dbadge['label']) ?>
+                                                </span>
                                                 <?php if ($reserved !== null): ?>
                                                     <span class="inline-flex items-center gap-1 mt-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5">
                                                         Reserved &rarr; <?= htmlspecialchars($reserved['request_code']) ?> (<?= htmlspecialchars($reserved['urgency']) ?>)

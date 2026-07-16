@@ -1,6 +1,7 @@
 <?php
 
 use App\Shared\Infrastructure\Database\Database;
+use App\Shared\Helpers\DonorAvailabilityHelper;
 
 $db = Database::getConnection(); ?>
 <style>
@@ -12,6 +13,7 @@ $db = Database::getConnection(); ?>
 <?php
 
 $filter = $_GET['filter'] ?? 'donors';
+$highlightId = isset($_GET['highlight']) ? (int)$_GET['highlight'] : 0;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,34 +53,15 @@ $donors = $stmt->fetchAll();
 
 // Override availability status with eligibility check (age 18-65, weight >= 50kg)
 foreach ($donors as &$donor) {
-    $eligible = true;
-    $reasons = [];
-
-    // Age check
-    if (!empty($donor['date_of_birth'])) {
-        $dob = \DateTime::createFromFormat('Y-m-d', $donor['date_of_birth']);
-        if ($dob) {
-            $age = (int)$dob->diff(new \DateTime())->y;
-            if ($age < 18) {
-                $eligible = false;
-                $reasons[] = 'Under 18';
-            } elseif ($age > 65) {
-                $eligible = false;
-                $reasons[] = 'Over 65';
-            }
-        }
-    }
-
-    // Weight check
-    if (empty($donor['weight']) || (float)$donor['weight'] < 50) {
-        $eligible = false;
-        $reasons[] = 'Weight < 50kg';
-    }
-
-    if (!$eligible && $donor['availability_status'] === 'AVAILABLE') {
-        $donor['availability_status'] = 'UNAVAILABLE';
-    }
-    $donor['eligibility_reasons'] = $reasons;
+    $donor['availability_status'] = DonorAvailabilityHelper::withEligibilityOverride(
+        $donor['availability_status'],
+        $donor['date_of_birth'] ?? null,
+        $donor['weight'] ?? null
+    );
+    $donor['eligibility_reasons'] = DonorAvailabilityHelper::eligibilityReasons(
+        $donor['date_of_birth'] ?? null,
+        $donor['weight'] ?? null
+    );
 }
 unset($donor);
 
@@ -157,7 +140,8 @@ $pageTitle = match ($filter) {
 
         <div class="hidden lg:block max-h-[500px] overflow-y-auto pr-1 custom-scroll space-y-3">
             <?php foreach ($donors as $index => $donor): ?>
-                <div class="glow-row bg-white border border-slate-200/70 rounded-2xl p-4 grid grid-cols-12 items-center gap-4 transition-all duration-300 transform animate-spring-in shadow-2xs"
+                <?php $isHighlighted = $highlightId > 0 && (int)$donor['user_id'] === $highlightId; ?>
+                <div class="glow-row bg-white border rounded-2xl p-4 grid grid-cols-12 items-center gap-4 transition-all duration-300 transform animate-spring-in shadow-2xs <?= $isHighlighted ? 'border-[#ce2424] ring-2 ring-[#ce2424]/20' : 'border-slate-200/70' ?>"
                     style="animation-delay: <?= $index * 0.03 ?>s;">
 
                     <div class="col-span-3 flex items-center gap-4 min-w-0">
@@ -180,11 +164,11 @@ $pageTitle = match ($filter) {
 
                     <div class="col-span-2 flex flex-col items-start justify-center pl-4 gap-1">
                         <?php if ($donor['availability_status'] === 'AVAILABLE'): ?>
-                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-emerald-500 text-white border-emerald-600">
+                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-emerald-500 text-white border-emerald-600 <?= $isHighlighted ? 'ring-2 ring-emerald-300 ring-offset-1' : '' ?>">
                                 AVAILABLE
                             </span>
                         <?php elseif ($donor['availability_status'] === 'UNAVAILABLE'): ?>
-                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-red-500 text-white border-red-600"
+                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-red-500 text-white border-red-600 <?= $isHighlighted ? 'ring-2 ring-red-300 ring-offset-1' : '' ?>"
                                   title="<?= !empty($donor['eligibility_reasons']) ? 'Eligibility: ' . implode(', ', $donor['eligibility_reasons']) : '' ?>">
                                 UNAVAILABLE
                             </span>
@@ -204,7 +188,7 @@ $pageTitle = match ($filter) {
                                 </span>
                             <?php endif; ?>
                         <?php else: ?>
-                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-rose-50 text-rose-600 border-rose-200/50">
+                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs bg-rose-50 text-rose-600 border-rose-200/50 <?= $isHighlighted ? 'ring-2 ring-rose-300 ring-offset-1' : '' ?>">
                                 INACTIVE
                             </span>
                         <?php endif; ?>
@@ -222,7 +206,7 @@ $pageTitle = match ($filter) {
                     </div>
 
                     <div class="col-span-1 flex items-center justify-end gap-1.5 pr-2">
-                        <a href="/BloodConnect/public/admin/user/view?id=<?= $donor['user_id'] ?>"
+                        <a href="/BloodConnect/public/admin/user/view?id=<?= $donor['user_id'] ?>&from=donor"
                             title="View Profile"
                             class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-50 border border-transparent hover:border-slate-200 rounded-xl transition-all active:scale-90">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.3" stroke="currentColor" class="w-4 h-4">
@@ -296,7 +280,7 @@ $pageTitle = match ($filter) {
                     <?php endif; ?>
 
                     <div class="flex items-center gap-2 pt-1">
-                        <a href="/BloodConnect/public/admin/user/view?id=<?= $donor['user_id'] ?>"
+                        <a href="/BloodConnect/public/admin/user/view?id=<?= $donor['user_id'] ?>&from=donor"
                             class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all active:scale-95">
                             Inspect Profile
                         </a>

@@ -4,7 +4,7 @@ $status = $status ?? '';
 $user = \App\Shared\Helpers\Session::get('user', []);
 ?>
 
-<div class="max-w-3xl mx-auto animate-fade-in space-y-6">
+<div class="max-w-3xl mx-auto animate-fade-in space-y-4">
 
     <!-- Header -->
     <div>
@@ -32,7 +32,7 @@ $user = \App\Shared\Helpers\Session::get('user', []);
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div class="h-0.5 bg-gradient-to-r from-rose-400 to-rose-500"></div>
 
-        <form action="" method="POST" id="bloodRequestForm" class="p-6 sm:p-8 space-y-6">
+        <form action="" method="POST" id="bloodRequestForm" class="p-4 sm:p-5 space-y-3.5">
 
             <!-- Row 1: Patient Name + Units -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -44,7 +44,7 @@ $user = \App\Shared\Helpers\Session::get('user', []);
                         </svg>
                         <input type="text" name="patient_name" required placeholder="e.g. John Doe"
                             value="<?= htmlspecialchars($user['username'] ?? '') ?>"
-                            class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
+                            class="w-full h-9 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
                     </div>
                 </div>
 
@@ -55,7 +55,7 @@ $user = \App\Shared\Helpers\Session::get('user', []);
                             <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
                         </svg>
                         <input type="number" name="unit" min="1" max="10" required placeholder="2"
-                            class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
+                            class="w-full h-9 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
                     </div>
                 </div>
             </div>
@@ -87,7 +87,7 @@ $user = \App\Shared\Helpers\Session::get('user', []);
                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
                     </svg>
                     <input type="text" name="hospital_name" required placeholder="e.g. City Hospital, Emergency Wing"
-                        class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
+                        class="w-full h-9 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
                 </div>
             </div>
 
@@ -100,7 +100,7 @@ $user = \App\Shared\Helpers\Session::get('user', []);
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                         </svg>
                         <input type="text" name="state_region" required placeholder="e.g. Yangon Region"
-                            class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
+                            class="w-full h-9 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
                     </div>
                 </div>
 
@@ -111,7 +111,7 @@ $user = \App\Shared\Helpers\Session::get('user', []);
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
                         </svg>
                         <input type="text" name="township" required placeholder="e.g. Hlaingthaya"
-                            class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
+                            class="w-full h-9 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
                     </div>
                 </div>
             </div>
@@ -137,13 +137,13 @@ $user = \App\Shared\Helpers\Session::get('user', []);
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-2.824-1.802-5.14-4.117-6.942-6.942l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                         </svg>
                         <input type="text" name="contact_phone" required placeholder="e.g. 09xxxxxxxxx"
-                            class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
+                            class="w-full h-9 bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 text-sm text-slate-800 placeholder-slate-400 font-medium outline-none transition-all duration-200 focus:bg-white focus:border-rose-400 focus:ring-2 focus:ring-rose-500/10">
                     </div>
                 </div>
 
                 <div class="space-y-1.5">
                     <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Urgency Level</label>
-                    <div class="grid grid-cols-3 gap-2 h-11">
+                    <div class="grid grid-cols-3 gap-2 h-9">
                         <label class="relative flex items-center justify-center gap-1.5 rounded-xl border-2 border-slate-200 bg-slate-50 cursor-pointer transition-all duration-200 hover:border-amber-300 has-[:checked]:border-amber-400 has-[:checked]:bg-amber-50">
                             <input type="radio" name="urgency" value="Standard" checked class="sr-only">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5 text-amber-500">
@@ -172,7 +172,7 @@ $user = \App\Shared\Helpers\Session::get('user', []);
             <!-- Submit -->
             <div class="pt-1">
                 <button type="submit" id="submitBtn"
-                    class="w-full h-11 bg-[#ce2424] hover:bg-[#b81e1e] text-white font-bold rounded-xl text-sm shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2.5 relative overflow-hidden group">
+                    class="w-full h-10 bg-[#ce2424] hover:bg-[#b81e1e] text-white font-bold rounded-xl text-sm shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2.5 relative overflow-hidden group">
                     <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-white/10 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
                     <span id="btnText" class="relative z-10">Broadcast Request</span>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 relative z-10 transition-transform duration-300 group-hover:translate-x-0.5">

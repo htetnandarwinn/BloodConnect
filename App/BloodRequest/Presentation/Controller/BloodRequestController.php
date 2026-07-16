@@ -5,7 +5,7 @@ namespace App\BloodRequest\Presentation\Controller;
 use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
 use App\BloodRequest\Application\UseCase\CreateBloodRequestUseCase;
 use App\Shared\Helpers\Session;
-use App\Shared\Presentation\View\patientView;
+use App\Shared\Presentation\View\View;
 
 class BloodRequestController
 {
@@ -32,7 +32,7 @@ class BloodRequestController
         Session::remove('flash_message');
         Session::remove('flash_status');
 
-        return patientView::render('request_blood', [
+        return View::render('User', 'request_blood', [
             'message' => $message,
             'status'  => $status,
         ]);
@@ -85,3 +85,4 @@ class BloodRequestController
 
     public function details(int $id) {}
 }
+

@@ -21,13 +21,8 @@ $stats = [
     ['label' => 'Accepted Requests', 'value' => $data['acceptedRequests'] ?? 0, 'icon' => '📋', 'bg' => 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20', 'link' => "$basePath/admin/blood-requests?filter=accepted"],
 ];
 
-// ✅ REAL DATABASE ACTIVITY
-try {
-    $logger = new \App\Shared\Infrastructure\Activity\ActivityLogger();
-    $activities = $logger->getLatest(10);
-} catch (\Exception $e) {
-    $activities = [];
-}
+// ✅ RECENT ACTIVITY (provided by the controller via ActivityLogger)
+$activities = $data['activities'] ?? [];
 
 /**
  * TIME AGO FUNCTION (Optimized short versions for better mobile fitting)

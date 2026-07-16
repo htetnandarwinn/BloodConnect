@@ -79,7 +79,8 @@ $container->singleton(
         return new \App\Admin\Presentation\Controller\AdminDashboardController(
             $c->get(\App\User\Domain\Repository\UserRepositoryInterface::class),
             $c->get(\App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface::class),
-            $c->get(\App\Notification\Domain\Repository\NotificationRepositoryInterface::class)
+            $c->get(\App\Notification\Domain\Repository\NotificationRepositoryInterface::class),
+            $c->get(\App\Shared\Infrastructure\Activity\ActivityLogger::class)
         );
     }
 );
@@ -101,11 +102,13 @@ $container->singleton(
             $c->get(\App\Donation\Domain\Repository\DonationRepositoryInterface::class),
             $c->get(\App\Notification\Domain\Repository\NotificationRepositoryInterface::class),
             $c->get(\App\User\Domain\Repository\UserRepositoryInterface::class),
+            $c->get(\App\Donor\Domain\Repository\DonorRepositoryInterface::class),
             $c->get(\App\Shared\Infrastructure\Persistence\MasterDataRepository::class),
             $c->get(\App\Admin\Application\UseCase\ViewBloodRequestsUseCase::class),
             $c->get(\App\Admin\Application\UseCase\ConfirmDonationUseCase::class),
             $c->get(\App\Admin\Application\UseCase\FindMatchingDonorsUseCase::class),
-            $c->get(\App\Admin\Application\UseCase\AssignDonorsUseCase::class)
+            $c->get(\App\Admin\Application\UseCase\AssignDonorsUseCase::class),
+            $c->get(\App\Admin\Application\UseCase\DeleteBloodRequestUseCase::class)
         );
     }
 );
@@ -152,6 +155,13 @@ $uri = '/' . trim($uri, '/');
 if ($uri === '//') {
     $uri = '/';
 }
+
+/**
+ * --------------------------------------------------------
+ * Run idempotent schema migrations once per process
+ * --------------------------------------------------------
+ */
+(new \App\Shared\Infrastructure\Migration\SchemaMigrator())->migrate();
 
 /**
  * --------------------------------------------------------

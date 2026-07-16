@@ -35,7 +35,7 @@ class ConfirmDonationUseCase
             return ['success' => false, 'error' => 'Blood request not found.'];
         }
 
-        $completedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'COMPLETED');
+        $completedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'COMPLETED') ?? 11;
 
         // Business rule: request must have a donor assigned
         $donorId = (int)($request['donor_id'] ?? 0);
@@ -44,9 +44,7 @@ class ConfirmDonationUseCase
         }
 
         // Update blood request status
-        $db = \App\Shared\Infrastructure\Database\Database::getConnection();
-        $stmt = $db->prepare("UPDATE blood_requests SET status = ? WHERE request_id = ?");
-        $stmt->execute([$completedStatus, $requestId]);
+        $this->bloodRequestRepo->completeRequest($requestId, (int)$completedStatus);
 
         // Sync donation record
         $this->donationRepo->updateStatusByRequestId($requestId, (int)$completedStatus);

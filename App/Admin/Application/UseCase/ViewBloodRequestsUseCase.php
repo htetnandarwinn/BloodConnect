@@ -17,9 +17,9 @@ class ViewBloodRequestsUseCase
         return $this->bloodRequestRepo->findById($requestId);
     }
 
-    public function getMatchingDonors(string $bloodGroup): array
+    public function getMatchingDonors(string $bloodGroup, ?string $township = null, ?string $stateRegion = null): array
     {
-        return $this->bloodRequestRepo->getMatchingDonors($bloodGroup);
+        return $this->bloodRequestRepo->getMatchingDonors($bloodGroup, $township, $stateRegion);
     }
 
     public function isRequestAccepted(array $request): bool

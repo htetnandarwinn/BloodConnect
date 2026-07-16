@@ -3,6 +3,7 @@
 namespace App\Donor\Application\UseCase;
 
 use App\Donor\Domain\Repository\DonorRepositoryInterface;
+use App\Donor\Domain\Service\DonorDonationEligibilityService;
 use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
 
@@ -11,7 +12,8 @@ class GetDonorProfileUseCase
     public function __construct(
         private DonorRepositoryInterface $donorRepo,
         private BloodRequestRepositoryInterface $bloodRequestRepo,
-        private MasterDataRepository $masterRepo
+        private MasterDataRepository $masterRepo,
+        private DonorDonationEligibilityService $eligibilityService
     ) {}
 
     public function execute(int $userId): array
@@ -23,9 +25,8 @@ class GetDonorProfileUseCase
         $acceptedRequests = $this->bloodRequestRepo->findAcceptedRequestsForDonor($userId, $acceptedStatus);
         $lastDonationDate = !empty($acceptedRequests[0]['created_at']) ? (string)$acceptedRequests[0]['created_at'] : '';
 
-        $eligibilityService = new DonorDonationEligibilityService();
         $availabilityState = $this->donorRepo->syncAvailabilityStatus($userId);
-        $eligibility = $eligibilityService->evaluate($lastDonationDate, $availabilityState['next_available_date']);
+        $eligibility = $this->eligibilityService->evaluate($lastDonationDate, $availabilityState['next_available_date']);
 
         return [
             'donor' => $donor,

@@ -9,10 +9,50 @@ class Database
 {
     private static ?PDO $connection = null;
 
-    private string $host = "localhost";
-    private string $dbname = "bloodconnect01";
-    private string $username = "root";
-    private string $password = "";
+    /**
+     * Loads environment variables from App/.env (if present) so database
+     * credentials are no longer hardcoded in source. Existing process env
+     * values take precedence. Safe to call multiple times.
+     */
+    private static function loadEnv(): void
+    {
+        static $loaded = false;
+
+        if ($loaded) {
+            return;
+        }
+
+        $loaded = true;
+
+        $file = dirname(__DIR__, 3) . '/.env';
+
+        if (!is_file($file)) {
+            return;
+        }
+
+        foreach (file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+            $line = trim($line);
+
+            if ($line === '' || str_starts_with($line, '#')) {
+                continue;
+            }
+
+            if (!str_contains($line, '=')) {
+                continue;
+            }
+
+            [$key, $value] = explode('=', $line, 2);
+            $key = trim($key);
+            $value = trim($value);
+
+            if ($key === '' || getenv($key) !== false) {
+                continue;
+            }
+
+            putenv("{$key}={$value}");
+            $_ENV[$key] = $value;
+        }
+    }
 
     public static function getConnection(): PDO
     {
@@ -20,13 +60,18 @@ class Database
             return self::$connection;
         }
 
-        try {
-            $instance = new self();
+        self::loadEnv();
 
+        $host = getenv('DB_HOST') ?: 'localhost';
+        $dbname = getenv('DB_NAME') ?: 'bloodconnect01';
+        $username = getenv('DB_USER') ?: 'root';
+        $password = getenv('DB_PASS') ?: '';
+
+        try {
             self::$connection = new PDO(
-                "mysql:host={$instance->host};dbname={$instance->dbname};charset=utf8mb4",
-                $instance->username,
-                $instance->password,
+                "mysql:host={$host};dbname={$dbname};charset=utf8mb4",
+                $username,
+                $password,
                 [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

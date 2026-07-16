@@ -182,7 +182,7 @@ $pageTitle = match ($filter) {
                     <!-- 6. INTERACTIVE ACTIONS DRAWER (col-span-1) -->
                     <div class="col-span-1 flex items-center justify-end gap-1.5 pr-2">
                         <?php $isAdmin = $role === 'admin'; ?>
-                        <a href="/BloodConnect/public/admin/user/view?id=<?= $user['user_id'] ?>"
+                        <a href="/BloodConnect/public/admin/user/view?id=<?= $user['user_id'] ?>&from=user"
                             title="Inspect Node"
                             class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-50 border border-transparent hover:border-slate-200 rounded-xl transition-all active:scale-90">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.3" stroke="currentColor" class="w-4 h-4">
@@ -247,7 +247,7 @@ $pageTitle = match ($filter) {
                     </div>
 
                     <div class="flex items-center gap-2 pt-1">
-                        <a href="/BloodConnect/public/admin/user/view?id=<?= $user['user_id'] ?>"
+                        <a href="/BloodConnect/public/admin/user/view?id=<?= $user['user_id'] ?>&from=user"
                             class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all active:scale-95">
                             Inspect Profile
                         </a>

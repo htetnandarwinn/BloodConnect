@@ -6,7 +6,7 @@ use App\Shared\Helpers\Session;
 use App\Authentication\Application\UseCase\LoginUseCase;
 use App\Authentication\Application\UseCase\RegisterPatientUseCase;
 use App\Authentication\Application\UseCase\LogoutUseCase;
-use App\Authentication\Presentation\View\View;
+use App\Shared\Presentation\View\View;
 use App\Authentication\Application\DTO\RegisterPatientDTO;
 use App\Authentication\Domain\Repository\AuthRepositoryInterface;
 use App\Donor\Domain\Repository\DonorRepositoryInterface;
@@ -22,18 +22,21 @@ class AuthController
         private AuthRepositoryInterface $authRepo,
         private EmailService $emailService,
         private DonorRepositoryInterface $donorRepo,
-        private ActivityLogger $activityLogger
+        private ActivityLogger $activityLogger,
+        private RegisterPatientUseCase $registerPatientUseCase,
+        private LoginUseCase $loginUseCase,
+        private LogoutUseCase $logoutUseCase
     ) {}
     // ================= VIEW =================
 
     public function showRegister()
     {
-        View::render('register');
+        View::render('Authentication', 'register');
     }
 
     public function showLogin()
     {
-        View::render('login');
+        View::render('Authentication', 'login');
     }
 
     public function showForgotPassword()
@@ -41,7 +44,7 @@ class AuthController
         Session::start();
         Session::remove('reset_email');
         Session::remove('reset_verified');
-        View::render('forgot-password');
+        View::render('Authentication', 'forgot-password');
     }
 
     public function sendPasswordResetOtp()
@@ -90,7 +93,7 @@ class AuthController
             $this->redirect('/forgot-password');
         }
 
-        View::render('forgot-password-otp');
+        View::render('Authentication', 'forgot-password-otp');
     }
 
     public function verifyForgotPasswordOtp()
@@ -135,7 +138,7 @@ class AuthController
             $this->redirect('/forgot-password');
         }
 
-        View::render('reset-password');
+        View::render('Authentication', 'reset-password');
     }
 
     public function resetPassword()
@@ -199,13 +202,7 @@ class AuthController
                 $role
             );
 
-            $useCase = new RegisterPatientUseCase(
-                $this->authRepo,
-                $this->emailService,
-                $this->donorRepo
-            );
-
-            $result = $useCase->execute(
+            $result = $this->registerPatientUseCase->execute(
                 $dto,
                 $userTypeId,
                 $statusId,
@@ -259,9 +256,7 @@ class AuthController
             $request = new LoginRequest();
             $data = $request->validate($_POST);
 
-            $useCase = new LoginUseCase($this->authRepo, $this->activityLogger);
-
-            $result = $useCase->execute($data);
+            $result = $this->loginUseCase->execute($data);
 
             if (!$result['success']) {
 
@@ -382,8 +377,7 @@ class AuthController
 
     public function logout()
     {
-        $useCase = new LogoutUseCase($this->authRepo);
-        $useCase->execute();
+        $this->logoutUseCase->execute();
 
         $this->redirect('/');
     }
@@ -434,3 +428,4 @@ class AuthController
         require __DIR__ . '/../Layout/adminApp.php';
     }
 }
+

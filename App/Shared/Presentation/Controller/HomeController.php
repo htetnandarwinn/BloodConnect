@@ -25,7 +25,7 @@ class HomeController
             if ((int)($user['user_type_id'] ?? 0) === 2) $totalDonors++;
         }
 
-        return View::render('home', [
+        return View::render('Shared', 'home', [
             'successful_donations' => $successfulDonations,
             'total_donors' => $totalDonors,
             'total_users' => $totalUsers,
@@ -34,12 +34,12 @@ class HomeController
 
     public function about()
     {
-        return View::render('about');
+        return View::render('Shared', 'about');
     }
 
     public function contact()
     {
-        return View::render('contact');
+        return View::render('Shared', 'contact');
     }
 
     public function contactSend()
@@ -70,30 +70,31 @@ class HomeController
 
     public function faq()
     {
-        return View::render('faq');
+        return View::render('Shared', 'faq');
     }
 
     public function privacy()
     {
-        return View::render('privacy_policy');
+        return View::render('Shared', 'privacy_policy');
     }
 
     public function terms()
     {
-        return View::render('terms_of_service');
+        return View::render('Shared', 'terms_of_service');
     }
 
     public function search()
     {
-        return View::render('search');
+        return View::render('Shared', 'search');
     }
 
     public function donors()
     {
-        return View::render('donors');
+        return View::render('Shared', 'donors');
     }
     public function donor_dashboard()
     {
-        return View::render('donor-dashboard');
+        return View::render('Shared', 'donor-dashboard');
     }
 }
+

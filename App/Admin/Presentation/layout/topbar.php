@@ -27,7 +27,7 @@ $unreadCount = $unreadCount ?? 0;
         <h2 class="text-sm sm:text-base lg:text-lg font-black text-[#0b1325] tracking-tight leading-none whitespace-nowrap">
             Admin Dashboard
         </h2>
-    </div>
+    </div> 
 
     <!-- Right Section -->
     <div class="flex items-center gap-2 sm:gap-5">

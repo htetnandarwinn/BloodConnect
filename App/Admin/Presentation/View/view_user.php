@@ -1,6 +1,7 @@
 <?php
 
 use App\Shared\Infrastructure\Database\Database;
+use App\Shared\Helpers\DonorAvailabilityHelper;
 
 $db = Database::getConnection();
 
@@ -53,13 +54,35 @@ if (!$user) {
 }
 
 $role = $user['role'] ?? 'Unknown';
+$from = $_GET['from'] ?? '';
+
+// Active status (donor-management source of truth, reusable for any viewer)
+$activeStatus = null;
+$eligibilityReasons = [];
+if (strtolower($role) === 'donor') {
+    $activeStatus = DonorAvailabilityHelper::withEligibilityOverride(
+        DonorAvailabilityHelper::compute(
+            (int)($user['is_active'] ?? 1),
+            (int)($user['available'] ?? 1),
+            $user['next_available_date'] ?? null,
+            $user['date_of_birth'] ?? null,
+            $user['weight'] ?? null
+        ),
+        $user['date_of_birth'] ?? null,
+        $user['weight'] ?? null
+    );
+    $eligibilityReasons = DonorAvailabilityHelper::eligibilityReasons(
+        $user['date_of_birth'] ?? null,
+        $user['weight'] ?? null
+    );
+}
 ?>
 
 <div id="userProfileContainer" class="max-w-4xl mx-auto px-4 py-6 sm:px-6 lg:px-8 opacity-0 translate-y-4 transition-all duration-500 ease-out">
 
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
-            <a href="/BloodConnect/public/admin/user-management" class="group p-2.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-500 hover:text-red-600 rounded-xl shadow-sm transition-all active:scale-95 duration-150">
+            <a href="/BloodConnect/public/admin/<?= $from === 'donor' ? 'donor-management?highlight=' . (int)($user['user_id'] ?? 0) : 'user-management' ?>" class="group p-2.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-500 hover:text-red-600 rounded-xl shadow-sm transition-all active:scale-95 duration-150">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                 </svg>
@@ -116,15 +139,21 @@ $role = $user['role'] ?? 'Unknown';
 
             <div class="sm:self-end flex flex-col items-end gap-2">
                 <?php if (strtolower($role) === 'donor'): ?>
-                    <?php if ((int)($user['available'] ?? 1) === 1): ?>
+                    <?php if ($activeStatus === DonorAvailabilityHelper::STATUS_AVAILABLE): ?>
                         <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full">
                             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                             Available
                         </span>
-                    <?php else: ?>
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-full">
+                    <?php elseif ($activeStatus === DonorAvailabilityHelper::STATUS_UNAVAILABLE): ?>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-full"
+                              title="<?= !empty($eligibilityReasons) ? 'Eligibility: ' . implode(', ', $eligibilityReasons) : '' ?>">
                             <span class="w-2 h-2 rounded-full bg-red-500"></span>
                             Unavailable
+                        </span>
+                    <?php else: ?>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200 rounded-full">
+                            <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                            Inactive
                         </span>
                     <?php endif; ?>
                 <?php endif; ?>
@@ -132,6 +161,36 @@ $role = $user['role'] ?? 'Unknown';
         </div>
 
         <div class="p-6 bg-slate-50/50 grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            <?php if (strtolower($role) === 'donor' && $activeStatus !== null): ?>
+                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-2 sm:col-span-2">
+                    <span class="text-[11px] uppercase font-bold tracking-wider text-slate-400 block">Active Status</span>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <?php if ($activeStatus === DonorAvailabilityHelper::STATUS_AVAILABLE): ?>
+                            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                Available
+                            </span>
+                        <?php elseif ($activeStatus === DonorAvailabilityHelper::STATUS_UNAVAILABLE): ?>
+                            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 text-sm font-bold text-red-700 bg-red-50 border border-red-200 rounded-full">
+                                <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                                Unavailable
+                            </span>
+                        <?php else: ?>
+                            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 text-sm font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-full">
+                                <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                                Inactive
+                            </span>
+                        <?php endif; ?>
+                        <?php if (!empty($eligibilityReasons)): ?>
+                            <span class="text-xs font-medium text-red-500">
+                                Eligibility: <?= htmlspecialchars(implode(', ', $eligibilityReasons)) ?>
+                            </span>
+                        <?php endif; ?>
+                        <span class="text-[11px] text-slate-400 font-medium ml-auto">Source: Donor Management</span>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-1.5">
                 <span class="text-[11px] uppercase font-bold tracking-wider text-slate-400 block">Email Address</span>

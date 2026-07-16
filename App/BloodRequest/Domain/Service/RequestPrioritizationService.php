@@ -2,6 +2,8 @@
 
 namespace App\BloodRequest\Domain\Service;
 
+use App\BloodRequest\Domain\ValueObject\Urgency;
+
 /**
  * Encapsulates the blood-request prioritization business rule.
  *
@@ -11,29 +13,22 @@ namespace App\BloodRequest\Domain\Service;
  * Ties on the same urgency level are broken by creation time,
  * the earliest request taking precedence.
  *
+ * The urgency rank mapping lives in the Urgency value object, which is the
+ * single source of truth; this service delegates to it.
+ *
  * This is a pure domain rule: no database access, no framework
  * dependencies, so it can be reused by any application use case.
  */
 class RequestPrioritizationService
 {
-    // Lower number means higher priority.
-    private const URGENCY_RANK = [
-        'CRITICAL' => 0,
-        'URGENT'   => 1,
-        'STANDARD' => 2,
-        'ROUTINE'  => 2,
-    ];
-
-    private const DEFAULT_RANK = 2;
-
     public function rank(string $urgency): int
     {
-        return self::URGENCY_RANK[strtoupper(trim($urgency))] ?? self::DEFAULT_RANK;
+        return (new Urgency($urgency))->rank();
     }
 
     public function isHigherPriority(string $a, string $b): bool
     {
-        return $this->rank($a) < $this->rank($b);
+        return (new Urgency($a))->isHigherPriorityThan(new Urgency($b));
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Authentication\Presentation\Controller;
 
 use App\Shared\Helpers\Session;
+use App\Shared\Presentation\View\View;
 use App\Authentication\Domain\Repository\AuthRepositoryInterface;
 use App\Donor\Domain\Repository\DonorRepositoryInterface;
 use App\Shared\Infrastructure\Mail\EmailService;
@@ -14,11 +15,12 @@ class VerifyEmailController
     public function __construct(
         private AuthRepositoryInterface $authRepo,
         private EmailService $emailService,
-        private DonorRepositoryInterface $donorRepo
+        private DonorRepositoryInterface $donorRepo,
+        private RegisterPatientUseCase $registerPatientUseCase
     ) {}
     public function show()
     {
-        return \App\Authentication\Presentation\View\View::render('verify-email');
+        return View::render('Authentication', 'verify-email');
     }
 
     public function verify()
@@ -49,12 +51,6 @@ class VerifyEmailController
             $this->redirect('/verify-email');
         }
 
-        $useCase = new RegisterPatientUseCase(
-            $this->authRepo,
-            $this->emailService,
-            $this->donorRepo
-        );
-
         $dto = new RegisterPatientDTO(
             $pending['username'],
             $pending['email'],
@@ -65,7 +61,7 @@ class VerifyEmailController
             $pending['role']
         );
 
-        $userId = $useCase->finalizeRegistration(
+        $userId = $this->registerPatientUseCase->finalizeRegistration(
             $dto,
             (int)$pending['user_type_id'],
             (int)$pending['status_id'],
@@ -111,3 +107,4 @@ class VerifyEmailController
         exit;
     }
 }
+

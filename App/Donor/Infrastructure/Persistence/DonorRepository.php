@@ -3,6 +3,7 @@
 namespace App\Donor\Infrastructure\Persistence;
 
 use App\Donor\Domain\Repository\DonorRepositoryInterface;
+use App\Donor\Domain\Service\DonorEligibilityService;
 use App\Shared\Infrastructure\Database\Database;
 use PDO;
 
@@ -10,7 +11,7 @@ class DonorRepository implements DonorRepositoryInterface
 {
     private PDO $db;
 
-    public function __construct()
+    public function __construct(private DonorEligibilityService $eligibilityService)
     {
         $this->db = Database::getConnection();
     }
@@ -44,28 +45,9 @@ class DonorRepository implements DonorRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    private function ensureNextAvailableDateColumn(): void
-    {
-        try {
-            $stmt = $this->db->query("SHOW COLUMNS FROM users LIKE 'next_available_date'");
-            if ($stmt->rowCount() === 0) {
-                $this->db->exec("ALTER TABLE users ADD COLUMN next_available_date DATETIME DEFAULT NULL");
-            }
-        } catch (\PDOException $e) {
-            if (strpos($e->getMessage(), 'next_available_date') !== false) {
-                $this->db->exec("ALTER TABLE users ADD COLUMN next_available_date DATETIME DEFAULT NULL");
-            } else {
-                throw $e;
-            }
-        }
-    }
-
     public function syncAvailabilityStatus(int $userId): array
     {
-        $this->ensureNextAvailableDateColumn();
-        $this->ensureLocationColumns();
-
-        $stmt = $this->db->prepare("
+                $stmt = $this->db->prepare("
             SELECT u.available, u.next_available_date, d.date_of_birth, d.weight
             FROM users u
             LEFT JOIN donors d ON d.user_id = u.user_id
@@ -84,7 +66,7 @@ class DonorRepository implements DonorRepositoryInterface
         // Check age/weight eligibility
         $profileEligible = true;
         if (!empty($row['date_of_birth']) && !empty($row['weight'])) {
-            $eligibility = (new \App\Donor\Domain\Service\DonorEligibilityService())->evaluate(
+            $eligibility = $this->eligibilityService->evaluate(
                 (string)($row['date_of_birth'] ?? ''),
                 (string)($row['weight'] ?? '')
             );
@@ -103,6 +85,8 @@ class DonorRepository implements DonorRepositoryInterface
         $available = (int)($row['available'] ?? 1) === 1;
         $nextAvailableDate = trim((string)($row['next_available_date'] ?? ''));
 
+        // Already has a future unavailability window (e.g. post-donation wait):
+        // only re-enable once that date has passed.
         if (!$available && $nextAvailableDate !== '') {
             $timezone = new \DateTimeZone('Asia/Yangon');
             $now = new \DateTime('now', $timezone);
@@ -121,6 +105,20 @@ class DonorRepository implements DonorRepositoryInterface
                     'next_available_date' => null
                 ];
             }
+
+            return [
+                'available' => false,
+                'next_available_date' => $nextAvailableDate
+            ];
+        }
+
+        // Profile is eligible and there is no future unavailability window:
+        // the donor should be Available. Flip them back if they were marked
+        // unavailable (e.g. due to a previously ineligible weight/age).
+        if ($profileEligible && !$available) {
+            $update = $this->db->prepare("UPDATE users SET available = 1 WHERE user_id = ?");
+            $update->execute([$userId]);
+            $available = true;
         }
 
         return [
@@ -131,8 +129,6 @@ class DonorRepository implements DonorRepositoryInterface
 
     public function saveNextAvailableDate(int $userId, string $nextAvailableDate): bool
     {
-        $this->ensureNextAvailableDateColumn();
-
         $stmt = $this->db->prepare("UPDATE users SET available = 0, next_available_date = ? WHERE user_id = ?");
         return $stmt->execute([$nextAvailableDate, $userId]);
     }
@@ -173,65 +169,15 @@ class DonorRepository implements DonorRepositoryInterface
         return $stmt->execute([$userId]);
     }
 
-    public function ensureDonorColumns(): void
-    {
-        try {
-            $stmt = $this->db->query("SHOW COLUMNS FROM donors LIKE 'date_of_birth'");
-            if ($stmt->rowCount() === 0) {
-                $this->db->exec("ALTER TABLE donors ADD COLUMN date_of_birth DATE DEFAULT NULL AFTER weight");
-            }
-        } catch (\PDOException $e) {
-            if (strpos($e->getMessage(), 'date_of_birth') !== false) {
-                $this->db->exec("ALTER TABLE donors ADD COLUMN date_of_birth DATE DEFAULT NULL AFTER weight");
-            } else {
-                throw $e;
-            }
-        }
-    }
-
-    public function ensureLocationColumns(): void
-    {
-        try {
-            $stmt = $this->db->query("SHOW COLUMNS FROM donors LIKE 'state_region'");
-            if ($stmt->rowCount() === 0) {
-                $this->db->exec("ALTER TABLE donors ADD COLUMN state_region VARCHAR(100) DEFAULT NULL AFTER date_of_birth");
-            }
-        } catch (\PDOException $e) {
-            if (strpos($e->getMessage(), 'state_region') !== false) {
-                $this->db->exec("ALTER TABLE donors ADD COLUMN state_region VARCHAR(100) DEFAULT NULL AFTER date_of_birth");
-            } else {
-                throw $e;
-            }
-        }
-
-        try {
-            $stmt = $this->db->query("SHOW COLUMNS FROM donors LIKE 'township'");
-            if ($stmt->rowCount() === 0) {
-                $this->db->exec("ALTER TABLE donors ADD COLUMN township VARCHAR(100) DEFAULT NULL AFTER state_region");
-            }
-        } catch (\PDOException $e) {
-            if (strpos($e->getMessage(), 'township') !== false) {
-                $this->db->exec("ALTER TABLE donors ADD COLUMN township VARCHAR(100) DEFAULT NULL AFTER state_region");
-            } else {
-                throw $e;
-            }
-        }
-    }
-
     public function saveLocation(int $userId, string $stateRegion, string $township): bool
     {
-        $this->ensureLocationColumns();
-
-        $stmt = $this->db->prepare("UPDATE donors SET state_region = ?, township = ? WHERE user_id = ?");
+                $stmt = $this->db->prepare("UPDATE donors SET state_region = ?, township = ? WHERE user_id = ?");
         return $stmt->execute([$stateRegion, $township, $userId]);
     }
 
     public function getDonorDetails(int $userId): ?array
     {
-        $this->ensureDonorColumns();
-        $this->ensureLocationColumns();
-
-        $stmt = $this->db->prepare("
+                        $stmt = $this->db->prepare("
             SELECT d.*, u.username, u.email, u.phone, u.blood_group, u.address
             FROM donors d
             JOIN users u ON u.user_id = d.user_id
@@ -244,10 +190,7 @@ class DonorRepository implements DonorRepositoryInterface
 
     public function saveDonorDetails(int $userId, array $data): bool
     {
-        $this->ensureDonorColumns();
-        $this->ensureLocationColumns();
-
-        $fields = [];
+                        $fields = [];
         $params = [];
 
         if (isset($data['date_of_birth'])) {
@@ -279,9 +222,7 @@ class DonorRepository implements DonorRepositoryInterface
 
     public function isProfileComplete(int $userId): bool
     {
-        $this->ensureDonorColumns();
-
-        $stmt = $this->db->prepare("SELECT date_of_birth, weight FROM donors WHERE user_id = ?");
+                $stmt = $this->db->prepare("SELECT date_of_birth, weight FROM donors WHERE user_id = ?");
         $stmt->execute([$userId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -298,3 +239,4 @@ class DonorRepository implements DonorRepositoryInterface
         return $stmt->execute([$weight, $userId]);
     }
 }
+

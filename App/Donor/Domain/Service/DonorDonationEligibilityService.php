@@ -1,7 +1,14 @@
 <?php
 
-namespace App\Donor\Application\UseCase;
+namespace App\Donor\Domain\Service;
 
+/**
+ * Domain service that evaluates whether a donor is currently eligible to donate,
+ * based on their last donation date and/or their next-available date.
+ *
+ * Stateless, framework-independent domain logic (belongs in the Domain layer,
+ * not in Application\UseCase where it previously lived).
+ */
 class DonorDonationEligibilityService
 {
     private int $cooldownMonths = 3;

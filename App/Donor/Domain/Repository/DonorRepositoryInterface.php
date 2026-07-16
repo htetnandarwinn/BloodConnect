@@ -14,7 +14,5 @@ interface DonorRepositoryInterface
     public function saveDonorDetails(int $userId, array $data): bool;
     public function isProfileComplete(int $userId): bool;
     public function updateWeight(int $userId, string $weight): bool;
-    public function ensureDonorColumns(): void;
-    public function ensureLocationColumns(): void;
     public function saveLocation(int $userId, string $stateRegion, string $township): bool;
 }

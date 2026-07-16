@@ -18,7 +18,8 @@ class AssignDonorsUseCase
         private UserRepositoryInterface $userRepo,
         private MasterDataRepository $masterRepo,
         private DonorRepositoryInterface $donorRepo,
-        private RequestPrioritizationService $prioritizationService
+        private RequestPrioritizationService $prioritizationService,
+        private DonorEligibilityService $donorEligibilityService
     ) {}
 
     public function execute(int $requestId, array $donorIds): array
@@ -33,14 +34,13 @@ class AssignDonorsUseCase
             return ['success' => false, 'error' => 'Blood request not found.'];
         }
 
-        $eligibilityService = new DonorEligibilityService();
         $validDonorIds = [];
         $skippedDonors = [];
 
         foreach ($donorIds as $donorId) {
             $donorDetails = $this->donorRepo->getDonorDetails((int)$donorId);
             if ($donorDetails) {
-                $result = $eligibilityService->evaluate(
+                $result = $this->donorEligibilityService->evaluate(
                     (string)($donorDetails['date_of_birth'] ?? ''),
                     (string)($donorDetails['weight'] ?? '')
                 );

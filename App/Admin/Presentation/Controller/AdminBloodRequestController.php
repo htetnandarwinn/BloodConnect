@@ -4,6 +4,7 @@ namespace App\Admin\Presentation\Controller;
 
 use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
 use App\Donation\Domain\Repository\DonationRepositoryInterface;
+use App\Donor\Domain\Repository\DonorRepositoryInterface;
 use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 use App\User\Domain\Repository\UserRepositoryInterface;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
@@ -11,6 +12,7 @@ use App\Admin\Application\UseCase\ViewBloodRequestsUseCase;
 use App\Admin\Application\UseCase\ConfirmDonationUseCase;
 use App\Admin\Application\UseCase\FindMatchingDonorsUseCase;
 use App\Admin\Application\UseCase\AssignDonorsUseCase;
+use App\Admin\Application\UseCase\DeleteBloodRequestUseCase;
 
 class AdminBloodRequestController
 {
@@ -19,16 +21,17 @@ class AdminBloodRequestController
         private DonationRepositoryInterface $donationRepo,
         private NotificationRepositoryInterface $notificationRepo,
         private UserRepositoryInterface $userRepo,
+        private DonorRepositoryInterface $donorRepository,
         private MasterDataRepository $masterRepo,
         private ViewBloodRequestsUseCase $viewUseCase,
         private ConfirmDonationUseCase $confirmUseCase,
         private FindMatchingDonorsUseCase $findMatchingUseCase,
-        private AssignDonorsUseCase $assignUseCase
+        private AssignDonorsUseCase $assignUseCase,
+        private DeleteBloodRequestUseCase $deleteUseCase
     ) {}
 
     public function bloodRequests(): void
     {
-        $repo = new \App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository();
         $db = \App\Shared\Infrastructure\Database\Database::getConnection();
         $stmt = $db->prepare("SELECT COUNT(*) FROM blood_requests WHERE status = 7");
         $stmt->execute();
@@ -89,9 +92,20 @@ class AdminBloodRequestController
         $regionDonors = $matchingResult['region_matches'] ?? [];
         $allDonors = $matchingResult['all_matches'] ?? [];
 
-        $donors = !empty($townshipDonors) ? $townshipDonors
-                : (!empty($regionDonors) ? $regionDonors
-                : $allDonors);
+        // Region-prioritized combined list: same township first, then same
+        // region/state, then broadcast donors. Each donor is tagged with its
+        // match tier so the admin is steered to assign from the same region.
+        $tierRank = ['township' => 0, 'region' => 1, 'all' => 2];
+        $tagged = [];
+        foreach ($townshipDonors as $d) { $tagged[] = array_merge($d, ['match_tier' => 'township']); }
+        foreach ($regionDonors as $d) { $tagged[] = array_merge($d, ['match_tier' => 'region']); }
+        foreach ($allDonors as $d) { $tagged[] = array_merge($d, ['match_tier' => 'all']); }
+
+        if (!empty($tagged)) {
+            usort($tagged, fn($a, $b) => ($tierRank[$a['match_tier']] ?? 3) <=> ($tierRank[$b['match_tier']] ?? 3));
+        }
+
+        $donors = $tagged;
 
         $competingRequests = $matchingResult['competing_requests'] ?? [];
 
@@ -102,8 +116,7 @@ class AdminBloodRequestController
 
         $donorId = !empty($request['donor_id']) ? (int)$request['donor_id'] : 0;
         if ($donorId > 0) {
-            $donorRepo = new \App\Donor\Infrastructure\Persistence\DonorRepository();
-            $donorDetails = $donorRepo->getDonorDetails($donorId);
+            $donorDetails = $this->donorRepository->getDonorDetails($donorId);
             $donorUser = $donorDetails ?: $this->userRepo->findById($donorId);
             $donorData = $donorUser ?: ['user_id' => $donorId, 'username' => 'Donor #' . $donorId, 'blood_group' => '', 'phone' => '', 'email' => ''];
             if ($isAccepted) {
@@ -205,59 +218,11 @@ class AdminBloodRequestController
             exit;
         }
 
-        $request = $this->bloodRequestRepo->findById($requestId);
-        if (!$request) {
+        $result = $this->deleteUseCase->execute($requestId);
+
+        if (!$result['success']) {
             header('Location: /BloodConnect/public/admin/blood-requests?error=1');
             exit;
-        }
-
-        $isPending = (int)($request['status'] ?? 0) === ($this->masterRepo->getId('REQUEST_STATUS', 'PENDING') ?? 7);
-
-        $deleted = $this->bloodRequestRepo->deleteRequest($requestId);
-
-        if (!$deleted) {
-            header('Location: /BloodConnect/public/admin/blood-requests?error=1');
-            exit;
-        }
-
-        if ($isPending) {
-            $patientId = (int)($request['patient_id'] ?? 0);
-            $donorId = (int)($request['donor_id'] ?? 0);
-            $requestCode = (string)($request['request_code'] ?? 'Unknown');
-            $patientName = (string)($request['patient_name'] ?? 'A patient');
-            $bloodGroup = (string)($request['blood_group_needed'] ?? '');
-            $message = "Admin deleted your pending blood request {$requestCode}.";
-
-            if ($patientId > 0) {
-                $this->notificationRepo->create($patientId, 'Request Deleted', $message, 'REMINDER');
-            }
-
-            $donorIds = [];
-            if ($donorId > 0) {
-                $donorIds[] = $donorId;
-            }
-
-            if ($bloodGroup !== '') {
-                $matchingDonors = $this->bloodRequestRepo->getMatchingDonors($bloodGroup);
-                foreach ($matchingDonors as $matchedDonor) {
-                    $matchedDonorId = (int)($matchedDonor['user_id'] ?? 0);
-                    if ($matchedDonorId > 0) {
-                        $donorIds[] = $matchedDonorId;
-                    }
-                }
-            }
-
-            foreach (array_unique(array_filter($donorIds)) as $notifyDonorId) {
-                $this->notificationRepo->create($notifyDonorId, 'Request Deleted', "The pending blood request {$requestCode} for {$patientName} was removed by admin.", 'REMINDER');
-            }
-
-            $admins = $this->userRepo->getAdmins();
-            foreach ($admins as $admin) {
-                $adminId = (int)($admin['user_id'] ?? 0);
-                if ($adminId > 0) {
-                    $this->notificationRepo->create($adminId, 'Request Deleted', "Pending blood request {$requestCode} was deleted by admin.", 'REMINDER');
-                }
-            }
         }
 
         header('Location: /BloodConnect/public/admin/blood-requests?deleted=1');

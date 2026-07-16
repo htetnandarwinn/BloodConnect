@@ -56,7 +56,11 @@ class CancelBloodRequestUseCase
             );
         }
 
-        $matchingDonors = $this->bloodRequestRepo->getMatchingDonors($bloodGroup);
+        $matchingDonors = $this->bloodRequestRepo->getMatchingDonors(
+            $bloodGroup,
+            $request['township'] ?? null,
+            $request['state_region'] ?? null
+        );
         foreach ($matchingDonors as $donor) {
             $matchedDonorId = (int)$donor['user_id'];
             if ($matchedDonorId === $donorId) {

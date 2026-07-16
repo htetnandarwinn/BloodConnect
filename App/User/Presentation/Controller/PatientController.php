@@ -3,7 +3,7 @@
 namespace App\User\Presentation\Controller;
 
 use App\Shared\Helpers\Session;
-use App\Shared\Presentation\View\patientView;
+use App\Shared\Presentation\View\View;
 use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
 use App\BloodRequest\Application\UseCase\CancelBloodRequestUseCase;
 use App\Notification\Domain\Repository\NotificationRepositoryInterface;
@@ -74,7 +74,7 @@ class PatientController
 
         $allRequests = $this->bloodRequestRepo->findByPatientId($patientId);
 
-        return patientView::render('patient_dashboard', [
+        return View::render('User', 'patient_dashboard', [
             'username'    => Session::get('username'),
             'requests'    => array_slice($allRequests, 0, 6),
             'metrics'     => $this->bloodRequestRepo->getPatientStats($patientId),
@@ -95,7 +95,7 @@ class PatientController
         $requests = $this->bloodRequestRepo->findByPatientId($this->getUserId());
         $requests = $this->filterRequests($requests, $filter);
 
-        return patientView::render('myrequest', [
+        return View::render('User', 'myrequest', [
             'username'    => Session::get('username'),
             'requests'    => $requests,
             'unreadCount' => $this->getUnreadCount(),
@@ -129,7 +129,7 @@ class PatientController
         $requests = $this->bloodRequestRepo->findByPatientId($this->getUserId());
         $requests = $this->filterRequests($requests, 'cancelled');
 
-        return patientView::render('myrequest', [
+        return View::render('User', 'myrequest', [
             'username'     => Session::get('username'),
             'requests'     => $requests,
             'unreadCount'  => $this->getUnreadCount(),
@@ -176,7 +176,7 @@ class PatientController
             }
         }
 
-        return patientView::render('request_detail', [
+        return View::render('User', 'request_detail', [
             'username'    => Session::get('username'),
             'request'     => $request,
             'unreadCount' => $this->getUnreadCount()
@@ -187,7 +187,7 @@ class PatientController
     {
         $this->authGuard();
 
-        return patientView::render('patientProfile', [
+        return View::render('User', 'patientProfile', [
             'user'        => $this->userRepo->findById($this->getUserId()),
             'unreadCount' => $this->getUnreadCount()
         ]);
@@ -268,7 +268,7 @@ class PatientController
     {
         $this->authGuard();
 
-        return patientView::render('search_donors', [
+        return View::render('User', 'search_donors', [
             'username'    => Session::get('username'),
             'unreadCount' => $this->getUnreadCount()
         ]);
@@ -280,7 +280,7 @@ class PatientController
 
         $patientId = $this->getUserId();
 
-        return patientView::render('notification', [
+        return View::render('User', 'notification', [
             'username'      => Session::get('username'),
             'notifications' => $this->notificationRepo->findByUserId($patientId),
             'unreadCount'   => $this->getUnreadCount()
@@ -317,7 +317,7 @@ class PatientController
     {
         $this->authGuard();
 
-        return patientView::render('update_profile', [
+        return View::render('User', 'update_profile', [
             'user' => $this->userRepo->findById($this->getUserId()),
             'unreadCount' => $this->getUnreadCount()
         ]);
@@ -375,3 +375,4 @@ class PatientController
         return $this->bloodRequestRepo->getPatientStats($patientId);
     }
 }
+

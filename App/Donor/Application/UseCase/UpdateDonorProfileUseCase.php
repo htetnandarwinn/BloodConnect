@@ -18,10 +18,21 @@ class UpdateDonorProfileUseCase
 
     public function execute(int $userId, array $data): array
     {
+        $weight = trim((string)($data['weight'] ?? ''));
+        if ($weight !== '') {
+            if (!is_numeric($weight) || (float)$weight <= 0) {
+                return ['success' => false, 'errors' => ['weight' => 'Please enter a valid weight.']];
+            }
+        }
+
         $success = $this->donorRepo->updateProfile($userId, $data);
         if (!$success) {
             return ['success' => false, 'error' => 'Update failed.'];
         }
+
+        // Re-evaluate availability: a corrected weight (or date of birth) must
+        // flip the donor back to Available when they meet eligibility again.
+        $this->donorRepo->syncAvailabilityStatus($userId);
 
         $this->notificationRepo->create(
             $userId,

@@ -1,32 +1,9 @@
 <?php
 
-use App\BloodRequest\Infrastructure\Persistence\BloodRequestRepository;
-use App\Donor\Infrastructure\Persistence\DonorRepository;
 use App\Shared\Helpers\Permission;
-use App\Shared\Helpers\Session;
 
-$pendingRequestsCount = 0;
-
-if (Permission::can('blood_request.view_matching')) {
-    $user = Session::get('user');
-    $bloodGroup = '';
-
-    if (is_array($user)) {
-        $bloodGroup = trim((string)($user['blood_group'] ?? ''));
-    }
-
-    if ($bloodGroup === '') {
-        $donorRepo = new DonorRepository();
-        $donor = $donorRepo->findById((int) Session::get('user_id'));
-        $bloodGroup = trim((string)($donor['blood_group'] ?? ''));
-    }
-
-    if ($bloodGroup !== '') {
-        $repo = new BloodRequestRepository();
-        $totalPending = count($repo->findPendingRequestsForDonor($bloodGroup));
-        $viewedCount = count($_SESSION['viewed_pending_requests'] ?? []);
-        $pendingRequestsCount = max(0, $totalPending - $viewedCount);
-    }
+if (!isset($pendingRequestsCount)) {
+    $pendingRequestsCount = 0;
 }
 
 ?>
@@ -47,7 +24,7 @@ if (Permission::can('blood_request.view_matching')) {
                     <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Donor Dashboard</span>
                 </div>
             </div>
-            <button id="closeSidebarBtn" class="lg:hidden p-2 rounded-xl hover:bg-slate-50 text-slate-400 hover:text-slate-600 transition-colors">✕</button>
+            <button id="closeSidebarBtn" class="lg:hidden p-2 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-600 transition-colors">✕</button>
         </div>
 
         <nav class="space-y-1.5" id="sidebarNav">
@@ -55,7 +32,7 @@ if (Permission::can('blood_request.view_matching')) {
             <?php if (Permission::can('dashboard.view')): ?>
 
                 <a href="/BloodConnect/public/donor/dashboard"
-                    class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
+                    class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                     </svg>
@@ -70,7 +47,7 @@ if (Permission::can('blood_request.view_matching')) {
 
             <?php if (Permission::can('availability')): ?>
                 <a href="/BloodConnect/public/donor/availability"
-                    class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
+                    class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                     </svg>
@@ -80,7 +57,8 @@ if (Permission::can('blood_request.view_matching')) {
 
             <?php if (Permission::can('blood_request.view_matching')): ?>
                 <a href="/BloodConnect/public/donor/blood-requests"
-                    class="nav-link flex items-center justify-between px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
+                    data-section="blood-requests"
+                    class="nav-link flex items-center justify-between px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200">
                     <div class="flex items-center gap-3.5">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 shrink-0">
                             <path d="M12 2.5C12 2.5 5 9.5 5 14.5C5 18.37 8.13 21.5 12 21.5C15.87 21.5 19 18.37 19 14.5C19 9.5 12 2.5 12 2.5Z" />
@@ -99,7 +77,8 @@ if (Permission::can('blood_request.view_matching')) {
             <?php if (Permission::can('donation_history.view')): ?>
 
                 <a href="/BloodConnect/public/donor/history"
-                    class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
+                    data-section="history"
+                    class="nav-link flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
                     </svg>
@@ -115,7 +94,7 @@ if (Permission::can('blood_request.view_matching')) {
                 </div>
 
                 <a href="/BloodConnect/public/donor/notifications"
-                    class="nav-link flex items-center justify-between px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
+                    class="nav-link flex items-center justify-between px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200">
                     <div class="flex items-center gap-3.5">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 shrink-0">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
@@ -138,7 +117,7 @@ if (Permission::can('blood_request.view_matching')) {
 
     <!-- <div class="border-t border-slate-100 pt-4">
         <a href="/BloodConnect/public/logout" class="block">
-            <button class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-[#ce2424] hover:text-white transition-all duration-200">
+            <button class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-base text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200">
                 <span class="text-xl">🚪</span>
                 Logout
             </button>
@@ -185,7 +164,7 @@ if (Permission::can('blood_request.view_matching')) {
             const linkHref = link.getAttribute('href');
 
             if (currentPath === linkHref || currentPath.endsWith(linkHref)) {
-                link.classList.remove('text-slate-600', 'hover:bg-[#ce2424]', 'hover:text-white');
+                link.classList.remove('text-slate-600', 'hover:bg-red-50', 'hover:text-red-600');
                 link.classList.add('bg-[#ce2424]', 'text-white');
 
                 const badge = link.querySelector('.notification-badge');
@@ -195,6 +174,23 @@ if (Permission::can('blood_request.view_matching')) {
                 }
             }
         });
+
+        // --- 2b. SECTION OWNERSHIP (shared sub-pages belong to a parent section) ---
+        if (currentPath.includes('/donor/blood-request')) {
+            const ownerLink = document.querySelector('.nav-link[data-section="blood-requests"]');
+            if (ownerLink) {
+                ownerLink.classList.remove('text-slate-600', 'hover:bg-red-50', 'hover:text-red-600');
+                ownerLink.classList.add('bg-[#ce2424]', 'text-white');
+            }
+        }
+
+        if (currentPath.includes('/donor/history')) {
+            const ownerLink = document.querySelector('.nav-link[data-section="history"]');
+            if (ownerLink) {
+                ownerLink.classList.remove('text-slate-600', 'hover:bg-red-50', 'hover:text-red-600');
+                ownerLink.classList.add('bg-[#ce2424]', 'text-white');
+            }
+        }
     });
 
     // --- 3. LIVE NOTIFICATION BADGE CONTROLLER ---

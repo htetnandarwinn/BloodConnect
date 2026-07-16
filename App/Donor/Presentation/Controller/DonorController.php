@@ -2,8 +2,9 @@
 
 namespace App\Donor\Presentation\Controller;
 
+use App\Shared\Helpers\Permission;
 use App\Shared\Helpers\Session;
-use App\Shared\Presentation\View\donorView;
+use App\Shared\Presentation\View\View;
 use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
 use App\BloodRequest\Application\UseCase\AcceptBloodRequestUseCase;
 use App\BloodRequest\Application\UseCase\DeclineBloodRequestUseCase;
@@ -12,8 +13,9 @@ use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 use App\User\Domain\Repository\UserRepositoryInterface;
 use App\Donation\Domain\Repository\DonationRepositoryInterface;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
-use App\Donor\Application\UseCase\DonorDonationEligibilityService;
+use App\Donor\Domain\Service\DonorDonationEligibilityService;
 use App\Donor\Application\UseCase\GetDonorProfileUseCase;
+use App\Donor\Application\UseCase\GetDonorDashboardUseCase;
 use App\Donor\Application\UseCase\GetDonationHistoryUseCase;
 use App\Donor\Application\UseCase\UpdateDonorProfileUseCase;
 use App\Donor\Application\UseCase\CompleteDonorProfileUseCase;
@@ -35,7 +37,8 @@ class DonorController
         private GetDonationHistoryUseCase $getDonationHistoryUseCase,
         private UpdateDonorProfileUseCase $updateDonorProfileUseCase,
         private CompleteDonorProfileUseCase $completeDonorProfileUseCase,
-        private DonorEligibilityService $donorEligibilityService
+        private DonorEligibilityService $donorEligibilityService,
+        private GetDonorDashboardUseCase $dashboardUseCase
     ) {}
 
     private function authGuard()
@@ -58,6 +61,41 @@ class DonorController
         return $this->notificationRepo->getUnreadCount($this->getUserId());
     }
 
+    /**
+     * Renders a donor view through the shared donor layout, injecting the
+     * pending blood-request badge count that the sidebar relies on. This keeps
+     * the presentation layer free of direct repository instantiation.
+     */
+    private function renderDonorView(string $view, array $data = []): void
+    {
+        $data['pending_requests_count'] = $this->getPendingRequestsCount();
+        View::render('Donor', $view, $data);
+    }
+
+    private function getPendingRequestsCount(): int
+    {
+        if (!Permission::can('blood_request.view_matching')) {
+            return 0;
+        }
+
+        $user = Session::get('user');
+        $bloodGroup = is_array($user) ? trim((string)($user['blood_group'] ?? '')) : '';
+
+        if ($bloodGroup === '') {
+            $donor = $this->donorRepo->findById($this->getUserId());
+            $bloodGroup = trim((string)($donor['blood_group'] ?? ''));
+        }
+
+        if ($bloodGroup === '') {
+            return 0;
+        }
+
+        $totalPending = count($this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup));
+        $viewedCount = count($_SESSION['viewed_pending_requests'] ?? []);
+
+        return max(0, $totalPending - $viewedCount);
+    }
+
 
 
 
@@ -78,77 +116,12 @@ class DonorController
             $bloodGroup = trim((string)($donor['blood_group'] ?? ''));
         }
 
-        $acceptedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
-        $pendingRequests = $this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup);
-        $acceptedRequests = $this->bloodRequestRepo->findAcceptedRequestsForDonor((int)Session::get('user_id'), (int)$acceptedStatus);
-        $lastDonation = $acceptedRequests[0] ?? [];
-        $combinedRequests = array_merge($pendingRequests, $acceptedRequests);
-        $lastDonationDate = !empty($lastDonation['created_at']) ? (string)$lastDonation['created_at'] : '';
-        $availabilityState = $this->donorRepo->syncAvailabilityStatus((int)Session::get('user_id'));
+        $dashboard = $this->dashboardUseCase->execute((int)Session::get('user_id'), $bloodGroup);
 
-        // Check profile eligibility (age/weight) for dashboard message
-        $donorDetails = $this->donorRepo->getDonorDetails((int)Session::get('user_id'));
-        $profileEligibility = $donorDetails ? (new \App\Donor\Domain\Service\DonorEligibilityService())->evaluate(
-            (string)($donorDetails['date_of_birth'] ?? ''),
-            (string)($donorDetails['weight'] ?? '')
-        ) : ['eligible' => true, 'message' => '', 'reasons' => []];
-
-        $eligibility = $this->eligibilityService->evaluate($lastDonationDate, $availabilityState['next_available_date']);
-
-        // Build recent activity feed
-        $activities = [];
-        foreach ($acceptedRequests as $req) {
-            if (!empty($req['created_at'])) {
-                $activities[] = [
-                    'type' => 'accepted',
-                    'label' => 'Accepted request ' . ($req['request_code'] ?? 'BR-' . str_pad((string)($req['request_id'] ?? 0), 3, '0', STR_PAD_LEFT)),
-                    'timestamp' => $req['created_at'],
-                ];
-            }
-        }
-        $donations = $this->donationRepo->findByDonor((int)Session::get('user_id'));
-        foreach ($donations as $donation) {
-            $date = $donation['donation_date'] ?? $donation['created_at'] ?? '';
-            if (!empty($date)) {
-                $activities[] = [
-                    'type' => 'donation',
-                    'label' => 'Donation completed' . (!empty($donation['request_code']) ? ' (' . $donation['request_code'] . ')' : ''),
-                    'timestamp' => $date,
-                ];
-            }
-        }
-        $activities[] = [
-            'type' => 'availability',
-            'label' => 'Changed availability to ' . ($availabilityState['available'] ? 'Available' : 'Unavailable'),
-            'timestamp' => date('Y-m-d H:i:s'),
-        ];
-        usort($activities, function ($a, $b) {
-            return strtotime($b['timestamp']) - strtotime($a['timestamp']);
-        });
-
-        $availMessage = $availabilityState['available']
-            ? $eligibility['message']
-            : ($availabilityState['next_available_date']
-                ? ''
-                : (!empty($profileEligibility['reasons'])
-                    ? 'Not eligible: ' . implode(', ', $profileEligibility['reasons'])
-                    : $eligibility['message']));
-
-        donorView::render('donor_dashboard', [
+        $this->renderDonorView('donor_dashboard', array_merge($dashboard, [
             'user' => $user,
             'blood_group' => $bloodGroup,
-            'availability' => $availabilityState['available'] ? 'Available' : 'Unavailable',
-            'availability_message' => $availMessage,
-            'next_eligible_date' => $availabilityState['available'] ? '' : ($availabilityState['next_available_date'] ?? $eligibility['next_eligible_date']),
-            'last_donation_date' => !empty($lastDonationDate)
-                ? date('d M Y', strtotime($lastDonationDate))
-                : 'No donation yet',
-            'last_donation_location' => $lastDonation['hospital_name'] ?? 'No location saved',
-            'blood_requests' => $combinedRequests,
-            'pending_requests_count' => count($pendingRequests),
-            'total_donations' => count($donations),
-            'recent_activities' => $activities,
-        ]);
+        ]));
     }
 
 
@@ -211,7 +184,7 @@ class DonorController
 
         $profile = $this->getDonorProfileUseCase->execute($userId);
 
-        donorView::render('donor_profile', [
+        $this->renderDonorView('donor_profile', [
             'user' => Session::get('user'),
             'donorDetails' => $donorDetails,
             'availability' => $profile['availability_state']['available'] ? 'Available' : 'Unavailable',
@@ -248,7 +221,7 @@ class DonorController
         Session::remove('flash_message');
         Session::remove('flash_status');
 
-        donorView::render('blood_requests', [
+        $this->renderDonorView('blood_requests', [
             'user' => $user,
             'blood_group' => $bloodGroup,
             'requests' => $combinedRequests,
@@ -277,7 +250,7 @@ class DonorController
             }
         }
 
-        donorView::render('blood_request_details', [
+        $this->renderDonorView('blood_request_details', [
             'user' => Session::get('user'),
             'request' => $request,
         ]);
@@ -287,7 +260,7 @@ class DonorController
     {
         $this->authGuard();
 
-        donorView::render('donation_history', [
+        $this->renderDonorView('donation_history', [
             'user' => Session::get('user'),
             'requests' => $this->getDonationHistoryUseCase->execute((int)Session::get('user_id')),
         ]);
@@ -314,7 +287,7 @@ class DonorController
 
         $donorDetails = $this->donorRepo->getDonorDetails((int)Session::get('user_id'));
 
-        donorView::render('donor_request_history_detail', [
+        $this->renderDonorView('donor_request_history_detail', [
             'user' => Session::get('user'),
             'request' => $request,
             'donorDetails' => $donorDetails,
@@ -332,7 +305,7 @@ class DonorController
             $donorDetails = $this->donorRepo->getDonorDetails($userId);
         }
 
-        donorView::render('update_profile', [
+        $this->renderDonorView('update_profile', [
             'user' => Session::get('user'),
             'donorDetails' => $donorDetails
         ]);
@@ -342,7 +315,7 @@ class DonorController
     {
         $this->authGuard();
 
-        donorView::render('notification', [
+        $this->renderDonorView('notification', [
             'notifications' => $this->notificationRepo->findByUserId($this->getUserId()),
             'unreadCount' => $this->getUnreadCount()
         ]);
@@ -408,7 +381,7 @@ class DonorController
             );
         }
 
-        donorView::render('complete_profile', [
+        $this->renderDonorView('complete_profile', [
             'user' => Session::get('user'),
             'donorDetails' => $donorDetails,
             'errors' => Session::get('errors', []),
@@ -493,7 +466,11 @@ class DonorController
             $donorSaveData['date_of_birth'] = trim($_POST['date_of_birth']);
         }
         if (isset($_POST['weight']) && $_POST['weight'] !== '') {
-            $donorSaveData['weight'] = trim($_POST['weight']);
+            $weightValue = trim($_POST['weight']);
+            if (!is_numeric($weightValue) || (float)$weightValue <= 0) {
+                die('Please enter a valid weight.');
+            }
+            $donorSaveData['weight'] = $weightValue;
         }
         if (isset($_POST['state_region']) && $_POST['state_region'] !== '') {
             $donorSaveData['state_region'] = trim($_POST['state_region']);
@@ -503,6 +480,9 @@ class DonorController
         }
         if (!empty($donorSaveData)) {
             $this->donorRepo->saveDonorDetails($userId, $donorSaveData);
+            // Re-evaluate availability so a corrected weight flips the donor
+            // back to Available when they meet the eligibility rules again.
+            $this->donorRepo->syncAvailabilityStatus($userId);
         }
 
         Session::set('username', $data['username']);
@@ -525,3 +505,4 @@ class DonorController
         exit;
     }
 }
+

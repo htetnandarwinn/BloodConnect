@@ -2,7 +2,7 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use App\Donor\Application\UseCase\DonorDonationEligibilityService;
+use App\Donor\Domain\Service\DonorDonationEligibilityService;
 
 function assertTrue(bool $condition, string $message): void
 {

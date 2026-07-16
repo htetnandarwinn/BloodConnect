@@ -5,7 +5,7 @@ namespace App\BloodRequest\Application\UseCase;
 use App\BloodRequest\Domain\Repository\BloodRequestRepositoryInterface;
 use App\Donor\Domain\Repository\DonorRepositoryInterface;
 use App\Donation\Domain\Repository\DonationRepositoryInterface;
-use App\Donor\Application\UseCase\DonorDonationEligibilityService;
+use App\Donor\Domain\Service\DonorDonationEligibilityService;
 use App\Donor\Domain\Service\DonorEligibilityService;
 use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 use App\User\Domain\Repository\UserRepositoryInterface;

@@ -83,9 +83,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_profile']
 
 <body class="min-h-full flex items-center justify-center p-3 sm:p-6 md:p-8">
 
-    <div class="w-full max-w-5xl mx-auto bg-white rounded-2xl sm:rounded-3xl shadow-xl shadow-red-950/5 border border-slate-100 p-5 sm:p-8 md:p-10 page-enter">
+    <div class="w-full max-w-4xl mx-auto bg-white rounded-2xl sm:rounded-3xl shadow-xl shadow-red-950/5 border border-slate-100 p-5 sm:p-6 md:p-8 page-enter">
 
-        <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-6 mb-6 sm:mb-8">
+        <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4 mb-4 sm:mb-6">
             <div>
                 <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Modify Account Specifications</h2>
                 <p class="text-xs sm:text-sm text-slate-400 mt-1">Update editable profile details or refresh your structural access password security credentials below.</p>
@@ -105,18 +105,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_profile']
         <form action="/BloodConnect/public/donor/profile/update"
             method="POST"
             onsubmit="return validatePasswords()"
-            class="space-y-6">
+            class="space-y-4">
             <input type="hidden" name="action_save_profile" value="1">
 
             <div>
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2 mb-4">Profile Matrix</h3>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Username Name</label>
                         <div class="relative rounded-xl transition-all focus-within:ring-2 focus-within:ring-red-500/20">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-regular fa-user text-xs sm:text-sm"></i></span>
-                            <input type="text" name="username" value="<?= htmlspecialchars($username) ?>" class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all" required>
+                            <input type="text" name="username" value="<?= htmlspecialchars($username) ?>" class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all" required>
                         </div>
                     </div>
 
@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_profile']
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Email Address</label>
                         <div class="relative rounded-xl transition-all focus-within:ring-2 focus-within:ring-red-500/20">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-regular fa-envelope text-xs sm:text-sm"></i></span>
-                            <input type="email" name="email" value="<?= htmlspecialchars($email) ?>" class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all" required>
+                            <input type="email" name="email" value="<?= htmlspecialchars($email) ?>" class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all" required>
                         </div>
                     </div>
 
@@ -140,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_profile']
                                 maxlength="11"
                                 inputmode="numeric"
                                 pattern="09[0-9]{9}"
-                                class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all"
+                                class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all"
                                 required>
                         </div>
                     </div>
@@ -149,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_profile']
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Blood Group</label>
                         <div class="relative rounded-xl transition-all focus-within:ring-2 focus-within:ring-red-500/20">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-red-500"><i class="fa-solid fa-droplet text-xs"></i></span>
-                            <div class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800">
+                            <div class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-2 text-sm font-semibold text-slate-800">
                                 <?= htmlspecialchars($bloodType) ?>
                             </div>
                         </div>
@@ -161,13 +161,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_profile']
                         <div class="relative rounded-xl transition-all focus-within:ring-2 focus-within:ring-red-500/20">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-calendar text-xs"></i></span>
                             <?php if ($hasSavedDob): ?>
-                                <div class="w-full bg-slate-100 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-600">
+                                <div class="w-full bg-slate-100 border border-slate-200/80 rounded-xl pl-11 pr-4 py-2 text-sm font-semibold text-slate-600">
                                     <?= htmlspecialchars($dateOfBirth) ?>
                                 </div>
                             <?php else: ?>
                                 <input type="date" name="date_of_birth" value="<?= htmlspecialchars($dateOfBirth) ?>"
                                     max="<?= date('Y-m-d', strtotime('-18 years')) ?>"
-                                    class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
+                                    class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
                             <?php endif; ?>
                         </div>
                         <p class="text-xs text-slate-400"><?= $hasSavedDob ? 'Date of birth cannot be changed after saving.' : 'Required for eligibility verification.' ?></p>
@@ -180,21 +180,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_profile']
                             <input type="number" name="weight" step="0.1" min="1" max="300"
                                 value="<?= htmlspecialchars($weight) ?>"
                                 placeholder="e.g. 70"
-                                class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
+                                class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
                             <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-xs font-medium text-slate-400">kg</span>
                         </div>
                         <p class="text-xs text-slate-400">Minimum 50 kg required for donation eligibility.</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-4">
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">State / Region</label>
                         <div class="relative rounded-xl transition-all focus-within:ring-2 focus-within:ring-red-500/20">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-map-location-dot text-xs"></i></span>
                             <input type="text" name="state_region" value="<?= htmlspecialchars($donorDetails['state_region'] ?? '') ?>"
                                 placeholder="e.g. Yangon Region"
-                                class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
+                                class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
                         </div>
                     </div>
                     <div class="space-y-1.5">
@@ -203,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_profile']
                             <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-location-dot text-xs"></i></span>
                             <input type="text" name="township" value="<?= htmlspecialchars($donorDetails['township'] ?? '') ?>"
                                 placeholder="e.g. Hlaingthaya"
-                                class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
+                                class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
                         </div>
                     </div>
                 </div>
@@ -212,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_profile']
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Address / Location</label>
                     <div class="relative rounded-xl transition-all focus-within:ring-2 focus-within:ring-red-500/20">
                         <span class="absolute top-3.5 left-4 text-slate-400"><i class="fa-solid fa-location-dot text-xs sm:text-sm"></i></span>
-                        <textarea name="address" rows="2" class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all" required><?= htmlspecialchars($address) ?></textarea>
+                        <textarea name="address" rows="2" class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all" required><?= htmlspecialchars($address) ?></textarea>
                     </div>
                 </div>
             </div>
@@ -220,12 +220,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_profile']
             <div>
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2 mb-4">Security Specifications</h3>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                     <div class="space-y-1.5">
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">New Password</label>
                         <div class="relative rounded-xl transition-all focus-within:ring-2 focus-within:ring-red-500/20">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-lock text-xs"></i></span>
-                            <input type="password" id="new_password" name="new_password" placeholder="Leave blank to keep current" class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
+                            <input type="password" id="new_password" name="new_password" placeholder="Leave blank to keep current" class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
                         </div>
                     </div>
 
@@ -233,7 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_save_profile']
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Confirm Password</label>
                         <div class="relative rounded-xl transition-all focus-within:ring-2 focus-within:ring-red-500/20">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400"><i class="fa-solid fa-shield-halved text-xs"></i></span>
-                            <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password" class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
+                            <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password" class="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-11 pr-4 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:border-red-500 focus:bg-white transition-all">
                         </div>
                     </div>
                 </div>
