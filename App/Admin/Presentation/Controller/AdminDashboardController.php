@@ -127,7 +127,7 @@ class AdminDashboardController
             ];
 
             if (!empty($newPassword)) {
-                $data['password'] = password_hash($newPassword, PASSWORD_BCRYPT);
+                $data['password'] = $newPassword;
             }
 
             if ($userId) {

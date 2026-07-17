@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 17, 2026 at 05:57 AM
+-- Generation Time: Jul 17, 2026 at 10:29 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -765,7 +765,49 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `user_name`, `action`, `message`, 
 (720, 172, 'Dar Dar', 'BLOOD_REQUEST_CREATED', 'Blood request REQ20260717101619 created', 'INFO', '2026-07-17 03:46:19'),
 (721, 197, 'Ryou You', 'USER_LOGIN', 'Ryou You logged in to system', 'INFO', '2026-07-17 03:46:52'),
 (722, 197, 'Ryou You', 'DONOR_PROFILE_COMPLETED', 'Donor profile completed (DOB: 2008-07-15, Weight: 80kg)', 'INFO', '2026-07-17 03:47:11'),
-(723, 197, 'Ryou You', 'PROFILE_UPDATED', 'Donor updated their profile', 'INFO', '2026-07-17 03:47:28');
+(723, 197, 'Ryou You', 'PROFILE_UPDATED', 'Donor updated their profile', 'INFO', '2026-07-17 03:47:28'),
+(724, 57, 'Admin', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 04:06:42'),
+(725, 180, 'Kay Kay', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 04:07:18'),
+(726, 172, 'Dar Dar', 'USER_LOGIN', 'Dar Dar logged in to system', 'INFO', '2026-07-17 04:08:22'),
+(727, 198, 'Lina', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 04:10:33'),
+(728, 198, 'Lina', 'DONOR_PROFILE_COMPLETED', 'Donor profile completed (DOB: 2008-07-13, Weight: 80kg)', 'INFO', '2026-07-17 04:10:47'),
+(729, 198, 'Lina', 'PROFILE_UPDATED', 'Donor updated their profile', 'INFO', '2026-07-17 04:11:05'),
+(730, 198, 'Lina', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 04:12:53'),
+(731, 198, 'Lina', 'PROFILE_UPDATED', 'Donor updated their profile', 'INFO', '2026-07-17 04:13:30'),
+(732, 57, 'Admin', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 05:16:57'),
+(733, 197, 'Ryou You', 'USER_LOGIN', 'Ryou You logged in to system', 'INFO', '2026-07-17 05:18:38'),
+(734, 197, 'Ryou You', 'REQUEST_ACCEPTED', 'Donor accepted blood request REQ20260717101619 (ID: 255)', 'INFO', '2026-07-17 05:19:01'),
+(735, 57, 'Admin', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 06:40:11'),
+(736, 198, 'Lina', 'USER_LOGIN', 'Lina logged in to system', 'INFO', '2026-07-17 06:40:52'),
+(737, 180, 'Kay Kay', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 06:41:26'),
+(738, 172, 'Dar Dar', 'USER_LOGIN', 'Dar Dar logged in to system', 'INFO', '2026-07-17 06:41:45'),
+(739, 172, 'Dar Dar', 'BLOOD_REQUEST_CREATED', 'Blood request REQ20260717131227 created', 'INFO', '2026-07-17 06:42:27'),
+(740, 172, 'Dar Dar', 'BLOOD_REQUEST_CREATED', 'Blood request REQ20260717132601 created', 'INFO', '2026-07-17 06:56:01'),
+(741, 57, 'Admin', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 06:56:51'),
+(742, 172, NULL, 'REQUEST_CANCELLED', 'Patient cancelled blood request REQ20260717132601 (ID: 257)', 'INFO', '2026-07-17 07:01:18'),
+(743, 172, 'Dar Dar', 'BLOOD_REQUEST_CREATED', 'Blood request REQ20260717133139 created', 'INFO', '2026-07-17 07:01:39'),
+(744, 172, 'Dar Dar', 'BLOOD_REQUEST_CREATED', 'Blood request REQ20260717133921 created', 'INFO', '2026-07-17 07:09:21'),
+(745, 198, 'Lina', 'REQUEST_ACCEPTED', 'Donor accepted blood request REQ20260717133921 (ID: 259)', 'INFO', '2026-07-17 07:11:35'),
+(746, 199, 'Dar Dar', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 07:14:22'),
+(747, 199, 'Dar Dar', 'DONOR_PROFILE_COMPLETED', 'Donor profile completed (DOB: 2008-07-17, Weight: 30kg)', 'INFO', '2026-07-17 07:14:41'),
+(748, 199, 'Dar Dar', 'PROFILE_UPDATED', 'Donor updated their profile', 'INFO', '2026-07-17 07:15:17'),
+(749, 172, 'Dar Dar', 'BLOOD_REQUEST_CREATED', 'Blood request REQ20260717134624 created', 'INFO', '2026-07-17 07:16:24'),
+(750, 172, NULL, 'REQUEST_CANCELLED', 'Patient cancelled blood request REQ20260717134624 (ID: 260)', 'INFO', '2026-07-17 07:18:02'),
+(751, 172, 'Dar Dar', 'BLOOD_REQUEST_CREATED', 'Blood request REQ20260717134823 created', 'INFO', '2026-07-17 07:18:23'),
+(752, 180, 'Kay Kay', 'BLOOD_REQUEST_CREATED', 'Blood request REQ20260717140932 created', 'INFO', '2026-07-17 07:39:32'),
+(753, 57, 'Admin', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 07:40:31'),
+(754, 199, 'Dar Dar', 'REQUEST_ACCEPTED', 'Donor accepted blood request REQ20260717134823 (ID: 261)', 'INFO', '2026-07-17 07:43:08'),
+(755, 200, 'Shane Htet', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 07:59:47'),
+(756, 200, 'Shane Htet', 'DONOR_PROFILE_COMPLETED', 'Donor profile completed (DOB: 2008-07-16, Weight: 90kg)', 'INFO', '2026-07-17 08:00:02'),
+(757, 200, 'Shane Htet', 'PROFILE_UPDATED', 'Donor updated their profile', 'INFO', '2026-07-17 08:00:14'),
+(758, 57, 'Admin', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 08:00:40'),
+(759, 200, 'Shane Htet', 'PROFILE_UPDATED', 'Donor updated their profile', 'INFO', '2026-07-17 08:08:20'),
+(760, 57, 'Admin', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 08:22:05'),
+(761, 172, 'Dar Dar', 'USER_LOGIN', 'Dar Dar logged in to system', 'INFO', '2026-07-17 08:26:25'),
+(762, 200, 'Shane Htet', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 08:26:44'),
+(763, 57, 'Admin', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 08:27:43'),
+(764, 57, 'Admin', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 08:28:23'),
+(765, 57, 'Admin', 'LOGIN', 'User logged in', 'INFO', '2026-07-17 08:29:01');
 
 -- --------------------------------------------------------
 
@@ -821,8 +863,12 @@ INSERT INTO `blood_requests` (`request_id`, `request_code`, `patient_id`, `patie
 (248, 'REQ20260716234940', 172, 'Dar Dar', 'A+', 'Grand Hospital', 'Yangon', 'Thanlyin', '123', 'Urgent', '09663237617', 8, '2026-07-16 17:19:40', 3, 193),
 (251, 'REQ20260717094731', 172, 'Dar Dar', 'A+', 'Grand Hospital', 'Yangon', 'Thanlyin', '125', 'Critical', '09663237617', 8, '2026-07-17 03:17:31', 2, 194),
 (253, 'REQ20260717101222', 172, 'Dar Dar', 'B+', 'City Hospital', 'Yangon', 'Hlaing', '126', 'Standard', '09663237617', 8, '2026-07-17 03:42:22', 2, 196),
-(254, 'REQ20260717101539', 180, 'Kay Kay', 'A+', 'Grand Hospital, Yangon', 'Yangon', 'Thanlyin', '123', 'Standard', '09671739912', 7, '2026-07-17 03:45:39', 2, NULL),
-(255, 'REQ20260717101619', 172, 'Dar Dar', 'A+', 'Grand Hospital', 'Yangon', 'North Okkalapa', '125', 'Urgent', '09663237617', 7, '2026-07-17 03:46:19', 2, NULL);
+(255, 'REQ20260717101619', 172, 'Dar Dar', 'A+', 'Grand Hospital', 'Yangon', 'North Okkalapa', '125', 'Urgent', '09663237617', 8, '2026-07-17 03:46:19', 2, 197),
+(257, 'REQ20260717132601', 172, 'Dar Dar', 'B+', 'Grand Hospital', 'Yangon', 'North Okkalapa', '123', 'Urgent', '09663237617', 10, '2026-07-17 06:56:01', 3, NULL),
+(259, 'REQ20260717133921', 172, 'Dar Dar', 'B+', 'Grand Hospital', 'Yangon', 'Hlaing', '123', 'Standard', '09663237617', 8, '2026-07-17 07:09:21', 3, 198),
+(260, 'REQ20260717134624', 172, 'Dar Dar', 'AB-', 'Grand Hospital', 'Yangon', 'North Okkalapa', '123', 'Standard', '09663237617', 10, '2026-07-17 07:16:24', 2, NULL),
+(261, 'REQ20260717134823', 172, 'Dar Dar', 'A+', 'Grand Hospital', 'Yangon', 'Hlaing', '123', 'Urgent', '09663237617', 8, '2026-07-17 07:18:23', 2, 199),
+(262, 'REQ20260717140932', 180, 'Kay Kay', 'A+', 'Grand Hospital, Yangon', 'Yangon', 'North Okkalapa', '125', 'Standard', '09671739912', 7, '2026-07-17 07:39:32', 2, NULL);
 
 -- --------------------------------------------------------
 
@@ -854,7 +900,10 @@ INSERT INTO `donation_history` (`donation_id`, `request_id`, `donor_id`, `donati
 (51, 236, 189, '2026-07-16', 8, 'Accepted by donor', '2026-07-16 09:06:09'),
 (53, 244, 191, '2026-07-16', 8, 'Accepted by donor', '2026-07-16 17:05:54'),
 (56, 251, 194, '2026-07-17', 8, 'Accepted by donor', '2026-07-17 03:20:51'),
-(57, 253, 196, '2026-07-17', 8, 'Accepted by donor', '2026-07-17 03:43:48');
+(57, 253, 196, '2026-07-17', 8, 'Accepted by donor', '2026-07-17 03:43:48'),
+(58, 255, 197, '2026-07-17', 8, 'Accepted by donor', '2026-07-17 05:19:01'),
+(59, 259, 198, '2026-07-17', 8, 'Accepted by donor', '2026-07-17 07:11:35'),
+(60, 261, 199, '2026-07-17', 8, 'Accepted by donor', '2026-07-17 07:43:08');
 
 -- --------------------------------------------------------
 
@@ -919,7 +968,10 @@ INSERT INTO `donors` (`id`, `user_id`, `weight`, `date_of_birth`, `state_region`
 (48, 194, '50', '2008-07-17', 'Yangon', 'North Okkalapa', NULL, NULL, NULL),
 (49, 195, '30', '2008-07-17', 'Mandalay', 'Meikhtila', NULL, NULL, NULL),
 (50, 196, '60', '2008-07-17', 'Yangon', 'North Okkalapa', NULL, NULL, NULL),
-(51, 197, '80', '2008-07-15', 'Yangon', 'North Okkalapa', NULL, NULL, NULL);
+(51, 197, '80', '2008-07-15', 'Yangon', 'North Okkalapa', NULL, NULL, NULL),
+(52, 198, '80', '2008-07-13', 'Yangon', 'Hlaing', NULL, NULL, NULL),
+(53, 199, '50', '2008-07-17', 'Yangon', 'North Okkalapa', NULL, NULL, NULL),
+(54, 200, '100', '2008-07-16', 'Yangon', 'North Okkalapa', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1631,7 +1683,107 @@ INSERT INTO `notifications` (`notification_id`, `user_id`, `notification_type_id
 (1299, 197, 41, 'Profile Updated', 'Your donor profile has been updated successfully.', 1, '2026-07-17 03:47:28', 'profile_update'),
 (1300, 57, 41, 'Donor Profile Updated', 'Ryou You updated their donor profile information.', 1, '2026-07-17 03:47:28', 'profile_update'),
 (1301, 180, 41, 'Profile Updated', 'Your profile has been updated successfully.', 1, '2026-07-17 03:49:35', 'profile_update'),
-(1302, 57, 41, 'Patient Profile Updated', 'Kay Kay updated their profile information.', 1, '2026-07-17 03:49:35', 'profile_update');
+(1302, 57, 41, 'Patient Profile Updated', 'Kay Kay updated their profile information.', 1, '2026-07-17 03:49:35', 'profile_update'),
+(1303, 57, 45, 'Admin Logged In', 'Admin \"Admin\" has logged in to the system.', 1, '2026-07-17 04:06:42', 'user_action'),
+(1304, 57, 45, 'Patient Logged In', 'Patient \"Kay Kay\" has logged in to the system.', 1, '2026-07-17 04:07:18', 'user_action'),
+(1305, 57, 45, 'Patient Logged In (Google)', 'Patient \"Dar Dar\" has logged in to the system via Google Sign-In.', 1, '2026-07-17 04:08:22', 'user_action'),
+(1306, 57, 45, 'New Donor Registered', 'A new donor \"Lina\" has registered and verified their email (ID: 198).', 1, '2026-07-17 04:10:26', 'user_action'),
+(1307, 57, 45, 'Donor Logged In', 'Donor \"Lina\" has logged in to the system.', 1, '2026-07-17 04:10:33', 'user_action'),
+(1308, 198, 41, 'Profile Updated', 'Your donor profile has been updated successfully.', 1, '2026-07-17 04:11:05', 'profile_update'),
+(1309, 57, 41, 'Donor Profile Updated', 'Lina updated their donor profile information.', 1, '2026-07-17 04:11:05', 'profile_update'),
+(1310, 57, 45, 'Donor Logged In', 'Donor \"Lina\" has logged in to the system.', 1, '2026-07-17 04:12:53', 'user_action'),
+(1311, 198, 41, 'Profile Updated', 'Your donor profile has been updated successfully.', 1, '2026-07-17 04:13:30', 'profile_update'),
+(1312, 57, 41, 'Donor Profile Updated', 'Lina updated their donor profile information.', 1, '2026-07-17 04:13:30', 'profile_update'),
+(1313, 57, 45, 'Admin Logged In', 'Admin \"Admin\" has logged in to the system.', 1, '2026-07-17 05:16:57', 'user_action'),
+(1314, 197, 14, 'Blood Request Assigned', 'You have been assigned to blood request REQ20260717101619 for patient Dar Dar (A+). Please review and respond.', 1, '2026-07-17 05:17:49', 'request'),
+(1315, 172, 14, 'Donors Assigned', 'Donors have been assigned to your blood request REQ20260717101619. They will review and respond shortly.', 1, '2026-07-17 05:17:49', 'request'),
+(1316, 57, 46, 'Donors Assigned', 'Donors have been assigned to blood request REQ20260717101619 for patient Dar Dar (A+).', 1, '2026-07-17 05:17:49', 'admin_action'),
+(1317, 57, 45, 'Donor Logged In (Google)', 'Donor \"Ryou You\" has logged in to the system via Google Sign-In.', 1, '2026-07-17 05:18:38', 'user_action'),
+(1318, 57, 14, 'Blood Request Accepted', 'Blood request REQ20260717101619 has been accepted by donor Ryou You.', 1, '2026-07-17 05:19:01', 'request'),
+(1319, 197, 14, 'Blood Request Accepted', 'You accepted blood request REQ20260717101619. The patient will be notified shortly.', 1, '2026-07-17 05:19:01', 'request'),
+(1320, 172, 14, 'Blood Request Accepted', 'Donor Ryou You has accepted your blood request REQ20260717101619.', 1, '2026-07-17 05:19:01', 'request'),
+(1321, 57, 45, 'Admin Logged In', 'Admin \"Admin\" has logged in to the system.', 1, '2026-07-17 06:40:11', 'user_action'),
+(1322, 57, 45, 'Donor Logged In (Google)', 'Donor \"Lina\" has logged in to the system via Google Sign-In.', 1, '2026-07-17 06:40:52', 'user_action'),
+(1323, 57, 45, 'Patient Logged In', 'Patient \"Kay Kay\" has logged in to the system.', 1, '2026-07-17 06:41:26', 'user_action'),
+(1324, 57, 45, 'Patient Logged In (Google)', 'Patient \"Dar Dar\" has logged in to the system via Google Sign-In.', 1, '2026-07-17 06:41:45', 'user_action'),
+(1325, 172, 14, 'Blood Request Submitted', 'Your blood request is now pending.', 1, '2026-07-17 06:42:27', 'request'),
+(1326, 198, 14, 'New Blood Request', 'Patient Dar Dar has requested B+ blood. Please review the request.', 1, '2026-07-17 06:42:27', 'request'),
+(1327, 57, 14, 'New Blood Request', 'New blood request REQ20260717131227 from Dar Dar (B+)', 1, '2026-07-17 06:42:27', 'request'),
+(1328, 172, 16, 'Request Deleted', 'Admin deleted your pending blood request REQ20260717131227.', 1, '2026-07-17 06:55:19', 'reminder'),
+(1329, 198, 16, 'Request Deleted', 'The pending blood request REQ20260717131227 for Dar Dar was removed by admin.', 1, '2026-07-17 06:55:19', 'reminder'),
+(1330, 57, 16, 'Request Deleted', 'Pending blood request REQ20260717131227 was deleted by admin.', 1, '2026-07-17 06:55:19', 'reminder'),
+(1331, 172, 14, 'Blood Request Submitted', 'Your blood request is now pending.', 1, '2026-07-17 06:56:01', 'request'),
+(1332, 198, 14, 'New Blood Request', 'Patient Dar Dar has requested B+ blood. Please review the request.', 1, '2026-07-17 06:56:01', 'request'),
+(1333, 57, 14, 'New Blood Request', 'New blood request REQ20260717132601 from Dar Dar (B+)', 1, '2026-07-17 06:56:01', 'request'),
+(1334, 57, 45, 'Admin Logged In', 'Admin \"Admin\" has logged in to the system.', 1, '2026-07-17 06:56:51', 'user_action'),
+(1335, 172, 16, 'Request Cancelled', 'Your blood request has been cancelled.', 1, '2026-07-17 07:01:18', 'reminder'),
+(1336, 198, 16, 'Request Cancelled', 'Dar Dar has cancelled their B+ blood request.', 1, '2026-07-17 07:01:18', 'reminder'),
+(1337, 57, 16, 'Request Cancelled', 'Dar Dar has cancelled their B+ blood request.', 1, '2026-07-17 07:01:18', 'reminder'),
+(1338, 172, 14, 'Blood Request Submitted', 'Your blood request is now pending.', 1, '2026-07-17 07:01:39', 'request'),
+(1339, 198, 14, 'New Blood Request', 'Patient Dar Dar has requested B+ blood. Please review the request.', 1, '2026-07-17 07:01:39', 'request'),
+(1340, 57, 14, 'New Blood Request', 'New blood request REQ20260717133139 from Dar Dar (B+)', 1, '2026-07-17 07:01:39', 'request'),
+(1341, 172, 16, 'Request Deleted', 'Admin deleted your pending blood request REQ20260717133139.', 1, '2026-07-17 07:08:44', 'reminder'),
+(1342, 198, 16, 'Request Deleted', 'The pending blood request REQ20260717133139 for Dar Dar was removed by admin.', 1, '2026-07-17 07:08:44', 'reminder'),
+(1343, 57, 16, 'Request Deleted', 'Pending blood request REQ20260717133139 was deleted by admin.', 1, '2026-07-17 07:08:44', 'reminder'),
+(1344, 172, 14, 'Blood Request Submitted', 'Your blood request is now pending.', 1, '2026-07-17 07:09:21', 'request'),
+(1345, 198, 14, 'New Blood Request', 'Patient Dar Dar has requested B+ blood. Please review the request.', 1, '2026-07-17 07:09:21', 'request'),
+(1346, 57, 14, 'New Blood Request', 'New blood request REQ20260717133921 from Dar Dar (B+)', 1, '2026-07-17 07:09:21', 'request'),
+(1347, 198, 14, 'Blood Request Assigned', 'You have been assigned to blood request REQ20260717133921 for patient Dar Dar (B+). Please review and respond.', 1, '2026-07-17 07:10:49', 'request'),
+(1348, 172, 14, 'Donors Assigned', 'Donors have been assigned to your blood request REQ20260717133921. They will review and respond shortly.', 1, '2026-07-17 07:10:49', 'request'),
+(1349, 57, 46, 'Donors Assigned', 'Donors have been assigned to blood request REQ20260717133921 for patient Dar Dar (B+).', 1, '2026-07-17 07:10:49', 'admin_action'),
+(1350, 198, 14, 'Blood Request Alert', 'Patient Dar Dar has requested B+ blood. Please review request REQ20260717133921.', 1, '2026-07-17 07:11:00', 'request'),
+(1351, 57, 46, 'Donor Email Alert Sent', 'Email alert for blood request REQ20260717133921 (patient Dar Dar, B+) was sent to 1 donor(s).', 1, '2026-07-17 07:11:00', 'admin_action'),
+(1352, 57, 14, 'Blood Request Accepted', 'Blood request REQ20260717133921 has been accepted by donor Lina.', 1, '2026-07-17 07:11:35', 'request'),
+(1353, 198, 14, 'Blood Request Accepted', 'You accepted blood request REQ20260717133921. The patient will be notified shortly.', 1, '2026-07-17 07:11:35', 'request'),
+(1354, 172, 14, 'Blood Request Accepted', 'Donor Lina has accepted your blood request REQ20260717133921.', 1, '2026-07-17 07:11:35', 'request'),
+(1355, 57, 45, 'New Donor Registered', 'A new donor \"Dar Dar\" has registered and verified their email (ID: 199).', 1, '2026-07-17 07:14:14', 'user_action'),
+(1356, 57, 45, 'Donor Logged In', 'Donor \"Dar Dar\" has logged in to the system.', 1, '2026-07-17 07:14:22', 'user_action'),
+(1357, 199, 41, 'Profile Updated', 'Your donor profile has been updated successfully.', 1, '2026-07-17 07:15:17', 'profile_update'),
+(1358, 57, 41, 'Donor Profile Updated', 'Dar Dar updated their donor profile information.', 1, '2026-07-17 07:15:17', 'profile_update'),
+(1359, 172, 14, 'Blood Request Submitted', 'Your blood request is now pending.', 1, '2026-07-17 07:16:24', 'request'),
+(1360, 57, 14, 'New Blood Request', 'New blood request REQ20260717134624 from Dar Dar (AB-)', 1, '2026-07-17 07:16:24', 'request'),
+(1361, 172, 16, 'Request Cancelled', 'Your blood request has been cancelled.', 1, '2026-07-17 07:18:02', 'reminder'),
+(1362, 57, 16, 'Request Cancelled', 'Dar Dar has cancelled their AB- blood request.', 1, '2026-07-17 07:18:02', 'reminder'),
+(1363, 172, 14, 'Blood Request Submitted', 'Your blood request is now pending.', 1, '2026-07-17 07:18:23', 'request'),
+(1364, 199, 14, 'New Blood Request', 'Patient Dar Dar has requested A+ blood. Please review the request.', 1, '2026-07-17 07:18:23', 'request'),
+(1365, 57, 14, 'New Blood Request', 'New blood request REQ20260717134823 from Dar Dar (A+)', 1, '2026-07-17 07:18:23', 'request'),
+(1366, 180, 41, 'Profile Updated', 'Your profile has been updated successfully.', 1, '2026-07-17 07:20:31', 'profile_update'),
+(1367, 57, 41, 'Patient Profile Updated', 'Kay Kay updated their profile information.', 1, '2026-07-17 07:20:31', 'profile_update'),
+(1368, 180, 16, 'Request Deleted', 'Admin deleted your pending blood request REQ20260717101539.', 1, '2026-07-17 07:39:01', 'reminder'),
+(1369, 199, 16, 'Request Deleted', 'The pending blood request REQ20260717101539 for Kay Kay was removed by admin.', 1, '2026-07-17 07:39:01', 'reminder'),
+(1370, 57, 16, 'Request Deleted', 'Pending blood request REQ20260717101539 was deleted by admin.', 1, '2026-07-17 07:39:01', 'reminder'),
+(1371, 180, 14, 'Blood Request Submitted', 'Your blood request is now pending.', 1, '2026-07-17 07:39:32', 'request'),
+(1372, 199, 14, 'New Blood Request', 'Patient Kay Kay has requested A+ blood. Please review the request.', 1, '2026-07-17 07:39:32', 'request'),
+(1373, 57, 14, 'New Blood Request', 'New blood request REQ20260717140932 from Kay Kay (A+)', 1, '2026-07-17 07:39:32', 'request'),
+(1374, 57, 45, 'Admin Logged In', 'Admin \"Admin\" has logged in to the system.', 1, '2026-07-17 07:40:31', 'user_action'),
+(1375, 199, 14, 'Blood Request Assigned', 'You have been assigned to blood request REQ20260717134823 for patient Dar Dar (A+). Please review and respond.', 1, '2026-07-17 07:41:18', 'request'),
+(1376, 172, 14, 'Donors Assigned', 'Donors have been assigned to your blood request REQ20260717134823. They will review and respond shortly.', 1, '2026-07-17 07:41:18', 'request'),
+(1377, 57, 46, 'Donors Assigned', 'Donors have been assigned to blood request REQ20260717134823 for patient Dar Dar (A+).', 1, '2026-07-17 07:41:18', 'admin_action'),
+(1378, 199, 14, 'Blood Request Alert', 'Patient Dar Dar has requested A+ blood. Please review request REQ20260717134823.', 1, '2026-07-17 07:41:29', 'request'),
+(1379, 57, 46, 'Donor Email Alert Sent', 'Email alert for blood request REQ20260717134823 (patient Dar Dar, A+) was sent to 1 donor(s).', 1, '2026-07-17 07:41:29', 'admin_action'),
+(1380, 57, 14, 'Blood Request Accepted', 'Blood request REQ20260717134823 has been accepted by donor Dar Dar.', 1, '2026-07-17 07:43:08', 'request'),
+(1381, 199, 14, 'Blood Request Accepted', 'You accepted blood request REQ20260717134823. The patient will be notified shortly.', 1, '2026-07-17 07:43:08', 'request'),
+(1382, 172, 14, 'Blood Request Accepted', 'Donor Dar Dar has accepted your blood request REQ20260717134823.', 1, '2026-07-17 07:43:08', 'request'),
+(1383, 57, 45, 'New Donor Registered', 'A new donor \"Shane Htet\" has registered and verified their email (ID: 200).', 1, '2026-07-17 07:59:39', 'user_action'),
+(1384, 57, 45, 'Donor Logged In', 'Donor \"Shane Htet\" has logged in to the system.', 1, '2026-07-17 07:59:47', 'user_action'),
+(1385, 200, 41, 'Profile Updated', 'Your donor profile has been updated successfully.', 1, '2026-07-17 08:00:14', 'profile_update'),
+(1386, 57, 41, 'Donor Profile Updated', 'Shane Htet updated their donor profile information.', 1, '2026-07-17 08:00:14', 'profile_update'),
+(1387, 57, 45, 'Admin Logged In', 'Admin \"Admin\" has logged in to the system.', 1, '2026-07-17 08:00:40', 'user_action'),
+(1388, 57, 46, 'Admin Profile Updated', 'Admin Admin updated their own profile (ID: 57).', 1, '2026-07-17 08:06:16', 'admin_action'),
+(1389, 200, 41, 'Profile Updated', 'Your donor profile has been updated successfully.', 1, '2026-07-17 08:08:20', 'profile_update'),
+(1390, 57, 41, 'Donor Profile Updated', 'Shane Htet updated their donor profile information.', 1, '2026-07-17 08:08:20', 'profile_update'),
+(1391, 180, 41, 'Profile Updated', 'Your profile has been updated successfully.', 1, '2026-07-17 08:08:49', 'profile_update'),
+(1392, 57, 41, 'Patient Profile Updated', 'Kay Kay updated their profile information.', 1, '2026-07-17 08:08:49', 'profile_update'),
+(1393, 57, 45, 'Admin Logged In', 'Admin \"Admin\" has logged in to the system.', 1, '2026-07-17 08:22:05', 'user_action'),
+(1394, 57, 46, 'Admin Profile Updated', 'Admin Admin updated their own profile (ID: 57).', 1, '2026-07-17 08:23:16', 'admin_action'),
+(1395, 57, 45, 'Patient Logged In (Google)', 'Patient \"Dar Dar\" has logged in to the system via Google Sign-In.', 1, '2026-07-17 08:26:25', 'user_action'),
+(1396, 57, 45, 'Donor Logged In', 'Donor \"Shane Htet\" has logged in to the system.', 1, '2026-07-17 08:26:44', 'user_action'),
+(1397, 57, 45, 'Admin Logged In', 'Admin \"Admin\" has logged in to the system.', 1, '2026-07-17 08:27:43', 'user_action'),
+(1398, 57, 46, 'Admin Profile Updated', 'Admin Admin updated their own profile (ID: 57).', 0, '2026-07-17 08:28:11', 'admin_action'),
+(1399, 57, 45, 'Admin Logged In', 'Admin \"Admin\" has logged in to the system.', 0, '2026-07-17 08:28:23', 'user_action');
+INSERT INTO `notifications` (`notification_id`, `user_id`, `notification_type_id`, `title`, `message`, `is_read`, `created_at`, `type`) VALUES
+(1400, 57, 46, 'Admin Profile Updated', 'Admin Admin updated their own profile (ID: 57).', 0, '2026-07-17 08:28:48', 'admin_action'),
+(1401, 57, 45, 'Admin Logged In', 'Admin \"Admin\" has logged in to the system.', 0, '2026-07-17 08:29:01', 'user_action');
 
 -- --------------------------------------------------------
 
@@ -1699,7 +1851,10 @@ INSERT INTO `request_donors` (`request_donor_id`, `request_id`, `donor_id`, `res
 (15, 236, 189, 11, NULL),
 (20, 244, 191, 11, NULL),
 (23, 251, 194, 11, NULL),
-(25, 253, 196, 11, NULL);
+(25, 253, 196, 11, NULL),
+(26, 255, 197, 11, NULL),
+(27, 259, 198, 11, NULL),
+(28, 261, 199, 11, NULL);
 
 -- --------------------------------------------------------
 
@@ -1738,9 +1893,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `google_id`, `avatar`, `auth_provider`, `email`, `phone`, `password`, `blood_group`, `address`, `status_id`, `available`, `created_at`, `username`, `updated_at`, `deleted_at`, `user_type_id`, `is_verified`, `verification_code`, `verification_expires_at`, `is_active`, `is_login`, `blood_group_code`, `next_available_date`) VALUES
-(57, NULL, NULL, 'local', 'adminbloodconnect@gmail.com', NULL, '$2y$10$5efVnZlim6W66nsKyKhcW.nizpGZE1xGhYrmhjJlJJ1VEQQJllK2u', 'A_POS', NULL, 1, 1, '2026-07-05 16:13:33', 'Admin', '2026-07-16 16:27:52', NULL, 1, 1, NULL, NULL, 1, 1, NULL, NULL),
-(172, '111703472602645590421', 'https://lh3.googleusercontent.com/a/ACg8ocKPkjLhL9EsShy3IvoR-9zxQ__wM_C_twgxHrq54QyVLlXpfw=s96-c', 'google', 'dardar86425@gmail.com', '09663237617', '', 'A+', 'Yangon', 1, 1, '2026-07-15 16:31:04', 'Dar Dar', '2026-07-16 09:19:45', NULL, 3, 1, NULL, NULL, 1, 1, NULL, NULL),
-(180, '105998063650889799275', 'https://lh3.googleusercontent.com/a/ACg8ocK-DK6c7knIVLleuR4kYVeOnYikvdy9qTyI0e-T6xVPFvJ7rsI=s96-c', 'google', 'kaykay86425@gmail.com', '09671739912', '$2y$10$y.iTxnxv5f1JMIumtcnPmOMKGH1.u7/QjaM0XzJoPKaaUqIvDpLPO', 'A+', 'Yangon', 3, 1, '2026-07-16 03:19:04', 'Kay Kay', '2026-07-17 03:49:35', NULL, 3, 1, NULL, NULL, 1, 1, NULL, NULL),
+(57, NULL, NULL, 'local', 'adminbloodconnect@gmail.com', '09953050708', '$2y$10$NlWfncPqN/UgfmwNeUZt8uhxyv2QepvD0qQv4cmdVMkxBbdp6WnDi', 'A_POS', NULL, 1, 1, '2026-07-05 16:13:33', 'Admin', '2026-07-17 08:29:01', NULL, 1, 1, NULL, NULL, 1, 1, NULL, NULL),
+(172, '111703472602645590421', 'https://lh3.googleusercontent.com/a/ACg8ocKPkjLhL9EsShy3IvoR-9zxQ__wM_C_twgxHrq54QyVLlXpfw=s96-c', 'google', 'dardar86425@gmail.com', '09663237617', '', 'A+', 'Yangon', 1, 1, '2026-07-15 16:31:04', 'Dar Dar', '2026-07-17 08:26:25', NULL, 3, 1, NULL, NULL, 1, 1, NULL, NULL),
+(180, '105998063650889799275', 'https://lh3.googleusercontent.com/a/ACg8ocK-DK6c7knIVLleuR4kYVeOnYikvdy9qTyI0e-T6xVPFvJ7rsI=s96-c', 'google', 'kaykay86425@gmail.com', '09671739912', '$2y$10$y.iTxnxv5f1JMIumtcnPmOMKGH1.u7/QjaM0XzJoPKaaUqIvDpLPO', 'O+', 'Yangon', 3, 1, '2026-07-16 03:19:04', 'Kay Kay', '2026-07-17 08:08:49', NULL, 3, 1, NULL, NULL, 1, 1, NULL, NULL),
 (182, NULL, NULL, 'local', 'noenoe365777@gmail.com', '09765732081', '$2y$10$bLoALKDwM5tBlwXpg.lD3.q/Y5WhZ1FC6JwxC1sFQvEa1K5Zmvo5m', 'A+', 'Yangon', 3, 0, '2026-07-16 03:29:24', 'Noe Noe', '2026-07-16 04:15:06', NULL, 2, 1, NULL, NULL, 1, 0, NULL, '2026-10-16 10:42:26'),
 (183, NULL, NULL, 'local', 'htetnandarlinn14@gmail.com', '09953050708', '$2y$10$NmbRYCCAM9ae5OIlc96p4.xh0JUQJgjcmQD8qh059IjEYVDXEd3Ty', 'A+', 'Yamethin', 3, 0, '2026-07-16 03:58:41', 'Htet Linn', '2026-07-16 05:49:32', NULL, 2, 1, NULL, NULL, 1, 0, NULL, '2026-10-16 12:19:12'),
 (184, '103149160792300548823', 'https://lh3.googleusercontent.com/a/ACg8ocLSI9-b64KTppFY0E2JlxgzBq-slAkO4Exr1Ox23cLt5wlLRDA=s96-c', 'google', 'htetnandarlinn225840@gmail.com', '09765732081', '', 'B+', 'Yangon', 1, 0, '2026-07-16 04:20:52', 'Htet Nandar Linn', '2026-07-16 04:29:05', NULL, 2, 1, NULL, NULL, 1, 0, NULL, '2026-10-16 10:58:11'),
@@ -1752,7 +1907,10 @@ INSERT INTO `users` (`user_id`, `google_id`, `avatar`, `auth_provider`, `email`,
 (194, NULL, NULL, 'local', 'aung2512003@gmail.com', '09765732081', '$2y$10$1NnPr0Sk5W8Vax1Bh2vVLuCr1okaAoW0OwC9eNM0Lv1vernxaZjAW', 'A+', 'Yangon', 3, 0, '2026-07-17 02:54:28', 'Aung', '2026-07-17 03:23:08', NULL, 2, 1, NULL, NULL, 1, 0, NULL, '2026-10-17 09:50:51'),
 (195, NULL, NULL, 'local', 'mayple86425@gmail.com', '09765732081', '$2y$10$zTtSQRP6fEk9DWsS15NdcOk3HTejLykn5HxUqPKEQ/AOEa3BUsBxO', 'B+', 'Mandalay', 3, 0, '2026-07-17 03:28:48', 'May', '2026-07-17 03:31:00', NULL, 2, 1, NULL, NULL, 1, 0, NULL, NULL),
 (196, '100637882766589240359', 'https://lh3.googleusercontent.com/a/ACg8ocLq-nYuKtdaILNaxZqpk-CP_oUEzKAog-HQGwocTViGmeppr7o=s96-c', 'google', 'bunny86425@gmail.com', NULL, '', 'B+', NULL, 1, 0, '2026-07-17 03:31:41', 'Bunny', '2026-07-17 03:46:30', NULL, 2, 1, NULL, NULL, 1, 0, NULL, '2026-10-17 10:13:48'),
-(197, '113431109616103400882', 'https://lh3.googleusercontent.com/a/ACg8ocJ6pnC_jMieMhX4vpW7aZWlX0R82GJkQERcftBNDyzqblYf5A=s96-c', 'google', 'ryouyou86425@gmail.com', '09765732081', '', 'A+', 'Yangon', 1, 1, '2026-07-17 03:46:52', 'Ryou You', '2026-07-17 03:47:28', NULL, 2, 1, NULL, NULL, 1, 1, NULL, NULL);
+(197, '113431109616103400882', 'https://lh3.googleusercontent.com/a/ACg8ocJ6pnC_jMieMhX4vpW7aZWlX0R82GJkQERcftBNDyzqblYf5A=s96-c', 'google', 'ryouyou86425@gmail.com', '09765732081', '', 'A+', 'Yangon', 1, 0, '2026-07-17 03:46:52', 'Ryou You', '2026-07-17 05:21:13', NULL, 2, 1, NULL, NULL, 1, 0, NULL, '2026-10-17 11:49:01'),
+(198, '112290467345086311233', 'https://lh3.googleusercontent.com/a/ACg8ocJpS3ancNne5hnbdF-WlW-2aUPW227liBDZU2OJhBafT1r3aQ=s96-c', 'google', 'linalina86425@gmail.com', '09765732081', '$2y$10$RzFaaPWKkSf.0Cx43526oOY77TUnyx5Ymagmy/rGqZcAEow3ZN9bq', 'B+', 'Yangon', 3, 0, '2026-07-17 04:10:26', 'Lina', '2026-07-17 07:12:34', NULL, 2, 1, NULL, NULL, 1, 0, NULL, '2026-10-17 13:41:35'),
+(199, NULL, NULL, 'local', 'dardar86426@gmail.com', '09765732081', '$2y$10$367qDnJ45KgkZcbCQSOLWOKznw1GluJllrEEjR5y7nM3LBecseq6m', 'A+', 'Yangon', 3, 0, '2026-07-17 07:14:14', 'Dar Dar', '2026-07-17 07:56:30', NULL, 2, 1, NULL, NULL, 1, 0, NULL, '2026-10-17 14:13:08'),
+(200, NULL, NULL, 'local', 'shanehtet141414@gmail.com', '09765732081', '$2y$10$ASl18WiN7CmMe02YmRwpsOR4vmkVJAG8Qkc41.2SKF7uIOq2LqTlO', 'O+', 'Yangon', 3, 1, '2026-07-17 07:59:39', 'Shane Htet', '2026-07-17 08:26:44', NULL, 2, 1, NULL, NULL, 1, 1, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1942,25 +2100,25 @@ ALTER TABLE `user_type_permissions`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=724;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=766;
 
 --
 -- AUTO_INCREMENT for table `blood_requests`
 --
 ALTER TABLE `blood_requests`
-  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=256;
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=263;
 
 --
 -- AUTO_INCREMENT for table `donation_history`
 --
 ALTER TABLE `donation_history`
-  MODIFY `donation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `donation_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT for table `donors`
 --
 ALTER TABLE `donors`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `master_data`
@@ -1972,7 +2130,7 @@ ALTER TABLE `master_data`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1303;
+  MODIFY `notification_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1402;
 
 --
 -- AUTO_INCREMENT for table `permissions`
@@ -1984,13 +2142,13 @@ ALTER TABLE `permissions`
 -- AUTO_INCREMENT for table `request_donors`
 --
 ALTER TABLE `request_donors`
-  MODIFY `request_donor_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `request_donor_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=198;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=201;
 
 --
 -- AUTO_INCREMENT for table `user_types`
