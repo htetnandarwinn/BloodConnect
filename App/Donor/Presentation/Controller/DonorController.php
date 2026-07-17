@@ -61,6 +61,55 @@ class DonorController
         return $this->notificationRepo->getUnreadCount($this->getUserId());
     }
 
+    public function pendingBloodRequestsCount(): void
+    {
+        $this->authGuard();
+
+        header('Content-Type: application/json');
+
+        try {
+            $user = Session::get('user');
+            $bloodGroup = is_array($user) ? trim((string)($user['blood_group'] ?? '')) : '';
+
+            if ($bloodGroup === '') {
+                $donor = $this->donorRepo->findById($this->getUserId());
+                $bloodGroup = trim((string)($donor['blood_group'] ?? ''));
+            }
+
+            if ($bloodGroup === '') {
+                echo json_encode(['count' => 0]);
+                exit;
+            }
+
+            $pendingRequests = $this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup);
+            $totalPending = count($pendingRequests);
+            $assignedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ASSIGNED') ?? 42;
+            $assignedRequests = $this->bloodRequestRepo->findAssignedRequestsForDonor($this->getUserId(), $assignedStatus);
+            $totalAssigned = count($assignedRequests);
+            $acceptedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+            $acceptedRequests = $this->bloodRequestRepo->findAcceptedRequestsForDonor($this->getUserId(), $acceptedStatus);
+            $totalAccepted = count($acceptedRequests);
+
+            $allRequestIds = array_merge(
+                array_column($pendingRequests, 'request_id'),
+                array_column($assignedRequests, 'request_id'),
+                array_column($acceptedRequests, 'request_id')
+            );
+            $allRequestIds = array_unique(array_filter(array_map('intval', $allRequestIds)));
+
+            $viewedIds = $_SESSION['donor_viewed_requests'] ?? [];
+            $viewedIds = is_array($viewedIds) ? array_map('intval', $viewedIds) : [];
+            $viewedCount = count(array_intersect($allRequestIds, $viewedIds));
+
+            echo json_encode([
+                'count' => max(0, ($totalPending + $totalAssigned + $totalAccepted) - $viewedCount)
+            ]);
+        } catch (\Throwable $e) {
+            echo json_encode(['count' => 0]);
+        }
+        exit;
+    }
+
     /**
      * Renders a donor view through the shared donor layout, injecting the
      * pending blood-request badge count that the sidebar relies on. This keeps
@@ -90,10 +139,28 @@ class DonorController
             return 0;
         }
 
-        $totalPending = count($this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup));
-        $viewedCount = count($_SESSION['viewed_pending_requests'] ?? []);
+        $pendingRequests = $this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup);
+        $totalPending = count($pendingRequests);
 
-        return max(0, $totalPending - $viewedCount);
+        $assignedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ASSIGNED') ?? 42;
+        $assignedRequests = $this->bloodRequestRepo->findAssignedRequestsForDonor($this->getUserId(), $assignedStatus);
+        $totalAssigned = count($assignedRequests);
+
+        $acceptedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $acceptedRequests = $this->bloodRequestRepo->findAcceptedRequestsForDonor($this->getUserId(), $acceptedStatus);
+        $totalAccepted = count($acceptedRequests);
+
+        $allRequestIds = array_unique(array_filter(array_map('intval', array_merge(
+            array_column($pendingRequests, 'request_id'),
+            array_column($assignedRequests, 'request_id'),
+            array_column($acceptedRequests, 'request_id')
+        ))));
+
+        $viewedIds = $_SESSION['donor_viewed_requests'] ?? [];
+        $viewedIds = is_array($viewedIds) ? array_map('intval', $viewedIds) : [];
+        $viewedCount = count(array_intersect($allRequestIds, $viewedIds));
+
+        return max(0, ($totalPending + $totalAssigned + $totalAccepted) - $viewedCount);
     }
 
 
@@ -243,12 +310,16 @@ class DonorController
         }
 
         $pendingStatusId = $this->masterRepo->getId('REQUEST_STATUS', 'PENDING') ?? 7;
-        if ((int)($request['status'] ?? 0) === $pendingStatusId) {
-            if (!isset($_SESSION['viewed_pending_requests']) || !is_array($_SESSION['viewed_pending_requests'])) {
-                $_SESSION['viewed_pending_requests'] = [];
+        $assignedStatusId = $this->masterRepo->getId('REQUEST_STATUS', 'ASSIGNED') ?? 42;
+        $acceptedStatusId = $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $currentStatus = (int)($request['status'] ?? 0);
+
+        if (in_array($currentStatus, [$pendingStatusId, $assignedStatusId, $acceptedStatusId], true)) {
+            if (!isset($_SESSION['donor_viewed_requests']) || !is_array($_SESSION['donor_viewed_requests'])) {
+                $_SESSION['donor_viewed_requests'] = [];
             }
-            if (!in_array($requestId, $_SESSION['viewed_pending_requests'])) {
-                $_SESSION['viewed_pending_requests'][] = $requestId;
+            if (!in_array($requestId, $_SESSION['donor_viewed_requests'], true)) {
+                $_SESSION['donor_viewed_requests'][] = $requestId;
             }
         }
 

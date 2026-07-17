@@ -149,6 +149,10 @@ $router->group(['middleware' => ['auth', 'admin', 'can:dashboard.view']], functi
 $router->group(['middleware' => ['auth', 'admin', 'can:profile.view']], function (Router $router) {
     $router->get('/admin/profile', [AdminDashboardController::class, 'profile']);
 });
+$router->group(['middleware' => ['auth', 'admin', 'can:profile.update']], function (Router $router) {
+    $router->get('/admin/profile/update', [AdminDashboardController::class, 'updateProfilePage']);
+    $router->post('/admin/profile/update', [AdminDashboardController::class, 'updateProfile']);
+});
 $router->group(['middleware' => ['auth', 'admin', 'can:notification.view']], function (Router $router) {
     $router->get('/admin/notifications', [AdminDashboardController::class, 'notifications']);
 });
@@ -212,6 +216,7 @@ $router->group(['middleware' => ['auth', 'donor']], function (Router $router) {
     $router->middleware(['can:blood_request.view_matching'], function (Router $router) {
         $router->get('/donor/blood-requests', [DonorController::class, 'bloodRequests']);
         $router->get('/donor/blood-request/{id}', [DonorController::class, 'bloodRequestDetails']);
+        $router->get('/donor/pending-blood-requests-count', [DonorController::class, 'pendingBloodRequestsCount']);
     });
     $router->middleware(['can:donation_history.view'], function (Router $router) {
         $router->get('/donor/history', [DonorController::class, 'history']);

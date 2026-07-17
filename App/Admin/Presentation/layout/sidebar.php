@@ -6,10 +6,21 @@ use App\Shared\Infrastructure\Database\Database;
 $pendingBloodRequests = 0;
 try {
     $db = Database::getConnection();
-    $stmt = $db->prepare("SELECT COUNT(*) FROM blood_requests WHERE status = 7");
-    $stmt->execute();
+    $masterRepo = new \App\Shared\Infrastructure\Persistence\MasterDataRepository();
+    $pendingStatus = $masterRepo->getId('REQUEST_STATUS', 'PENDING') ?? 7;
+
+    $stmt = $db->prepare("SELECT COUNT(*) FROM blood_requests WHERE status = ?");
+    $stmt->execute([$pendingStatus]);
     $totalPending = (int)$stmt->fetchColumn();
-    $viewedCount = count($_SESSION['viewed_pending_requests'] ?? []);
+
+    $viewedIds = $_SESSION['admin_viewed_requests'] ?? [];
+    $viewedIds = is_array($viewedIds) ? array_map('intval', $viewedIds) : [];
+
+    $stmt2 = $db->prepare("SELECT request_id FROM blood_requests WHERE status = ?");
+    $stmt2->execute([$pendingStatus]);
+    $allPendingIds = array_map('intval', $stmt2->fetchAll(\PDO::FETCH_COLUMN) ?: []);
+    $viewedCount = count(array_intersect($allPendingIds, $viewedIds));
+
     $pendingBloodRequests = max(0, $totalPending - $viewedCount);
 } catch (Throwable $e) {
     $pendingBloodRequests = 0;
@@ -116,11 +127,9 @@ try {
 
 
                 <?php if (!empty($unreadCount) && $unreadCount > 0): ?>
-                    <span class="notification-badge w-5 h-5 rounded-full bg-[#ce2424] text-white text-[10px] font-black flex items-center justify-center">
-                        <?= $unreadCount ?>
-                    </span>
+                    <span class="notification-badge inline-flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-[#ce2424] text-white text-[10px] font-black leading-none shadow-sm"><?= $unreadCount ?></span>
                 <?php else: ?>
-                    <span class="notification-badge w-5 h-5 rounded-full bg-[#ce2424] text-white text-[10px] font-black hidden"></span>
+                    <span class="notification-badge inline-flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-[#ce2424] text-white text-[10px] font-black leading-none shadow-sm hidden"></span>
                 <?php endif; ?>
             </a>
 
@@ -253,7 +262,7 @@ try {
 
             badges.forEach(badge => {
                 if (data.count > 0) {
-                    badge.style.display = "flex";
+                    badge.style.display = "inline-flex";
                     badge.textContent = data.count;
                 } else {
                     badge.style.display = "none";

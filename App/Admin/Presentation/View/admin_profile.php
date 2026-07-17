@@ -42,9 +42,18 @@
                     <?= htmlspecialchars($user['role'] ?? 'Administrator') ?>
                 </p>
 
+                <p class="mt-1 text-xs text-slate-400 break-all">
+                    <?= htmlspecialchars($user['email'] ?? '') ?>
+                </p>
+
                 <div class="mt-3 inline-block px-3 py-1 text-xs font-bold text-green-600 bg-green-50 rounded-full">
                     Verified Admin
                 </div>
+
+                <a href="/BloodConnect/public/admin/profile/update"
+                    class="mt-4 block w-full px-4 py-2 bg-[#ce2424] text-white rounded-xl text-sm font-bold hover:bg-red-700 transition shadow-sm">
+                    Update Profile
+                </a>
 
             </div>
 
@@ -68,6 +77,13 @@
                         <label class="text-xs text-slate-500">Role</label>
                         <div class="mt-1 p-3 bg-slate-50 rounded-lg font-semibold">
                             <?= htmlspecialchars($user['role'] ?? '') ?>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-slate-500">Email</label>
+                        <div class="mt-1 p-3 bg-slate-50 rounded-lg font-semibold break-all">
+                            <?= htmlspecialchars($user['email'] ?? '') ?>
                         </div>
                     </div>
 

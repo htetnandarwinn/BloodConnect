@@ -118,7 +118,8 @@ $container->singleton(
     \App\Admin\Presentation\Controller\AdminRoleController::class,
     function (\App\Shared\Infrastructure\Container\Container $c) {
         return new \App\Admin\Presentation\Controller\AdminRoleController(
-            $c->get(\App\Shared\Infrastructure\Persistence\RoleRepository::class)
+            $c->get(\App\Shared\Infrastructure\Persistence\RoleRepository::class),
+            $c->get(\App\Notification\Domain\Repository\NotificationRepositoryInterface::class)
         );
     }
 );

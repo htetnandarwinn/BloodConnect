@@ -11,8 +11,6 @@ $last_donation_date = $last_donation_date ?? '';
 $last_donation_location = $last_donation_location ?? '';
 $blood_requests = $blood_requests ?? [];
 
-$pending_requests_count = $pending_requests_count ?? count($blood_requests);
-
 $recent_activities = $recent_activities ?? [];
 ?>
 
@@ -44,7 +42,7 @@ $recent_activities = $recent_activities ?? [];
                     Welcome, <span class="text-[#E63946]"> <?= htmlspecialchars($user['username'] ?? 'Donor') ?></span>
                     <span class="inline-block origin-bottom animate-[wave_2s_infinite]">👋</span>
                 </h1>
-                <p class="text-sm text-slate-500 mt-0.5">Here's your donor dashboard overview.</p>  
+                <p class="text-sm text-slate-500 mt-0.5">Here's your donor dashboard overview.</p>
             </div>
 
             <!-- Summary Cards Section -->
@@ -157,8 +155,7 @@ $recent_activities = $recent_activities ?? [];
             <!-- Blood Requests Section -->
             <div class="space-y-4">
                 <div class="flex items-center gap-3">
-                    <h3 class="text-xl font-bold text-slate-900 tracking-tight">Blood Requests</h3>
-                    <span class="bg-red-500 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-sm"><?= $pending_requests_count; ?></span>
+                    <h3 class="text-xl font-bold text-slate-900 tracking-tight">Recent Blood Requests</h3>
                 </div>
 
                 <div class="space-y-3">

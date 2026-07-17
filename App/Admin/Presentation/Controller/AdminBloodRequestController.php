@@ -49,10 +49,20 @@ class AdminBloodRequestController
         header('Content-Type: application/json');
         try {
             $db = \App\Shared\Infrastructure\Database\Database::getConnection();
-            $stmt = $db->prepare("SELECT COUNT(*) FROM blood_requests WHERE status = 7");
-            $stmt->execute();
+            $pendingStatus = $this->viewUseCase->getPendingStatusId();
+
+            $stmt = $db->prepare("SELECT COUNT(*) FROM blood_requests WHERE status = ?");
+            $stmt->execute([$pendingStatus]);
             $totalPending = (int)$stmt->fetchColumn();
-            $viewedCount = count($_SESSION['viewed_pending_requests'] ?? []);
+
+            $viewedIds = $_SESSION['admin_viewed_requests'] ?? [];
+            $viewedIds = is_array($viewedIds) ? array_map('intval', $viewedIds) : [];
+
+            $stmt2 = $db->prepare("SELECT request_id FROM blood_requests WHERE status = ?");
+            $stmt2->execute([$pendingStatus]);
+            $allPendingIds = array_map('intval', $stmt2->fetchAll(\PDO::FETCH_COLUMN) ?: []);
+            $viewedCount = count(array_intersect($allPendingIds, $viewedIds));
+
             echo json_encode(['count' => max(0, $totalPending - $viewedCount)]);
         } catch (\Throwable $e) {
             echo json_encode(['count' => 0]);
@@ -76,12 +86,13 @@ class AdminBloodRequestController
             exit;
         }
 
-        if ((int)$request['status'] === $this->viewUseCase->getPendingStatusId()) {
-            if (!isset($_SESSION['viewed_pending_requests']) || !is_array($_SESSION['viewed_pending_requests'])) {
-                $_SESSION['viewed_pending_requests'] = [];
+        $pendingStatusId = $this->viewUseCase->getPendingStatusId();
+        if ((int)$request['status'] === $pendingStatusId) {
+            if (!isset($_SESSION['admin_viewed_requests']) || !is_array($_SESSION['admin_viewed_requests'])) {
+                $_SESSION['admin_viewed_requests'] = [];
             }
-            if (!in_array($requestId, $_SESSION['viewed_pending_requests'])) {
-                $_SESSION['viewed_pending_requests'][] = $requestId;
+            if (!in_array($requestId, $_SESSION['admin_viewed_requests'], true)) {
+                $_SESSION['admin_viewed_requests'][] = $requestId;
             }
         }
 

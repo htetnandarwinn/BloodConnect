@@ -2,9 +2,11 @@
 
 use App\Shared\Helpers\Permission;
 
-if (!isset($pendingRequestsCount)) {
-    $pendingRequestsCount = 0;
+if (!isset($pending_requests_count)) {
+    $pending_requests_count = 0;
 }
+
+$pendingRequestsCount = $pending_requests_count;
 
 ?>
 <div id="sidebarBackdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden opacity-0 transition-opacity duration-300 lg:hidden"></div>
@@ -103,11 +105,9 @@ if (!isset($pendingRequestsCount)) {
                     </div>
 
                     <?php if (!empty($unreadCount) && $unreadCount > 0): ?>
-                        <span class="notification-badge w-5 h-5 rounded-full bg-[#ce2424] text-white text-[10px] font-black flex items-center justify-center">
-                            <?= $unreadCount ?>
-                        </span>
+                        <span class="notification-badge inline-flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-[#ce2424] text-white text-[10px] font-black leading-none shadow-sm"><?= $unreadCount ?></span>
                     <?php else: ?>
-                        <span class="notification-badge w-5 h-5 rounded-full bg-[#ce2424] text-white text-[10px] font-black hidden"></span>
+                        <span class="notification-badge inline-flex items-center justify-center min-w-[20px] h-5 px-1 rounded-full bg-[#ce2424] text-white text-[10px] font-black leading-none shadow-sm hidden"></span>
                     <?php endif; ?>
                 </a>
             <?php endif; ?>
@@ -202,7 +202,7 @@ if (!isset($pendingRequestsCount)) {
 
             badges.forEach(badge => {
                 if (data.count > 0) {
-                    badge.style.display = "flex";
+                    badge.style.display = "inline-flex";
                     badge.textContent = data.count;
                 } else {
                     badge.style.display = "none";
@@ -215,6 +215,28 @@ if (!isset($pendingRequestsCount)) {
 
     updateNotificationBadges();
     setInterval(updateNotificationBadges, 10000);
+
+    // --- 4. PENDING BLOOD REQUESTS POLLING ---
+    async function updatePendingBloodRequests() {
+        try {
+            const res = await fetch("/BloodConnect/public/donor/pending-blood-requests-count");
+            const data = await res.json();
+            const badges = document.querySelectorAll(".pending-badge");
+            badges.forEach(badge => {
+                if (data.count > 0) {
+                    badge.classList.remove('hidden');
+                    badge.textContent = data.count;
+                } else {
+                    badge.classList.add('hidden');
+                }
+            });
+        } catch (error) {
+            console.log("Pending count update failed", error);
+        }
+    }
+
+    updatePendingBloodRequests();
+    setInterval(updatePendingBloodRequests, 15000);
 
 
 </script>
