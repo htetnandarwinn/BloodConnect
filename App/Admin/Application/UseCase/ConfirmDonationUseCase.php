@@ -148,13 +148,13 @@ class ConfirmDonationUseCase
         foreach ($admins as $admin) {
             $this->notificationRepo->create(
                 (int)$admin['user_id'],
-                'Blood Request Assigned',
+                'Donor Assigned by Admin',
                 sprintf(
-                    'Blood request %s has been assigned to donor %s and is waiting for donor acceptance.',
+                    'Blood request %s has been assigned to donor %s by an admin and is waiting for donor acceptance.',
                     $request['request_code'] ?? 'N/A',
                     $donor['username'] ?? 'Unknown donor'
                 ),
-                'REQUEST'
+                'ADMIN_ACTION'
             );
         }
 

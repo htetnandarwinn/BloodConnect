@@ -6,6 +6,7 @@ use App\Shared\Helpers\Session;
 use App\Shared\Presentation\View\View;
 use App\Authentication\Domain\Repository\AuthRepositoryInterface;
 use App\Donor\Domain\Repository\DonorRepositoryInterface;
+use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 use App\Shared\Infrastructure\Mail\EmailService;
 use App\Authentication\Application\UseCase\RegisterPatientUseCase;
 use App\Authentication\Application\DTO\RegisterPatientDTO;
@@ -16,7 +17,8 @@ class VerifyEmailController
         private AuthRepositoryInterface $authRepo,
         private EmailService $emailService,
         private DonorRepositoryInterface $donorRepo,
-        private RegisterPatientUseCase $registerPatientUseCase
+        private RegisterPatientUseCase $registerPatientUseCase,
+        private NotificationRepositoryInterface $notificationRepo
     ) {}
     public function show()
     {
@@ -67,6 +69,22 @@ class VerifyEmailController
             (int)$pending['status_id'],
             $pending['password_hash']
         );
+
+        $roleLabel = ((int)$pending['user_type_id'] === 2) ? 'Donor' : 'Patient';
+        $admins = $this->notificationRepo->getAdmins();
+        foreach ($admins as $admin) {
+            $this->notificationRepo->create(
+                (int)$admin['user_id'],
+                'New ' . $roleLabel . ' Registered',
+                sprintf(
+                    'A new %s "%s" has registered and verified their email (ID: %s).',
+                    strtolower($roleLabel),
+                    $pending['username'],
+                    $userId
+                ),
+                'USER_ACTION'
+            );
+        }
 
         Session::remove('pending_registration');
         Session::remove('verify_email');

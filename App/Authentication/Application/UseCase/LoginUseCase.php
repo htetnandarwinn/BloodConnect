@@ -3,13 +3,15 @@
 namespace App\Authentication\Application\UseCase;
 
 use App\Authentication\Domain\Repository\AuthRepositoryInterface;
+use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 use App\Shared\Infrastructure\Activity\ActivityLogger;
 
 class LoginUseCase
 {
     public function __construct(
         private AuthRepositoryInterface $repo,
-        private ActivityLogger $activityLogger
+        private ActivityLogger $activityLogger,
+        private NotificationRepositoryInterface $notificationRepo
     ) {}
 
     public function execute(array $credentials): array
@@ -82,6 +84,22 @@ class LoginUseCase
             'LOGIN',
             "User logged in"
         );
+
+        $roleLabels = [1 => 'Admin', 2 => 'Donor', 3 => 'Patient'];
+        $roleLabel = $roleLabels[(int)($user['user_type_id'] ?? 0)] ?? 'User';
+        $admins = $this->notificationRepo->getAdmins();
+        foreach ($admins as $admin) {
+            $this->notificationRepo->create(
+                (int)$admin['user_id'],
+                $roleLabel . ' Logged In',
+                sprintf(
+                    '%s "%s" has logged in to the system.',
+                    $roleLabel,
+                    $user['username'] ?? 'Unknown'
+                ),
+                'USER_ACTION'
+            );
+        }
 
         return [
             'success' => true,

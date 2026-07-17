@@ -93,6 +93,25 @@ class NotifyDonorsUseCase
             $message .= ' Failed for: ' . implode(', ', $failed) . '.';
         }
 
+        $admins = $this->notificationRepo->getAdmins();
+        foreach ($admins as $admin) {
+            $adminUserId = (int)($admin['user_id'] ?? 0);
+            if ($adminUserId > 0) {
+                $this->notificationRepo->create(
+                    $adminUserId,
+                    'Donor Email Alert Sent',
+                    sprintf(
+                        'Email alert for blood request %s (patient %s, %s) was sent to %d donor(s).',
+                        $requestCode,
+                        $patientName,
+                        $bloodGroup,
+                        $emailed
+                    ),
+                    'ADMIN_ACTION'
+                );
+            }
+        }
+
         return ['success' => true, 'message' => $message];
     }
 }

@@ -7,6 +7,7 @@ use App\Shared\Helpers\Session;
 use App\Shared\Infrastructure\OAuth\GoogleOAuth;
 use App\Shared\Infrastructure\Activity\ActivityLogger;
 use App\Shared\Infrastructure\Persistence\MasterDataRepository;
+use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 
 class GoogleAuthController
 {
@@ -14,7 +15,8 @@ class GoogleAuthController
         private AuthRepositoryInterface $authRepo,
         private GoogleOAuth $googleOAuth,
         private ActivityLogger $activityLogger,
-        private MasterDataRepository $masterRepo
+        private MasterDataRepository $masterRepo,
+        private NotificationRepositoryInterface $notificationRepo
     ) {}
     public function redirect()
     {
@@ -176,6 +178,23 @@ class GoogleAuthController
         Session::remove('google_registration');
 
         $user = $this->authRepo->findByEmail($googleData['email']);
+
+        $roleLabel = ($userTypeId === 2) ? 'Donor' : 'Patient';
+        $admins = $this->notificationRepo->getAdmins();
+        foreach ($admins as $admin) {
+            $this->notificationRepo->create(
+                (int)$admin['user_id'],
+                'New ' . $roleLabel . ' Registered (Google)',
+                sprintf(
+                    'A new %s "%s" has registered via Google Sign-In (ID: %s).',
+                    strtolower($roleLabel),
+                    $username,
+                    $user['user_id'] ?? 'N/A'
+                ),
+                'USER_ACTION'
+            );
+        }
+
         $this->loginUser($user);
     }
 
@@ -198,6 +217,22 @@ class GoogleAuthController
             'USER_LOGIN',
             $user['username'] . ' logged in to system'
         );
+
+        $roleLabels = [1 => 'Admin', 2 => 'Donor', 3 => 'Patient'];
+        $roleLabel = $roleLabels[(int)($user['user_type_id'] ?? 0)] ?? 'User';
+        $admins = $this->notificationRepo->getAdmins();
+        foreach ($admins as $admin) {
+            $this->notificationRepo->create(
+                (int)$admin['user_id'],
+                $roleLabel . ' Logged In (Google)',
+                sprintf(
+                    '%s "%s" has logged in to the system via Google Sign-In.',
+                    $roleLabel,
+                    $user['username'] ?? 'Unknown'
+                ),
+                'USER_ACTION'
+            );
+        }
 
         $redirectMap = [
             1 => '/BloodConnect/public/admin/dashboard',

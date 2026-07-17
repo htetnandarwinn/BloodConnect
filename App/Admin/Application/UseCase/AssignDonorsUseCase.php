@@ -196,16 +196,17 @@ class AssignDonorsUseCase
         $admins = $this->notificationRepo->getAdmins();
         foreach ($admins as $admin) {
             $adminId = (int)($admin['user_id'] ?? 0);
-            $currentUserId = $_SESSION['user_id'] ?? 0;
-            if ($adminId > 0 && $adminId !== $currentUserId) {
+            if ($adminId > 0) {
                 $this->notificationRepo->create(
                     $adminId,
                     'Donors Assigned',
                     sprintf(
-                        'Donors have been assigned to blood request %s.',
-                        $requestCode
+                        'Donors have been assigned to blood request %s for patient %s (%s).',
+                        $requestCode,
+                        $patientName,
+                        $bloodGroup
                     ),
-                    'REQUEST'
+                    'ADMIN_ACTION'
                 );
             }
         }

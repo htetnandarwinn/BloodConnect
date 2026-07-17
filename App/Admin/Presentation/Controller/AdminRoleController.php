@@ -3,11 +3,13 @@
 namespace App\Admin\Presentation\Controller;
 
 use App\Shared\Infrastructure\Persistence\RoleRepository;
+use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 
 class AdminRoleController
 {
     public function __construct(
-        private RoleRepository $roleRepo
+        private RoleRepository $roleRepo,
+        private NotificationRepositoryInterface $notificationRepo
     ) {}
 
     public function roles(): void
@@ -31,6 +33,28 @@ class AdminRoleController
             }
 
             $this->roleRepo->updateRolePermissions((int)$roleId, $permissions);
+
+            $role = $this->roleRepo->findById((int)$roleId);
+            $adminName = $_SESSION['user']['username'] ?? 'Admin';
+            $adminId = (int)($_SESSION['user_id'] ?? 0);
+
+            $admins = $this->notificationRepo->getAdmins();
+            foreach ($admins as $admin) {
+                $adminUserId = (int)($admin['user_id'] ?? 0);
+                if ($adminUserId > 0 && $adminUserId !== $adminId) {
+                    $this->notificationRepo->create(
+                        $adminUserId,
+                        'Role Permissions Updated',
+                        sprintf(
+                            'Admin %s updated permissions for role "%s" (%d permissions).',
+                            $adminName,
+                            $role['name'] ?? 'Unknown',
+                            count($permissions)
+                        ),
+                        'ADMIN_ACTION'
+                    );
+                }
+            }
 
             header("Location: /BloodConnect/public/admin/roles");
             exit;

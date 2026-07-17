@@ -3,13 +3,15 @@
 namespace App\Admin\Application\UseCase;
 
 use App\User\Domain\Repository\UserRepositoryInterface;
+use App\Notification\Domain\Repository\NotificationRepositoryInterface;
 use App\Shared\Infrastructure\Activity\ActivityLogger;
 
 class ManageUsersUseCase
 {
     public function __construct(
         private UserRepositoryInterface $userRepo,
-        private ActivityLogger $activityLogger
+        private ActivityLogger $activityLogger,
+        private NotificationRepositoryInterface $notificationRepo
     ) {}
 
     public function getAllUsers(): array
@@ -45,6 +47,34 @@ class ManageUsersUseCase
             "Admin updated user {$user['username']} (ID: {$id})"
         );
 
+        $this->notificationRepo->create(
+            (int)$id,
+            'Your Profile Was Updated',
+            sprintf(
+                'An administrator has updated your account. If you did not expect this change, please contact support.',
+                $user['username']
+            ),
+            'ADMIN_ACTION'
+        );
+
+        $admins = $this->notificationRepo->getAdmins();
+        foreach ($admins as $admin) {
+            $adminUserId = (int)($admin['user_id'] ?? 0);
+            if ($adminUserId > 0 && $adminUserId !== $adminId) {
+                $this->notificationRepo->create(
+                    $adminUserId,
+                    'User Account Updated',
+                    sprintf(
+                        'Admin %s updated user "%s" (ID: %s).',
+                        $adminName ?? 'Admin',
+                        $user['username'],
+                        $id
+                    ),
+                    'ADMIN_ACTION'
+                );
+            }
+        }
+
         return ['success' => true];
     }
 
@@ -64,6 +94,24 @@ class ManageUsersUseCase
             "Admin deleted user {$user['username']} (ID: {$id})"
         );
 
+        $admins = $this->notificationRepo->getAdmins();
+        foreach ($admins as $admin) {
+            $adminUserId = (int)($admin['user_id'] ?? 0);
+            if ($adminUserId > 0 && $adminUserId !== $adminId) {
+                $this->notificationRepo->create(
+                    $adminUserId,
+                    'User Account Deleted',
+                    sprintf(
+                        'Admin %s deleted user "%s" (ID: %s).',
+                        $adminName ?? 'Admin',
+                        $user['username'],
+                        $id
+                    ),
+                    'ADMIN_ACTION'
+                );
+            }
+        }
+
         return ['success' => true];
     }
 
@@ -77,6 +125,36 @@ class ManageUsersUseCase
             'USER_RESTORED',
             "Admin restored user ID: {$id}"
         );
+
+        $user = $this->userRepo->findById($id);
+        if ($user) {
+            $this->notificationRepo->create(
+                (int)$id,
+                'Your Account Was Restored',
+                sprintf(
+                    'An administrator has restored your account. You can now log in again.',
+                    $user['username']
+                ),
+                'ADMIN_ACTION'
+            );
+        }
+
+        $admins = $this->notificationRepo->getAdmins();
+        foreach ($admins as $admin) {
+            $adminUserId = (int)($admin['user_id'] ?? 0);
+            if ($adminUserId > 0 && $adminUserId !== $adminId) {
+                $this->notificationRepo->create(
+                    $adminUserId,
+                    'User Account Restored',
+                    sprintf(
+                        'Admin %s restored user (ID: %s).',
+                        $adminName ?? 'Admin',
+                        $id
+                    ),
+                    'ADMIN_ACTION'
+                );
+            }
+        }
 
         return ['success' => true];
     }
