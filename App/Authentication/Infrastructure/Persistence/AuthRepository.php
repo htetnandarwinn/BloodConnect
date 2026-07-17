@@ -384,17 +384,6 @@ class AuthRepository implements AuthRepositoryInterface
 
     public function getPermissionsByUserType(int $userTypeId): array
     {
-        // Admin gets every permission
-        if ($userTypeId === 1) {
-
-            $stmt = $this->db->query("
-            SELECT permission_key
-            FROM permissions
-        ");
-
-            return $stmt->fetchAll(\PDO::FETCH_COLUMN);
-        }
-
         $stmt = $this->db->prepare("
         SELECT p.permission_key
         FROM user_type_permissions utp
