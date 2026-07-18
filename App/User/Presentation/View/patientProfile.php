@@ -5,7 +5,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
         <div>
             <h1 class="text-2xl sm:text-3xl font-black text-[#0b1325] tracking-tight flex items-center gap-2">
-                My Profile Details 👋
+                Patient Profile Details 👋
             </h1>
             <p class="text-xs sm:text-sm text-slate-500 font-medium mt-1">
                 View and manage your verified registration records and medical profile.

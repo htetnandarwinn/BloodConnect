@@ -40,7 +40,7 @@ $availabilityDotClass = ($availability === 'Available') ? 'bg-emerald-500' : 'bg
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in-up">
         <div>
             <h5 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                My Profile Details <span class="animate-bounce inline-block [animation-duration:2s]">👋</span>
+                Donor Profile Details <span class="animate-bounce inline-block [animation-duration:2s]">👋</span>
             </h5>
             <p class="text-xs sm:text-sm text-slate-500 font-medium mt-1">
                 View and manage your verified donor registration records and medical profile.
