@@ -974,5 +974,67 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function countRequestsGroupedByDate(int $days): array
+    {
+        $startDate = date('Y-m-d', strtotime("-{$days} days"));
+
+        $pendingStatus = $this->masterRepo->getId('REQUEST_STATUS', 'PENDING') ?? 7;
+        $acceptedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $completedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'COMPLETED') ?? 9;
+        $cancelledStatus = $this->masterRepo->getId('REQUEST_STATUS', 'CANCELLED') ?? 10;
+
+        $stmt = $this->db->prepare("
+            SELECT
+                DATE(br.created_at) AS request_date,
+                br.status,
+                COUNT(*) AS total
+            FROM blood_requests br
+            WHERE br.created_at >= ?
+            GROUP BY DATE(br.created_at), br.status
+            ORDER BY request_date ASC
+        ");
+
+        $stmt->execute([$startDate]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $grouped = [];
+        foreach ($rows as $row) {
+            $date = $row['request_date'];
+            $statusId = (int) $row['status'];
+            $count = (int) $row['total'];
+
+            if (!isset($grouped[$date])) {
+                $grouped[$date] = ['date' => $date, 'pending' => 0, 'accepted' => 0, 'cancelled' => 0];
+            }
+
+            if ($statusId === $pendingStatus) {
+                $grouped[$date]['pending'] = $count;
+            } elseif ($statusId === $acceptedStatus || $statusId === $completedStatus) {
+                $grouped[$date]['accepted'] += $count;
+            } elseif ($statusId === $cancelledStatus) {
+                $grouped[$date]['cancelled'] = $count;
+            }
+        }
+
+        return array_values($grouped);
+    }
+
+    public function findLatest(int $limit): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                br.blood_group_needed,
+                br.hospital_name,
+                br.created_at
+            FROM blood_requests br
+            ORDER BY br.created_at DESC
+            LIMIT ?
+        ");
+
+        $stmt->execute([$limit]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 

@@ -143,6 +143,7 @@ $router->group(['middleware' => ['auth', 'patient']], function (Router $router) 
 // Dashboard
 $router->group(['middleware' => ['auth', 'admin', 'can:dashboard.view']], function (Router $router) {
     $router->get('/admin/dashboard', [AdminDashboardController::class, 'admin_dashboard']);
+    $router->get('/admin/dashboard/chart-data', [AdminDashboardController::class, 'chartData']);
 });
 
 // Profile & Notifications (mapped to dashboard controller)

@@ -10,7 +10,7 @@
             <p class="text-xs sm:text-sm text-slate-500 font-medium mt-1">
                 View and manage your verified registration records and medical profile.
             </p>
-        </div>
+        </div> 
 
         <button onclick="window.location.href='/BloodConnect/public/patient/dashboard';"
             class="border border-slate-200 hover:bg-slate-50 active:scale-[0.98] text-slate-600 px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm shadow-sm transition-all">

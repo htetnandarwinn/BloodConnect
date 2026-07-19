@@ -11,6 +11,10 @@ unset($_SESSION['errors'], $_SESSION['success'], $_SESSION['old']);
 
 <!-- FontAwesome & Base Styling Dependencies -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<?php $recaptchaSiteKey = getenv('RECAPTCHA_SITE_KEY') ?: ''; ?>
+<?php if ($recaptchaSiteKey): ?>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<?php endif; ?>
 
 <!-- ============ REGULAR MODERN CLASSIC INTERIOR VIEW CONTENT ============ -->
 <section class="relative overflow-hidden py-10 lg:py-14 bg-gray-50">
@@ -25,6 +29,7 @@ unset($_SESSION['errors'], $_SESSION['success'], $_SESSION['old']);
     <!-- Main Outer Wrapper -->
     <div class="relative z-10 max-w-[1440px] mx-auto w-full px-6 md:px-12">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center min-h-[500px]">
+
 
             <!-- Left Side Column: Modern Info Presentation Panel with Shift and Float Animations -->
             <div class="order-2 lg:order-1 lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left transform transition duration-500 hover:scale-[1.01] lg:-translate-x-6">
@@ -149,6 +154,16 @@ unset($_SESSION['errors'], $_SESSION['success'], $_SESSION['old']);
                             <div class="flex-grow border-t border-gray-200"></div>
                         </div>
 
+                        <!-- Google reCAPTCHA v2 Widget -->
+                        <?php if ($recaptchaSiteKey): ?>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="g-recaptcha" data-sitekey="<?= htmlspecialchars($recaptchaSiteKey, ENT_QUOTES) ?>"></div>
+                            <p class="hidden text-red-600 text-sm font-semibold" id="recaptchaError">
+                                <i class="fa-solid fa-circle-exclamation"></i> Please check the "I'm not a robot" box.
+                            </p>
+                        </div>
+                        <?php endif; ?>
+
                         <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-xl text-lg shadow-lg shadow-red-600/20 active:scale-[0.99] transition duration-150">
                             Sign in
                         </button>
@@ -222,6 +237,16 @@ unset($_SESSION['errors'], $_SESSION['success'], $_SESSION['old']);
 
             if (isIdInvalid || isPasswordInvalid) {
                 e.preventDefault();
+                return;
+            }
+
+            const recaptchaResponse = document.getElementById("g-recaptcha-response");
+            const recaptchaError = document.getElementById("recaptchaError");
+            if (recaptchaResponse && !recaptchaResponse.value) {
+                e.preventDefault();
+                recaptchaError?.classList.remove("hidden");
+            } else {
+                recaptchaError?.classList.add("hidden");
             }
         });
     }

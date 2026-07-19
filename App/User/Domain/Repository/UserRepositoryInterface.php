@@ -10,4 +10,5 @@ interface UserRepositoryInterface
     public function getAdmins(): array;
     public function softDelete(int $id): bool;
     public function restore(int $id): bool;
+    public function countDonorsByBloodGroup(): array;
 }

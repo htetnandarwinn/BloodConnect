@@ -30,4 +30,6 @@ interface BloodRequestRepositoryInterface
     public function getDonorsAssignedToOtherRequests(array $donorIds, int $excludeRequestId): array;
     public function unassignDonorFromRequest(int $requestId, int $donorId): bool;
     public function findAssignedRequestsForDonor(int $donorId, int $assignedStatus): array;
+    public function countRequestsGroupedByDate(int $days): array;
+    public function findLatest(int $limit): array;
 }

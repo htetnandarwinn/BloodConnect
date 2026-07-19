@@ -13,7 +13,11 @@ unset($_SESSION['errors'], $_SESSION['success'], $_SESSION['old']);
 $current_role = $old['role'] ?? ($_GET['role'] ?? '');
 ?>
 
+<?php $recaptchaSiteKey = getenv('RECAPTCHA_SITE_KEY') ?: ''; ?>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<?php if ($recaptchaSiteKey): ?>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<?php endif; ?>
 
 <style>
     @keyframes fadeIn {
@@ -268,6 +272,16 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? '');
                             </p>
                         </div>
 
+                        <!-- Google reCAPTCHA v2 Widget -->
+                        <?php if ($recaptchaSiteKey): ?>
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="g-recaptcha" data-sitekey="<?= htmlspecialchars($recaptchaSiteKey, ENT_QUOTES) ?>"></div>
+                            <p class="hidden text-red-600 text-sm font-semibold" id="recaptchaError">
+                                <i class="fa-solid fa-circle-exclamation"></i> Please check the "I'm not a robot" box.
+                            </p>
+                        </div>
+                        <?php endif; ?>
+
                         <button type="submit" id="submitBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 px-6 rounded-xl text-base shadow-md shadow-red-600/10 active:scale-[0.99] transition duration-150 mt-2">
                             Register Profile
                         </button>
@@ -433,6 +447,16 @@ $current_role = $old['role'] ?? ($_GET['role'] ?? '');
 
             if (!formIsValid) {
                 e.preventDefault();
+                return;
+            }
+
+            const recaptchaResponse = document.getElementById("g-recaptcha-response");
+            const recaptchaError = document.getElementById("recaptchaError");
+            if (recaptchaResponse && !recaptchaResponse.value) {
+                e.preventDefault();
+                recaptchaError?.classList.remove("hidden");
+            } else {
+                recaptchaError?.classList.add("hidden");
             }
         });
     }

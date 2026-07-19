@@ -45,7 +45,14 @@ class Database
             $key = trim($key);
             $value = trim($value);
 
-            if ($key === '' || getenv($key) !== false) {
+            if ($key === '' || $key === 'RECAPTCHA_SITE_KEY' || $key === 'RECAPTCHA_SECRET_KEY') {
+                // Always allow reCAPTCHA keys to be refreshed from .env
+                putenv("{$key}={$value}");
+                $_ENV[$key] = $value;
+                continue;
+            }
+
+            if (getenv($key) !== false) {
                 continue;
             }
 

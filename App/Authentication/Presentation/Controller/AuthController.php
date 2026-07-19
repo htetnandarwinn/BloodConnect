@@ -174,6 +174,14 @@ class AuthController
     {
         Session::start();
 
+        if (!$this->verifyCaptcha()) {
+            $this->setFlash(
+                ['form' => 'Please complete the verification.'],
+                $_POST
+            );
+            $this->redirect('/register');
+        }
+
         try {
 
             $request = new RegisterPatientRequest();
@@ -250,6 +258,14 @@ class AuthController
     public function login()
     {
         Session::start();
+
+        if (!$this->verifyCaptcha()) {
+            $this->setFlash(
+                ['form' => 'Please complete the verification.'],
+                ['login' => $_POST['login'] ?? '']
+            );
+            $this->redirect('/login');
+        }
 
         try {
 
@@ -383,6 +399,61 @@ class AuthController
     }
 
     // ================= HELPERS =================
+
+    private function verifyCaptcha(): bool
+    {
+        $secretKey = getenv('RECAPTCHA_SECRET_KEY') ?: '';
+
+        if ($secretKey === '') {
+            return true;
+        }
+
+        $response = $_POST['g-recaptcha-response'] ?? '';
+
+        if ($response === '') {
+            return false;
+        }
+
+        $payload = http_build_query([
+            'secret'   => $secretKey,
+            'response' => $response,
+        ]);
+
+        $url = 'https://www.google.com/recaptcha/api/siteverify';
+        $body = $this->postToGoogle($url, $payload);
+
+        error_log("reCAPTCHA: API response: " . substr($body, 0, 500));
+
+        $json = json_decode($body, true);
+
+        return is_array($json) && ($json['success'] ?? false) === true;
+    }
+
+    private function postToGoogle(string $url, string $payload): string
+    {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $payload,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/x-www-form-urlencoded',
+                'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            ],
+        ]);
+        $body = curl_exec($ch);
+        $err  = curl_error($ch);
+        curl_close($ch);
+
+        if ($body !== false && $body !== '') {
+            return $body;
+        }
+
+        error_log("reCAPTCHA: curl failed: {$err}");
+        return '';
+    }
 
     private function redirect(string $path): void
     {

@@ -39,19 +39,38 @@ class AdminDashboardController
             elseif ($status === 'accepted' || $status === 'completed') $acceptedRequests++;
         }
 
+        $requestsChartData = $this->requestRepo->countRequestsGroupedByDate(30);
+        $donorsByBloodGroup = $this->userRepo->countDonorsByBloodGroup();
+        $latestRequests = $this->requestRepo->findLatest(6);
+
         $data = [
             'totalDonors'       => $totalDonors,
             'totalPatients'     => $totalPatients,
             'pendingRequests'   => $pendingRequests,
             'acceptedRequests'  => $acceptedRequests,
             'adminName'         => $_SESSION['user']['username'] ?? 'Admin',
-            'activities'        => $this->activityLogger->getLatest(10)
+            'activities'        => $this->activityLogger->getLatest(10),
+            'requestsChartData' => $requestsChartData,
+            'donorsByBloodGroup' => $donorsByBloodGroup,
+            'latestRequests'    => $latestRequests,
         ];
 
         ob_start();
         require __DIR__ . '/../View/admin_dashboard.php';
         $content = ob_get_clean();
         require __DIR__ . '/../Layout/adminApp.php';
+    }
+
+    public function chartData(): void
+    {
+        $days = (int)($_GET['days'] ?? 30);
+        $days = max(1, min(365, $days));
+
+        $chartData = $this->requestRepo->countRequestsGroupedByDate($days);
+
+        header('Content-Type: application/json');
+        echo json_encode($chartData);
+        exit;
     }
 
     public function profile(): void

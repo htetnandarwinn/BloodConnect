@@ -114,4 +114,20 @@ class UserRepository implements UserRepositoryInterface
         $stmt = $this->db->prepare("UPDATE users SET deleted_at = NULL, is_active = 1 WHERE user_id = ?");
         return $stmt->execute([$id]);
     }
+
+    public function countDonorsByBloodGroup(): array
+    {
+        $stmt = $this->db->query("
+            SELECT blood_group, COUNT(*) AS total
+            FROM users
+            WHERE user_type_id = 2
+              AND deleted_at IS NULL
+              AND blood_group IS NOT NULL
+              AND blood_group != ''
+            GROUP BY blood_group
+            ORDER BY total DESC
+        ");
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
