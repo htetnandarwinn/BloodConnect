@@ -124,6 +124,22 @@ class AdminBloodRequestController
 
         $assignedDonors = $this->bloodRequestRepo->getAssignedDonors($requestId);
 
+        $donorResponseMap = [];
+        foreach ($assignedDonors as $ad) {
+            $did = (int)($ad['donor_id'] ?? 0);
+            if ($did > 0) {
+                $donorResponseMap[$did] = (int)($ad['response_status_id'] ?? 11);
+            }
+        }
+
+        $allMatchingDonorIds = array_filter(array_map(fn($d) => (int)($d['user_id'] ?? 0), $donors));
+        if (!empty($allMatchingDonorIds)) {
+            $responseStatuses = $this->bloodRequestRepo->getDonorResponseStatuses($requestId, $allMatchingDonorIds);
+            foreach ($responseStatuses as $did => $rsid) {
+                $donorResponseMap[$did] = $rsid;
+            }
+        }
+
         $acceptedDonor = null;
         $assignedDonor = null;
 

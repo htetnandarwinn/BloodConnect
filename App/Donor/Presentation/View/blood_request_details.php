@@ -1,6 +1,7 @@
 <?php
 $request = $request ?? [];
 $user = $user ?? [];
+$donor_response_status = $donor_response_status ?? 0;
 
 // Dynamic Style Mapping Matrix Helpers
 function getDetailsUrgencyStyle($urgency)
@@ -35,6 +36,8 @@ if (stripos($status, 'accepted') !== false || (int)($request['status'] ?? 0) ===
 
 $isAccepted = (stripos((string)($request['status_name'] ?? $request['status'] ?? 'Pending'), 'accepted') !== false) || (int)($request['status'] ?? 0) === 8;
 $isAssigned = (stripos((string)($request['status_name'] ?? $request['status'] ?? ''), 'assigned') !== false) || (int)($request['status'] ?? 0) === 42;
+$isCompleted = (stripos((string)($request['status_name'] ?? $request['status'] ?? ''), 'completed') !== false) || (int)($request['status'] ?? 0) === 9;
+$isCancelled = (stripos((string)($request['status_name'] ?? $request['status'] ?? ''), 'cancelled') !== false) || (int)($request['status'] ?? 0) === 10;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -145,25 +148,57 @@ $isAssigned = (stripos((string)($request['status_name'] ?? $request['status'] ??
                     <div class="rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3 text-xs font-bold text-emerald-700 flex items-center gap-2">
                         <i class="fa-solid fa-circle-check text-emerald-500"></i> This hospital ticket has already been claimed and accepted.
                     </div>
+                <?php elseif ($isCompleted): ?>
+                    <div class="rounded-xl border border-blue-200 bg-blue-50/60 px-4 py-3 text-xs font-bold text-blue-700 flex items-center gap-2">
+                        <i class="fa-solid fa-check-circle text-blue-500"></i> This request has been completed.
+                    </div>
+                <?php elseif ($isCancelled): ?>
+                    <div class="rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3 text-xs font-bold text-slate-600 flex items-center gap-2">
+                        <i class="fa-solid fa-ban text-slate-400"></i> This request has been cancelled.
+                    </div>
+                <?php elseif ($donor_response_status === 13): ?>
+                    <div class="rounded-xl border border-rose-200 bg-rose-50/60 px-4 py-3 text-xs font-bold text-rose-700 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-xmark text-rose-500"></i> You declined this request.
+                    </div>
+                <?php elseif ($donor_response_status === 12): ?>
+                    <div class="rounded-xl border border-emerald-200 bg-emerald-50/60 px-4 py-3 text-xs font-bold text-emerald-700 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i> You accepted this request.
+                    </div>
                 <?php elseif ($isAssigned): ?>
                     <div class="flex flex-col sm:flex-row sm:items-center gap-4">
                         <div class="rounded-xl border border-violet-200 bg-violet-50/60 px-4 py-3 text-xs font-bold text-violet-700 flex items-center gap-2">
                             <i class="fa-solid fa-user-check text-violet-500"></i> You have been assigned to this request by the admin.
                         </div>
+                        <div class="flex gap-2">
+                            <form action="/BloodConnect/public/donor/request/accept" method="POST">
+                                <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
+                                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-xs font-bold text-white hover:bg-emerald-700 transition-all active:scale-95 shadow-md shadow-emerald-600/10">
+                                    <i class="fa-solid fa-check"></i> Accept
+                                </button>
+                            </form>
+                            <form action="/BloodConnect/public/donor/request/decline" method="POST" onsubmit="return confirm('Are you sure you want to decline this request?');">
+                                <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
+                                <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-xs font-bold text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all active:scale-95">
+                                    <i class="fa-solid fa-xmark"></i> Decline
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <div class="flex gap-2">
                         <form action="/BloodConnect/public/donor/request/accept" method="POST">
                             <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
-                            <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-xs font-bold text-white hover:bg-emerald-700 transition-all active:scale-95 shadow-md shadow-emerald-600/10">
-                                <i class="fa-solid fa-check"></i> Accept Medical Request
+                            <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-xs font-bold text-white hover:bg-emerald-700 transition-all active:scale-95 shadow-md shadow-emerald-600/10">
+                                <i class="fa-solid fa-check"></i> Accept
+                            </button>
+                        </form>
+                        <form action="/BloodConnect/public/donor/request/decline" method="POST" onsubmit="return confirm('Are you sure you want to decline this request?');">
+                            <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
+                            <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-xs font-bold text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all active:scale-95">
+                                <i class="fa-solid fa-xmark"></i> Decline
                             </button>
                         </form>
                     </div>
-                <?php else: ?>
-                    <form action="/BloodConnect/public/donor/request/accept" method="POST" class="w-full sm:w-auto">
-                        <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
-                        <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-xs font-bold text-white hover:bg-emerald-700 transition-all active:scale-95 shadow-md shadow-emerald-600/10">
-                            <i class="fa-solid fa-check"></i> Accept Medical Request
-                        </button>
-                    </form>
                 <?php endif; ?>
             </div>
 

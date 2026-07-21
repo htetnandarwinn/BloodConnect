@@ -57,6 +57,23 @@ class AssignDonorsUseCase
             return ['success' => false, 'error' => 'None of the selected donors meet eligibility requirements (minimum 50kg weight).'];
         }
 
+        $responded = $this->bloodRequestRepo->getDonorResponseStatuses($requestId, $validDonorIds);
+        $filtered = [];
+        foreach ($validDonorIds as $donorId) {
+            if (isset($responded[$donorId])) {
+                $donor = $this->userRepo->findById($donorId);
+                $donorName = $donor['username'] ?? 'Donor #' . $donorId;
+                $skippedDonors[] = $donorName . ' (already responded to this request)';
+            } else {
+                $filtered[] = $donorId;
+            }
+        }
+        $validDonorIds = $filtered;
+
+        if (empty($validDonorIds)) {
+            return ['success' => false, 'error' => 'All selected donors have already responded to this request.'];
+        }
+
         // Urgency-aware reservation (requirements #2, #5, #6):
         // a donor who could serve a HIGHER-priority competing request (same
         // blood group + location) may not be assigned to a lower-priority

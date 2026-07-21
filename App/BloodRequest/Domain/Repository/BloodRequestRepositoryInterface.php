@@ -12,7 +12,7 @@ interface BloodRequestRepositoryInterface
     public function findDonorRequestDetail(int $requestId, int $donorId, int $acceptedStatus): array;
     public function create(array $data): bool;
     public function findAll(): array;
-    public function findPendingRequestsForDonor(string $bloodGroup): array;
+    public function findPendingRequestsForDonor(string $bloodGroup, int $excludeDonorId = 0): array;
     public function findCompetingRequests(string $bloodGroup, string $stateRegion, int $excludeRequestId): array;
     public function getMatchingDonors(string $bloodGroup, ?string $township = null, ?string $stateRegion = null): array;
     public function acceptByAdmin(int $requestId, int $donorId, int $statusId): bool;
@@ -20,6 +20,7 @@ interface BloodRequestRepositoryInterface
     public function getPatientStats(int $patientId): array;
     public function hasPendingRequest(int $patientId): bool;
     public function updateDonorDecision(int $requestId, int $donorId, int $statusId): bool;
+    public function updateDonorResponse(int $requestId, int $donorId, int $responseStatusId): bool;
     public function cancelRequest(int $requestId, int $patientId, int $cancelledStatus, int $assignedStatus = 42): bool;
     public function deleteRequest(int $requestId): bool;
     public function countAcceptedByDonors(): int;
@@ -27,6 +28,7 @@ interface BloodRequestRepositoryInterface
     public function findBestDonorByLocation(string $bloodGroup, ?string $township, ?string $stateRegion): ?array;
     public function assignDonorsToRequest(int $requestId, array $donorIds, int $statusId): bool;
     public function getAssignedDonors(int $requestId): array;
+    public function getDonorResponseStatuses(int $requestId, array $donorIds): array;
     public function getDonorsAssignedToOtherRequests(array $donorIds, int $excludeRequestId): array;
     public function unassignDonorFromRequest(int $requestId, int $donorId): bool;
     public function findAssignedRequestsForDonor(int $donorId, int $assignedStatus): array;

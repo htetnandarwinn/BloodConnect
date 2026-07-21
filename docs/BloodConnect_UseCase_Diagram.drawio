@@ -1,0 +1,287 @@
+<mxfile host="app.diagrams.net" modified="2025-07-20T00:00:00.000Z" type="device">
+  <diagram id="use-case-diagram" name="Use Case Diagram">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ==================== SYSTEM BOUNDARY ==================== -->
+        <mxCell id="2" value="BloodConnect System" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#1a1a2e;strokeWidth=2;verticalAlign=top;align=center;fontFamily=Helvetica;fontSize=18;fontStyle=1;fontColor=#1a1a2e;spacingTop=12;" vertex="1" parent="1">
+          <mxGeometry x="260" y="-10" width="1040" height="740" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== ACTORS ==================== -->
+
+        <!-- Patient -->
+        <mxCell id="10" value="Patient" style="shape=actor;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#1a1a2e;strokeWidth=1.5;fontFamily=Helvetica;fontSize=13;fontStyle=1;fontColor=#1a1a2e;verticalLabelPosition=bottom;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="80" y="380" width="50" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- Donor -->
+        <mxCell id="20" value="Donor" style="shape=actor;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#1a1a2e;strokeWidth=1.5;fontFamily=Helvetica;fontSize=13;fontStyle=1;fontColor=#1a1a2e;verticalLabelPosition=bottom;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="80" y="660" width="50" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- Administrator -->
+        <mxCell id="30" value="Administrator" style="shape=actor;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#1a1a2e;strokeWidth=1.5;fontFamily=Helvetica;fontSize=13;fontStyle=1;fontColor=#1a1a2e;verticalLabelPosition=bottom;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1340" y="400" width="50" height="100" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== USE CASES ==================== -->
+
+        <!-- === Column 1: Shared Authentication / Patient === -->
+
+        <!-- Register -->
+        <mxCell id="100" value="Register" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="330" y="30" width="140" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Verify Email -->
+        <mxCell id="101" value="Verify Email" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="330" y="105" width="140" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Login -->
+        <mxCell id="102" value="Login" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="330" y="180" width="140" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Manage Profile -->
+        <mxCell id="103" value="Manage Profile" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="330" y="255" width="140" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Create Blood Request -->
+        <mxCell id="104" value="Create Blood Request" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="330" y="350" width="140" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- View My Requests -->
+        <mxCell id="105" value="View My Requests" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="330" y="420" width="140" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Cancel Request -->
+        <mxCell id="106" value="Cancel Request" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="330" y="490" width="140" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- View Notifications -->
+        <mxCell id="107" value="View Notifications" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="330" y="560" width="140" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Logout -->
+        <mxCell id="118" value="Logout" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="330" y="630" width="140" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- === Column 2: Donor Use Cases === -->
+
+        <!-- View Matching Requests -->
+        <mxCell id="108" value="View Matching Requests" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="580" y="350" width="165" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Accept Blood Request -->
+        <mxCell id="109" value="Accept Blood Request" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="580" y="420" width="165" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Decline Blood Request -->
+        <mxCell id="110" value="Decline Blood Request" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="580" y="490" width="165" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- View Donation History -->
+        <mxCell id="111" value="View Donation History" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="580" y="560" width="165" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- === Column 3: Administrator Use Cases === -->
+
+        <!-- Manage Users -->
+        <mxCell id="112" value="Manage Users" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="850" y="105" width="165" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Manage Blood Requests -->
+        <mxCell id="113" value="Manage Blood Requests" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="850" y="180" width="165" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Assign Donors -->
+        <mxCell id="114" value="Assign Donors" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="850" y="255" width="165" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Manage Notifications -->
+        <mxCell id="115" value="Manage Notifications" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="850" y="350" width="165" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Generate Reports -->
+        <mxCell id="116" value="Generate Reports" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="850" y="420" width="165" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- Manage Blood Groups -->
+        <mxCell id="117" value="Manage Blood Groups" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fontColor=#333333;verticalAlign=middle;align=center;" vertex="1" parent="1">
+          <mxGeometry x="850" y="490" width="165" height="45" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== ASSOCIATIONS: PATIENT ==================== -->
+
+        <!-- Patient → Register -->
+        <mxCell id="200" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="10" target="100" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Patient → Verify Email -->
+        <mxCell id="201" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="10" target="101" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Patient → Login -->
+        <mxCell id="202" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="10" target="102" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Patient → Manage Profile -->
+        <mxCell id="203" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="10" target="103" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Patient → Create Blood Request -->
+        <mxCell id="204" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="10" target="104" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Patient → View My Requests -->
+        <mxCell id="205" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.6;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="10" target="105" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Patient → Cancel Request -->
+        <mxCell id="206" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="10" target="106" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Patient → View Notifications -->
+        <mxCell id="207" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="10" target="107" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Patient → Logout -->
+        <mxCell id="208" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.9;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="10" target="118" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== ASSOCIATIONS: DONOR ==================== -->
+
+        <!-- Donor → Register -->
+        <mxCell id="210" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="20" target="100" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Donor → Verify Email -->
+        <mxCell id="211" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="20" target="101" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Donor → Login -->
+        <mxCell id="212" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="20" target="102" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Donor → Manage Profile -->
+        <mxCell id="213" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="20" target="103" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Donor → View Matching Requests -->
+        <mxCell id="214" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="20" target="108" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Donor → Accept Blood Request -->
+        <mxCell id="215" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.6;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="20" target="109" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Donor → Decline Blood Request -->
+        <mxCell id="216" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="20" target="110" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Donor → View Donation History -->
+        <mxCell id="217" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="20" target="111" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Donor → View Notifications -->
+        <mxCell id="218" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=0.9;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="20" target="107" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Donor → Logout -->
+        <mxCell id="219" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="20" target="118" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ==================== ASSOCIATIONS: ADMINISTRATOR ==================== -->
+
+        <!-- Administrator → Login -->
+        <mxCell id="220" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=0;exitY=0.1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="30" target="102" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Administrator → Manage Profile -->
+        <mxCell id="221" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=0;exitY=0.2;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="30" target="103" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Administrator → Manage Users -->
+        <mxCell id="222" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="30" target="112" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Administrator → Manage Blood Requests -->
+        <mxCell id="223" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=0;exitY=0.4;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="30" target="113" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Administrator → Assign Donors -->
+        <mxCell id="224" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="30" target="114" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Administrator → Manage Notifications -->
+        <mxCell id="225" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=0;exitY=0.6;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="30" target="115" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Administrator → Generate Reports -->
+        <mxCell id="226" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="30" target="116" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Administrator → Manage Blood Groups -->
+        <mxCell id="227" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=0;exitY=0.8;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="30" target="117" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Administrator → View Notifications -->
+        <mxCell id="228" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=0;exitY=0.9;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="30" target="107" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Administrator → Logout -->
+        <mxCell id="229" style="endArrow=none;html=1;strokeColor=#555555;strokeWidth=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="30" target="118" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

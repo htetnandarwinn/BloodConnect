@@ -11,6 +11,8 @@ $isCancelledRequest = $isCancelledRequest ?? false;
 $hasAssignedDonor = !empty($request['donor_id']) || !empty($assignedDonor);
 $isPendingAssignment = $hasAssignedDonor && !$isAccepted;
 
+$donorResponseMap = $donorResponseMap ?? [];
+
 $bloodGroup = trim((string)($request['blood_group_needed'] ?? ''));
 $patientName = htmlspecialchars((string)($request['patient_name'] ?? 'Patient'));
 $requestCode = htmlspecialchars((string)($request['request_code'] ?? 'N/A'));
@@ -225,22 +227,40 @@ if (!function_exists('getAdminBloodGroupStyle')) {
                         </div>
                     </div>
 
-                <?php elseif (!empty($assignedDonors)): ?>
-                    <div class="space-y-4">
+                <?php else: ?>
+
+                    <?php if (!empty($assignedDonors)): ?>
+                    <div class="space-y-4 mb-8">
                         <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
                             <div>
                                 <h3 class="text-lg font-black text-slate-900 tracking-tight">Assigned Donors</h3>
-                                <p class="text-xs text-slate-400 font-medium mt-0.5">Waiting for donor responses.</p>
+                                <p class="text-xs text-slate-400 font-medium mt-0.5">Donor responses to this request.</p>
                             </div>
-                            <span class="inline-block px-2.5 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-wider bg-amber-50 text-amber-600 border border-amber-200/60">
-                                <?= count($assignedDonors) ?> Pending
+                            <span class="inline-block px-2.5 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/60">
+                                <?= count($assignedDonors) ?> Total
                             </span>
                         </div>
-                        <?php foreach ($assignedDonors as $ad): ?>
-                            <div class="rounded-2xl border border-amber-200 bg-amber-50/30 p-4 space-y-2">
+                        <?php
+                        $responseLabels = [
+                            11 => ['label' => 'Pending', 'class' => 'text-amber-600'],
+                            12 => ['label' => 'Accepted', 'class' => 'text-emerald-600'],
+                            13 => ['label' => 'Declined', 'class' => 'text-rose-600'],
+                        ];
+                        $responseBorders = [
+                            11 => 'border-amber-200 bg-amber-50/30',
+                            12 => 'border-emerald-200 bg-emerald-50/30',
+                            13 => 'border-rose-200 bg-rose-50/30',
+                        ];
+                        ?>
+                        <?php foreach ($assignedDonors as $ad):
+                            $rsid = (int)($ad['response_status_id'] ?? 11);
+                            $rlabel = $responseLabels[$rsid] ?? $responseLabels[11];
+                            $rborder = $responseBorders[$rsid] ?? $responseBorders[11];
+                        ?>
+                            <div class="rounded-2xl border p-4 space-y-2 <?= $rborder ?>">
                                 <div class="flex items-center justify-between gap-3">
                                     <h4 class="text-sm font-black text-slate-900"><?= htmlspecialchars((string)($ad['username'] ?? 'Donor')) ?></h4>
-                                    <span class="text-[9px] font-bold text-amber-600 uppercase tracking-wider">Pending</span>
+                                    <span class="text-[9px] font-bold uppercase tracking-wider <?= $rlabel['class'] ?>"><?= $rlabel['label'] ?></span>
                                 </div>
                                 <div class="flex gap-3 text-xs text-slate-600">
                                     <span class="font-mono font-bold"><?= htmlspecialchars((string)($ad['blood_group'] ?? '-')) ?></span>
@@ -250,24 +270,24 @@ if (!function_exists('getAdminBloodGroupStyle')) {
                             </div>
                         <?php endforeach; ?>
 
+                        <?php
+                        $notifiableAssigned = array_filter($assignedDonors, fn($ad) => (int)($ad['response_status_id'] ?? 11) !== 13);
+                        ?>
+                        <?php if (!empty($notifiableAssigned)): ?>
                         <form action="/BloodConnect/public/admin/blood-request/notify-donors" method="POST" class="pt-2">
                             <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
-                            <?php foreach ($assignedDonors as $ad): ?>
+                            <?php foreach ($notifiableAssigned as $ad): ?>
                                 <input type="hidden" name="donor_ids[]" value="<?= (int)($ad['donor_id'] ?? 0) ?>">
                             <?php endforeach; ?>
                             <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-[#ce2424] bg-white px-4 py-3 text-xs font-bold text-[#ce2424] hover:bg-rose-50 transition-all active:scale-95">
                                 <i class="fa-solid fa-envelope"></i> Send Email Alert to Assigned Donors
                             </button>
                         </form>
+                        <?php endif; ?>
                     </div>
+                    <?php endif; ?>
 
-                <?php elseif ($matchingTier === 'none'): ?>
-                    <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center text-xs font-medium text-slate-400">
-                        <i class="fa-solid fa-users-slash text-xl block text-slate-300 mb-2"></i>
-                        No active verified network donors match this blood group registry.
-                    </div>
-
-                <?php else: ?>
+                    <?php if ($matchingTier !== 'none'): ?>
                     <div class="space-y-4">
                         <div class="flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
                             <div>
@@ -307,8 +327,9 @@ if (!function_exists('getAdminBloodGroupStyle')) {
                                         $allReserved = false;
                                     }
                                 ?>
-                                    <label class="flex items-start gap-3 p-3 rounded-xl border transition-all <?= $reserved !== null ? 'border-amber-200 bg-amber-50/40 opacity-80 cursor-not-allowed' : 'border-slate-200/70 bg-white hover:bg-slate-50/50 cursor-pointer has-[:checked]:border-rose-300 has-[:checked]:bg-rose-50/30' ?>">
-                                        <input type="checkbox" name="donor_ids[]" value="<?= $did ?>" <?= $reserved !== null ? 'disabled' : '' ?>
+                                    <?php $alreadyResponded = isset($donorResponseMap[$did]) && $donorResponseMap[$did] !== 11; ?>
+                                    <label class="flex items-start gap-3 p-3 rounded-xl border transition-all <?= ($reserved !== null || $alreadyResponded) ? 'border-slate-200 bg-slate-50/40 opacity-70 cursor-not-allowed' : 'border-slate-200/70 bg-white hover:bg-slate-50/50 cursor-pointer has-[:checked]:border-rose-300 has-[:checked]:bg-rose-50/30' ?>">
+                                        <input type="checkbox" name="donor_ids[]" value="<?= $did ?>" <?= ($reserved !== null || $alreadyResponded) ? 'disabled' : '' ?>
                                             class="mt-0.5 w-4 h-4 rounded accent-[#ce24224]">
                                         <div class="flex-1 min-w-0">
                                             <div class="flex items-center justify-between gap-2">
@@ -335,6 +356,15 @@ if (!function_exists('getAdminBloodGroupStyle')) {
                                                 <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider <?= $dbadge['class'] ?> border rounded px-1.5 py-0.5">
                                                     <?= htmlspecialchars($dbadge['label']) ?>
                                                 </span>
+                                                <?php if (isset($donorResponseMap[$did]) && $donorResponseMap[$did] === 13): ?>
+                                                    <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-rose-700 bg-rose-100 border border-rose-200 rounded px-1.5 py-0.5">
+                                                        Declined
+                                                    </span>
+                                                <?php elseif (isset($donorResponseMap[$did]) && $donorResponseMap[$did] === 12): ?>
+                                                    <span class="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-100 border border-emerald-200 rounded px-1.5 py-0.5">
+                                                        Accepted
+                                                    </span>
+                                                <?php endif; ?>
                                                 <?php if ($reserved !== null): ?>
                                                     <span class="inline-flex items-center gap-1 mt-1 text-[10px] font-extrabold uppercase tracking-wider text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5">
                                                         Reserved &rarr; <?= htmlspecialchars($reserved['request_code']) ?> (<?= htmlspecialchars($reserved['urgency']) ?>)
@@ -394,6 +424,12 @@ if (!function_exists('getAdminBloodGroupStyle')) {
                             document.addEventListener('DOMContentLoaded', updateSelectedCount);
                         </script>
                     </div>
+                <?php else: ?>
+                    <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center text-xs font-medium text-slate-400">
+                        <i class="fa-solid fa-users-slash text-xl block text-slate-300 mb-2"></i>
+                        No active verified network donors match this blood group registry.
+                    </div>
+                <?php endif; ?>
                 <?php endif; ?>
             </div>
 

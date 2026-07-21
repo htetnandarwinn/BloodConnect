@@ -31,7 +31,7 @@ class GetDonorDashboardUseCase
     public function execute(int $donorId, string $bloodGroup): array
     {
         $acceptedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
-        $pendingRequests = $this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup);
+        $pendingRequests = $this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup, $donorId);
         $acceptedRequests = $this->bloodRequestRepo->findAcceptedRequestsForDonor($donorId, (int) $acceptedStatus);
         $lastDonation = $acceptedRequests[0] ?? [];
         $combinedRequests = array_merge($pendingRequests, $acceptedRequests);

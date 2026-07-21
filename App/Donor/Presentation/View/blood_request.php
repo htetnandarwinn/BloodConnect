@@ -160,28 +160,29 @@ $blood_requests = [
                     </div>
 
                     <div class="space-y-4">
-                        <?php foreach ($blood_requests as $index => $request):
-                            $rid = $request['id'] ?? $request['request_id'] ?? 0;
-                            $hospital = $request['location'] ?? '-';
-                            $patient = $request['requester'] ?? '-';
-                            $blood = $request['blood_type'] ?? '-';
-                            $units = $request['units'] ?? $request['unit'] ?? '-';
-                            $severity = $request['priority'] ?? 'Routine';
-                            $status = $request['status'] ?? 'pending';
-                            $required_date = $request['deadline'] ?? date('Y-m-d');
+                        <?php $items = $requests ?? $blood_requests; ?>
+                        <?php foreach ($items as $index => $request):
+                            $rid = $request['request_id'] ?? $request['id'] ?? 0;
+                            $hospital = $request['hospital_name'] ?? $request['location'] ?? '-';
+                            $patient = $request['patient_name'] ?? $request['requester'] ?? '-';
+                            $blood = $request['blood_group_needed'] ?? $request['blood_type'] ?? '-';
+                            $units = $request['unit'] ?? $request['units'] ?? '-';
+                            $severity = $request['urgency'] ?? $request['priority'] ?? 'Routine';
+                            $status = $request['status_name'] ?? $request['status'] ?? 'pending';
+                            $donorResp = (int)($request['donor_response_status'] ?? 0);
+                            $isPending = stripos((string)$status, 'pending') !== false;
+                            $isAccepted = stripos((string)$status, 'accepted') !== false;
                         ?>
                             <?php
                             $priorityColor = 'border-slate-200';
                             $badgeColor = 'bg-slate-100 text-slate-600';
-                            if ($request['priority'] === 'High') {
+                            $sevUpper = strtoupper((string)$severity);
+                            if ($sevUpper === 'CRITICAL' || $sevUpper === 'HIGH') {
                                 $priorityColor = 'border-l-[5px] border-l-rose-500';
                                 $badgeColor = 'bg-rose-50 border border-rose-100 text-rose-700';
-                            } elseif ($request['priority'] === 'Medium') {
+                            } elseif ($sevUpper === 'URGENT' || $sevUpper === 'MEDIUM') {
                                 $priorityColor = 'border-l-[5px] border-l-amber-500';
                                 $badgeColor = 'bg-amber-50 border border-amber-100 text-amber-700';
-                            } elseif ($request['priority'] === 'Low') {
-                                $priorityColor = 'border-l-[5px] border-l-slate-400';
-                                $badgeColor = 'bg-slate-50 border border-slate-100 text-slate-600';
                             }
                             ?>
 
@@ -189,7 +190,7 @@ $blood_requests = [
 
                                 <div class="flex items-start gap-4 min-w-0">
                                     <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-50 to-red-100/60 border border-red-200/50 text-red-600 font-black flex items-center justify-center shrink-0 text-base shadow-sm">
-                                        <?= htmlspecialchars($request['blood_type']); ?>
+                                        <?= htmlspecialchars($blood); ?>
                                     </div>
 
                                     <div class="space-y-1 min-w-0">
@@ -204,43 +205,45 @@ $blood_requests = [
                                             <p class="truncate"><i class="fa-solid fa-hospital mr-1 text-slate-400 text-xs"></i> <?= htmlspecialchars($hospital); ?></p>
                                             <span class="hidden sm:inline text-slate-300">•</span>
                                             <p class="font-medium shrink-0">
-                                                <span class="font-bold text-slate-900"><?= htmlspecialchars($units); ?></span> Units needed by <span class="text-red-600 font-semibold"><?= htmlspecialchars($required_date); ?></span>
+                                                <span class="font-bold text-slate-900"><?= htmlspecialchars($units); ?></span> Units needed
                                             </p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="flex items-center justify-between lg:justify-end gap-4 pt-3 lg:pt-0 border-t border-slate-50 lg:border-t-0 shrink-0">
-                                    <span class="text-xs text-slate-400 font-medium lg:hidden flex items-center gap-1">
-                                        <i class="fa-regular fa-clock text-[11px]"></i> <?= htmlspecialchars($request['time_ago'] ?? ''); ?>
-                                    </span>
-
-                                    <div class="flex items-center gap-2.5 w-full lg:w-auto justify-end">
-                                        <?php if (strtolower($status) === 'pending' || strtolower($status) === 'pending'): ?>
-                                            <span class="text-xs text-slate-400 font-medium hidden lg:flex items-center gap-1 mr-2">
-                                                <i class="fa-regular fa-clock text-[11px]"></i> <?= htmlspecialchars($request['time_ago'] ?? ''); ?>
+                                    <?php if ($donorResp === 13): ?>
+                                        <div class="flex items-center gap-3 bg-rose-50 border border-rose-100/80 px-3 py-2 rounded-xl">
+                                            <span class="flex items-center gap-1.5 text-rose-700 font-bold text-xs sm:text-sm">
+                                                <i class="fa-solid fa-circle-xmark text-rose-500"></i> Declined
                                             </span>
-
-                                            <form action="handle_request.php" method="POST" class="flex gap-2 w-full sm:w-auto">
-                                                <input type="hidden" name="request_id" value="<?= (int)$rid; ?>">
-                                                <button type="submit" name="action" value="accept" class="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm shadow-emerald-500/10 transition-all">
-                                                    Accept
-                                                </button>
-                                                <button type="submit" name="action" value="decline" class="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 active:scale-[0.98] font-bold text-xs sm:text-sm rounded-xl transition-all">
-                                                    Decline
-                                                </button>
-                                            </form>
-                                        <?php else: ?>
-                                            <div class="flex items-center gap-3 bg-emerald-50 border border-emerald-100/80 px-3 py-2 rounded-xl">
-                                                <span class="flex items-center gap-1.5 text-emerald-700 font-bold text-xs sm:text-sm">
-                                                    <i class="fa-solid fa-circle-check text-emerald-500"></i> Accepted
-                                                </span>
-                                                <span class="text-[11px] text-emerald-600/70 font-semibold border-l border-emerald-200/60 pl-2.5">
-                                                    <?= htmlspecialchars($request['action_date'] ?? ''); ?>
-                                                </span>
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
+                                        </div>
+                                    <?php elseif ($isAccepted || $donorResp === 12): ?>
+                                        <div class="flex items-center gap-3 bg-emerald-50 border border-emerald-100/80 px-3 py-2 rounded-xl">
+                                            <span class="flex items-center gap-1.5 text-emerald-700 font-bold text-xs sm:text-sm">
+                                                <i class="fa-solid fa-circle-check text-emerald-500"></i> Accepted
+                                            </span>
+                                        </div>
+                                    <?php elseif ($isPending && $donorResp === 0): ?>
+                                        <form action="/BloodConnect/public/donor/request/accept" method="POST" class="flex gap-2 w-full sm:w-auto" style="display:inline-flex">
+                                            <input type="hidden" name="request_id" value="<?= (int)$rid; ?>">
+                                            <button type="submit" class="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm shadow-emerald-500/10 transition-all">
+                                                Accept
+                                            </button>
+                                        </form>
+                                        <form action="/BloodConnect/public/donor/request/decline" method="POST" class="flex gap-2 w-full sm:w-auto" style="display:inline-flex" onsubmit="return confirm('Are you sure you want to decline this request?');">
+                                            <input type="hidden" name="request_id" value="<?= (int)$rid; ?>">
+                                            <button type="submit" class="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 active:scale-[0.98] font-bold text-xs sm:text-sm rounded-xl transition-all">
+                                                Decline
+                                            </button>
+                                        </form>
+                                    <?php else: ?>
+                                        <div class="flex items-center gap-3 bg-slate-50 border border-slate-100/80 px-3 py-2 rounded-xl">
+                                            <span class="flex items-center gap-1.5 text-slate-600 font-bold text-xs sm:text-sm">
+                                                <i class="fa-regular fa-clock text-slate-400"></i> <?= htmlspecialchars($status) ?>
+                                            </span>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         <?php endforeach; ?>

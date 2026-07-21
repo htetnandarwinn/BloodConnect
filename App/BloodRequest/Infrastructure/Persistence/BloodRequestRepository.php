@@ -391,12 +391,15 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                   JOIN blood_requests br ON br.request_id = rd.request_id
                   WHERE rd.donor_id = u.user_id
                     AND br.status NOT IN (?, ?)
+                    AND rd.response_status_id IN (?, ?)
               )
         ";
 
         $completedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'COMPLETED') ?? 9;
         $cancelledStatus = $this->masterRepo->getId('REQUEST_STATUS', 'CANCELLED') ?? 10;
-        $params = [$acceptedStatus, $bloodGroup, $completedStatus, $cancelledStatus];
+        $pendingResponse = $this->masterRepo->getId('RESPONSE_STATUS', 'PENDING') ?? 11;
+        $acceptedResponse = $this->masterRepo->getId('RESPONSE_STATUS', 'ACCEPTED') ?? 12;
+        $params = [$acceptedStatus, $bloodGroup, $completedStatus, $cancelledStatus, $pendingResponse, $acceptedResponse];
 
         if ($township !== null && $township !== '') {
             $sql .= " AND d.township = ?";
@@ -482,6 +485,19 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
             return false;
         }
 
+        $existing = $this->getDonorResponseStatuses($requestId, $donorIds);
+        $toInsert = [];
+        foreach ($donorIds as $donorId) {
+            $did = (int)$donorId;
+            if (!isset($existing[$did])) {
+                $toInsert[] = $did;
+            }
+        }
+
+        if (empty($toInsert)) {
+            return false;
+        }
+
         try {
             $this->db->beginTransaction();
 
@@ -491,13 +507,13 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                 "INSERT INTO request_donors (request_id, donor_id, response_status_id) VALUES (?, ?, ?)"
             );
 
-            foreach ($donorIds as $donorId) {
-                $stmt->execute([$requestId, (int)$donorId, $pendingStatus]);
+            foreach ($toInsert as $donorId) {
+                $stmt->execute([$requestId, $donorId, $pendingStatus]);
             }
 
             // Set the first donor as the primary assigned donor on the request
             // and mark the request as ASSIGNED (awaiting donor acceptance).
-            $firstDonorId = (int)$donorIds[0];
+            $firstDonorId = (int)$toInsert[0];
             $updateStmt = $this->db->prepare(
                 "UPDATE blood_requests SET donor_id = ?, status = ? WHERE request_id = ?"
             );
@@ -538,6 +554,28 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function getDonorResponseStatuses(int $requestId, array $donorIds): array
+    {
+        if (empty($donorIds)) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($donorIds), '?'));
+        $params = array_merge([$requestId], $donorIds);
+        $stmt = $this->db->prepare("
+            SELECT donor_id, response_status_id
+            FROM request_donors
+            WHERE request_id = ?
+              AND donor_id IN ({$placeholders})
+        ");
+        $stmt->execute($params);
+        $result = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $result[(int)$row['donor_id']] = (int)$row['response_status_id'];
+        }
+        return $result;
+    }
+
     // ================= CHECK DONORS ALREADY ASSIGNED ELSEWHERE =================
 
     public function getDonorsAssignedToOtherRequests(array $donorIds, int $excludeRequestId): array
@@ -548,6 +586,7 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 
         $completedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'COMPLETED') ?? 9;
         $cancelledStatus = $this->masterRepo->getId('REQUEST_STATUS', 'CANCELLED') ?? 10;
+        $declinedResponse = $this->masterRepo->getId('RESPONSE_STATUS', 'DECLINED') ?? 13;
 
         $placeholders = implode(',', array_fill(0, count($donorIds), '?'));
         $sql = "
@@ -566,6 +605,7 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
             WHERE rd.donor_id IN ({$placeholders})
               AND br.request_id != ?
               AND br.status NOT IN (?, ?)
+              AND rd.response_status_id != ?
             ORDER BY
                 CASE UPPER(br.urgency)
                     WHEN 'CRITICAL' THEN 0
@@ -575,7 +615,7 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         ";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(array_merge($donorIds, [$excludeRequestId, $completedStatus, $cancelledStatus]));
+        $stmt->execute(array_merge($donorIds, [$excludeRequestId, $completedStatus, $cancelledStatus, $declinedResponse]));
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         $grouped = [];
@@ -589,7 +629,8 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
     // ================= FIND DONOR MATCHING REQUESTS =================
 
     public function findPendingRequestsForDonor(
-        string $bloodGroup
+        string $bloodGroup,
+        int $donorId = 0
     ): array {
 
         if ($bloodGroup === '') {
@@ -610,37 +651,38 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                 br.contact_phone,
                 br.created_at,
                 br.status,
-                md.label AS status_name
+                md.label AS status_name";
 
+        if ($donorId > 0) {
+            $sql .= ",
+                rd.response_status_id AS donor_response_status";
+        }
+
+        $sql .= "
             FROM blood_requests br
+            LEFT JOIN master_data md ON br.status = md.id";
 
-            LEFT JOIN master_data md
+        if ($donorId > 0) {
+            $sql .= "
+            LEFT JOIN request_donors rd ON rd.request_id = br.request_id AND rd.donor_id = :donor_id";
+        }
 
-                ON br.status = md.id
+        $sql .= "
+            WHERE br.blood_group_needed = :blood_group
+              AND br.status = :status
+            ORDER BY br.created_at DESC";
 
+        $params = [
+            ':blood_group' => $bloodGroup,
+            ':status' => $pendingStatus,
+        ];
 
-            WHERE
-
-                br.blood_group_needed = :blood_group
-                AND br.status = :status
-
-            ORDER BY br.created_at DESC
-        ";
-
-
+        if ($donorId > 0) {
+            $params[':donor_id'] = $donorId;
+        }
 
         $stmt = $this->db->prepare($sql);
-
-
-
-        $stmt->execute([
-
-            ':blood_group' => $bloodGroup,
-            ':status' => $pendingStatus
-
-        ]);
-
-
+        $stmt->execute($params);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -866,6 +908,27 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         ]);
     }
 
+    public function updateDonorResponse(int $requestId, int $donorId, int $responseStatusId): bool
+    {
+        $stmt = $this->db->prepare("
+            UPDATE request_donors
+            SET response_status_id = ?, response_date = NOW()
+            WHERE request_id = ? AND donor_id = ?
+        ");
+        $stmt->execute([$responseStatusId, $requestId, $donorId]);
+
+        if ($stmt->rowCount() > 0) {
+            return true;
+        }
+
+        $stmt = $this->db->prepare("
+            INSERT INTO request_donors (request_id, donor_id, response_status_id, response_date)
+            VALUES (?, ?, ?, NOW())
+        ");
+
+        return $stmt->execute([$requestId, $donorId, $responseStatusId]);
+    }
+
     public function cancelRequest(int $requestId, int $patientId, int $cancelledStatus, int $assignedStatus = 42): bool
     {
         $stmt = $this->db->prepare("
@@ -956,6 +1019,7 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                 br.donor_id,
                 br.status,
                 md.label AS status_name,
+                rd.response_status_id AS donor_response_status,
                 patient.user_id AS patient_user_id,
                 patient.username AS patient_username,
                 patient.email AS patient_email,
@@ -964,13 +1028,14 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
             FROM blood_requests br
             LEFT JOIN master_data md ON md.id = br.status
             LEFT JOIN users patient ON patient.user_id = br.patient_id
+            LEFT JOIN request_donors rd ON rd.request_id = br.request_id AND rd.donor_id = ?
             WHERE br.donor_id = ?
               AND br.status = ?
             ORDER BY br.created_at DESC
             "
         );
 
-        $stmt->execute([$donorId, $assignedStatus]);
+        $stmt->execute([$donorId, $donorId, $assignedStatus]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

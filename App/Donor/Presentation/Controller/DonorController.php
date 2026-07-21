@@ -81,7 +81,7 @@ class DonorController
                 exit;
             }
 
-            $pendingRequests = $this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup);
+            $pendingRequests = $this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup, $this->getUserId());
             $totalPending = count($pendingRequests);
             $assignedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ASSIGNED') ?? 42;
             $assignedRequests = $this->bloodRequestRepo->findAssignedRequestsForDonor($this->getUserId(), $assignedStatus);
@@ -139,7 +139,7 @@ class DonorController
             return 0;
         }
 
-        $pendingRequests = $this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup);
+        $pendingRequests = $this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup, $this->getUserId());
         $totalPending = count($pendingRequests);
 
         $assignedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ASSIGNED') ?? 42;
@@ -280,7 +280,7 @@ class DonorController
 
         $acceptedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
         $assignedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ASSIGNED') ?? 42;
-        $pendingRequests = $this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup);
+        $pendingRequests = $this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup, (int)Session::get('user_id'));
         $acceptedRequests = $this->bloodRequestRepo->findAcceptedRequestsForDonor((int)Session::get('user_id'), $acceptedStatus);
         $assignedRequests = $this->bloodRequestRepo->findAssignedRequestsForDonor((int)Session::get('user_id'), $assignedStatus);
         $combinedRequests = array_merge($pendingRequests, $assignedRequests, $acceptedRequests);
@@ -323,9 +323,14 @@ class DonorController
             }
         }
 
+        $donorId = (int)Session::get('user_id');
+        $responseStatuses = $this->bloodRequestRepo->getDonorResponseStatuses($requestId, [$donorId]);
+        $donorResponseStatus = $responseStatuses[$donorId] ?? 0;
+
         $this->renderDonorView('blood_request_details', [
             'user' => Session::get('user'),
             'request' => $request,
+            'donor_response_status' => $donorResponseStatus,
         ]);
     }
 
