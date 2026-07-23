@@ -62,6 +62,9 @@ class PatientController
 
         return array_values(array_filter($requests, function (array $request) use ($filter): bool {
             $status = strtolower(trim($request['status'] ?? ''));
+            if ($filter === 'pending') {
+                return in_array($status, ['pending', 'assigned', 'declined']);
+            }
             return $status === $filter;
         }));
     }
@@ -310,6 +313,32 @@ class PatientController
         }
 
         header('Location: /BloodConnect/public/patient/my-requests');
+        exit;
+    }
+
+    public function reactivateRequest()
+    {
+        $this->authGuard();
+
+        $requestId = (int)($_POST['request_id'] ?? 0);
+        $patientId = $this->getUserId();
+
+        if (!$requestId) {
+            header('Location: /BloodConnect/public/patient/my-requests');
+            exit;
+        }
+
+        $result = $this->bloodRequestRepo->resetRequestToPending($requestId, $patientId);
+
+        if ($result) {
+            Session::set('flash_message', 'Your blood request has been re-submitted and is now pending again.');
+            Session::set('flash_status', 'success');
+        } else {
+            Session::set('flash_message', 'Unable to re-activate this request. It may have already been updated.');
+            Session::set('flash_status', 'error');
+        }
+
+        header('Location: /BloodConnect/public/patient/my-request/view?id=' . $requestId);
         exit;
     }
 

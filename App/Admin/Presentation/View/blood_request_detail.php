@@ -187,6 +187,20 @@ if (!function_exists('getAdminBloodGroupStyle')) {
                         <h3 class="text-lg font-black text-slate-900 tracking-tight">Matchmaking Disabled</h3>
                         <p class="mt-2 text-sm font-medium text-slate-500">This request was cancelled by the patient, so donor matching is no longer required.</p>
                     </div>
+                <?php elseif ($isDeclined): ?>
+                    <div class="rounded-2xl border border-rose-200 bg-rose-50/70 p-6 text-center">
+                        <div class="w-12 h-12 mx-auto mb-3 rounded-2xl bg-rose-100 text-rose-500 flex items-center justify-center">
+                            <i class="fa-solid fa-circle-xmark text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-black text-slate-900 tracking-tight">Donor Declined</h3>
+                        <p class="mt-2 text-sm font-medium text-slate-500">The assigned donor has declined this request. You may assign a new donor from the matching list below, or reset the request to Pending.</p>
+                        <form method="POST" action="/BloodConnect/public/admin/blood-request/reset-to-pending" class="mt-4" onsubmit="return confirm('Reset this request to Pending? The current donor assignment will be cleared.')">
+                            <input type="hidden" name="request_id" value="<?= (int)($request['request_id'] ?? 0) ?>">
+                            <button type="submit" class="rounded-lg border border-rose-300 bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 transition-all">
+                                <i class="fa-solid fa-rotate-right mr-1"></i> Reset to Pending
+                            </button>
+                        </form>
+                    </div>
                 <?php elseif ($isAccepted && $acceptedDonor): ?>
                     <div class="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 space-y-4">
                         <div class="flex items-center justify-between gap-3">

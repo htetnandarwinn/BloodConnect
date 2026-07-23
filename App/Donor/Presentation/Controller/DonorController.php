@@ -283,7 +283,8 @@ class DonorController
         $pendingRequests = $this->bloodRequestRepo->findPendingRequestsForDonor($bloodGroup, (int)Session::get('user_id'));
         $acceptedRequests = $this->bloodRequestRepo->findAcceptedRequestsForDonor((int)Session::get('user_id'), $acceptedStatus);
         $assignedRequests = $this->bloodRequestRepo->findAssignedRequestsForDonor((int)Session::get('user_id'), $assignedStatus);
-        $combinedRequests = array_merge($pendingRequests, $assignedRequests, $acceptedRequests);
+        $declinedRequests = $this->bloodRequestRepo->findDeclinedRequestsForDonor((int)Session::get('user_id'));
+        $combinedRequests = array_merge($pendingRequests, $assignedRequests, $acceptedRequests, $declinedRequests);
 
         $message = Session::get('flash_message', '');
         $status = Session::get('flash_status', '');

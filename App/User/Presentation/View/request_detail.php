@@ -1,6 +1,7 @@
 <?php
 $request = $request ?? [];
-$statusLabel = htmlspecialchars((string)($request['status_name'] ?? $request['status'] ?? 'Pending'));
+$rawStatus = strtolower(trim((string)($request['status_name'] ?? $request['status'] ?? 'pending')));
+$statusLabel = htmlspecialchars(in_array($rawStatus, ['pending', 'assigned', 'declined']) ? 'Pending' : ucfirst($rawStatus));
 $donorName = htmlspecialchars((string)($request['donor_name'] ?? ''));
 $donorBlood = htmlspecialchars((string)($request['donor_blood_group'] ?? ''));
 $donorPhone = htmlspecialchars((string)($request['donor_phone'] ?? ''));
@@ -10,7 +11,9 @@ $donorLocation = htmlspecialchars((string)($request['donor_township'] ?? '')) . 
 $hasDonor = !empty($donorName);
 $isAccepted = (stripos((string)($request['status_name'] ?? $request['status'] ?? 'Pending'), 'accepted') !== false)
     || (int)($request['status'] ?? 0) === 8;
-$showPendingAssignment = $hasDonor && !$isAccepted;
+$isDeclined = (stripos((string)($request['status_name'] ?? $request['status'] ?? ''), 'declined') !== false)
+    || (int)($request['status'] ?? 0) === 47;
+$showPendingAssignment = $hasDonor && !$isAccepted && !$isDeclined;
 ?>
 
 <div class="max-w-7xl mx-auto p-6">
@@ -156,6 +159,16 @@ $showPendingAssignment = $hasDonor && !$isAccepted;
                             <p class="mt-1 text-sm font-semibold text-slate-800"><?= $donorLocation ?></p>
                         </div>
                         <?php endif; ?>
+                    </div>
+                </div>
+            <?php elseif ($isDeclined): ?>
+                <div class="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-5">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-circle-xmark text-rose-500 text-lg"></i>
+                        <div>
+                            <p class="text-xs font-bold uppercase tracking-wider text-rose-600">Donor Declined</p>
+                            <p class="mt-1 text-sm text-rose-700">The assigned donor has declined this request. It is no longer active.</p>
+                        </div>
                     </div>
                 </div>
             <?php else: ?>

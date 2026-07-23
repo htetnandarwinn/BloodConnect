@@ -58,6 +58,18 @@ class ViewBloodRequestsUseCase
             || (strtolower((string)($request['status_name'] ?? '')) === 'cancelled');
     }
 
+    public function isRequestDeclined(array $request): bool
+    {
+        $declinedStatusId = $this->getDeclinedStatusId();
+        return ((int)($request['status'] ?? 0) === $declinedStatusId)
+            || (strtolower((string)($request['status_name'] ?? '')) === 'declined');
+    }
+
+    public function getDeclinedStatusId(): int
+    {
+        return $this->masterRepo->getId('REQUEST_STATUS', 'DECLINED') ?? 47;
+    }
+
     public function assignDonorToRequest(int $requestId, int $donorId, int $statusId): bool
     {
         return $this->bloodRequestRepo->acceptByAdmin($requestId, $donorId, $statusId);

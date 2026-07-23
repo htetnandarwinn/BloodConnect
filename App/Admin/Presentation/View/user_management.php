@@ -18,9 +18,9 @@ $filter = $_GET['filter'] ?? '';
 | FETCH USERS
 |--------------------------------------------------------------------------
 */
-$where = '';
+$where = 'WHERE u.deleted_at IS NULL';
 if ($filter === 'patients') {
-    $where = 'WHERE u.user_type_id = 3';
+    $where .= ' AND u.user_type_id = 3';
 }
 
 $stmt = $db->prepare("

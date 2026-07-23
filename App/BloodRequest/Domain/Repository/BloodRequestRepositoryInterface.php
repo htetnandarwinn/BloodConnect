@@ -34,4 +34,8 @@ interface BloodRequestRepositoryInterface
     public function findAssignedRequestsForDonor(int $donorId, int $assignedStatus): array;
     public function countRequestsGroupedByDate(int $days): array;
     public function findLatest(int $limit): array;
+    public function resetRequestToDeclined(int $requestId): bool;
+    public function findDeclinedRequestsForDonor(int $donorId): array;
+    public function resetRequestToPending(int $requestId, int $patientId): bool;
+    public function resetRequestToPendingByAdmin(int $requestId): bool;
 }

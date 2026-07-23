@@ -40,6 +40,7 @@
             'accepted' => 'bg-emerald-50 text-emerald-600 border-emerald-200/50',
             'completed' => 'bg-blue-50 text-blue-600 border-blue-200/50',
             'cancelled', 'canceled' => 'bg-red-50 text-red-600 border-red-200/50',
+            'declined' => 'bg-rose-50 text-rose-600 border-rose-200/50',
             default => 'bg-slate-50 text-slate-600 border-slate-200/50',
         };
     }
@@ -51,6 +52,15 @@
             return 'text-rose-600 bg-rose-50 border-rose-200/40';
         }
         return 'text-emerald-600 bg-emerald-50 border-emerald-200/40';
+    }
+
+    function patientStatusLabel($status)
+    {
+        $s = strtolower(trim((string) $status));
+        if (in_array($s, ['pending', 'assigned', 'declined'])) {
+            return 'Pending';
+        }
+        return $status;
     }
 
     // Safely calculate active/pending request count for badge display
@@ -151,8 +161,8 @@
                         </div>
 
                         <div class="col-span-2 flex justify-start pl-2">
-                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs <?= getFulfillmentClass($status) ?>">
-                                <?= htmlspecialchars(ucwords((string)$status)) ?>
+                            <span class="inline-block px-3 py-1 text-[9px] font-extrabold rounded-lg uppercase tracking-widest border shadow-3xs <?= getFulfillmentClass(patientStatusLabel($status)) ?>">
+                                <?= htmlspecialchars(ucwords((string)patientStatusLabel($status))) ?>
                             </span>
                         </div>
 
@@ -222,8 +232,8 @@
                         </div>
 
                         <div class="flex items-center justify-between gap-2 pt-1">
-                            <span class="inline-block px-2.5 py-1 text-[9px] font-extrabold rounded-md uppercase tracking-widest border <?= getFulfillmentClass($status) ?>">
-                                <?= htmlspecialchars(ucwords((string)$status)) ?>
+                            <span class="inline-block px-2.5 py-1 text-[9px] font-extrabold rounded-md uppercase tracking-widest border <?= getFulfillmentClass(patientStatusLabel($status)) ?>">
+                                <?= htmlspecialchars(ucwords((string)patientStatusLabel($status))) ?>
                             </span>
                             <a href="/BloodConnect/public/patient/my-request/view?id=<?= (int)$rid ?>"
                                 class="flex items-center justify-center gap-2 py-2 px-4 bg-red-600 border border-red-600 text-white rounded-xl font-bold text-xs transition-all active:scale-95 hover:bg-red-700">

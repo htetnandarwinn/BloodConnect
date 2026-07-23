@@ -113,6 +113,7 @@ $router->group(['middleware' => ['auth', 'patient']], function (Router $router) 
         $router->get('/patient/my-requests/cancelled', [PatientController::class, 'cancelledRequests']);
         $router->get('/patient/my-request/view', [PatientController::class, 'viewMyRequest']);
         $router->post('/patient/request/cancel', [PatientController::class, 'cancelRequest']);
+        $router->post('/patient/request/reactivate', [PatientController::class, 'reactivateRequest']);
     });
     $router->middleware(['can:blood_request.create'], function (Router $router) {
         $router->get('/patient/request-blood', [BloodRequestController::class, 'create']);
@@ -184,6 +185,7 @@ $router->group(['middleware' => ['auth', 'admin', 'can:blood_request.view_matchi
     $router->post('/admin/blood-request/assign-donors', [AdminBloodRequestController::class, 'assignDonors']);
     $router->post('/admin/blood-request/notify-donors', [AdminBloodRequestController::class, 'notifyDonors']);
     $router->post('/admin/blood-request/delete', [AdminBloodRequestController::class, 'deleteBloodRequest']);
+    $router->post('/admin/blood-request/reset-to-pending', [AdminBloodRequestController::class, 'resetToPending']);
     $router->get('/admin/request/complete', [AdminBloodRequestController::class, 'completeRequest']);
     $router->get('/admin/pending-blood-requests-count', [AdminBloodRequestController::class, 'pendingBloodRequestsCount']);
 });

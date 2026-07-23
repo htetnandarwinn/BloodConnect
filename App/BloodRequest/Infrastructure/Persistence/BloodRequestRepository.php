@@ -390,16 +390,17 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                   FROM request_donors rd
                   JOIN blood_requests br ON br.request_id = rd.request_id
                   WHERE rd.donor_id = u.user_id
-                    AND br.status NOT IN (?, ?)
+                    AND br.status NOT IN (?, ?, ?)
                     AND rd.response_status_id IN (?, ?)
               )
         ";
 
         $completedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'COMPLETED') ?? 9;
         $cancelledStatus = $this->masterRepo->getId('REQUEST_STATUS', 'CANCELLED') ?? 10;
+        $declinedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'DECLINED') ?? 47;
         $pendingResponse = $this->masterRepo->getId('RESPONSE_STATUS', 'PENDING') ?? 11;
         $acceptedResponse = $this->masterRepo->getId('RESPONSE_STATUS', 'ACCEPTED') ?? 12;
-        $params = [$acceptedStatus, $bloodGroup, $completedStatus, $cancelledStatus, $pendingResponse, $acceptedResponse];
+        $params = [$acceptedStatus, $bloodGroup, $completedStatus, $cancelledStatus, $declinedStatus, $pendingResponse, $acceptedResponse];
 
         if ($township !== null && $township !== '') {
             $sql .= " AND d.township = ?";
@@ -586,6 +587,7 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
 
         $completedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'COMPLETED') ?? 9;
         $cancelledStatus = $this->masterRepo->getId('REQUEST_STATUS', 'CANCELLED') ?? 10;
+        $declinedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'DECLINED') ?? 47;
         $declinedResponse = $this->masterRepo->getId('RESPONSE_STATUS', 'DECLINED') ?? 13;
 
         $placeholders = implode(',', array_fill(0, count($donorIds), '?'));
@@ -604,7 +606,7 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
             JOIN blood_requests br ON br.request_id = rd.request_id
             WHERE rd.donor_id IN ({$placeholders})
               AND br.request_id != ?
-              AND br.status NOT IN (?, ?)
+              AND br.status NOT IN (?, ?, ?)
               AND rd.response_status_id != ?
             ORDER BY
                 CASE UPPER(br.urgency)
@@ -615,7 +617,7 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         ";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute(array_merge($donorIds, [$excludeRequestId, $completedStatus, $cancelledStatus, $declinedResponse]));
+        $stmt->execute(array_merge($donorIds, [$excludeRequestId, $completedStatus, $cancelledStatus, $declinedStatus, $declinedResponse]));
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         $grouped = [];
@@ -807,12 +809,12 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         $stmt->execute([$patientId]);
         $total = (int)$stmt->fetchColumn();
 
-        // Pending requests
+        // Pending requests (includes assigned and declined — patient sees all as Pending)
         $stmt = $this->db->prepare("
         SELECT COUNT(*)
         FROM blood_requests
         WHERE patient_id = ?
-        AND status = 7
+        AND status IN (7, 42, 47)
     ");
         $stmt->execute([$patientId]);
         $pending = (int)$stmt->fetchColumn();
@@ -1048,6 +1050,7 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         $acceptedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
         $completedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'COMPLETED') ?? 9;
         $cancelledStatus = $this->masterRepo->getId('REQUEST_STATUS', 'CANCELLED') ?? 10;
+        $declinedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'DECLINED') ?? 47;
 
         $stmt = $this->db->prepare("
             SELECT
@@ -1070,7 +1073,7 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
             $count = (int) $row['total'];
 
             if (!isset($grouped[$date])) {
-                $grouped[$date] = ['date' => $date, 'pending' => 0, 'accepted' => 0, 'cancelled' => 0];
+                $grouped[$date] = ['date' => $date, 'pending' => 0, 'accepted' => 0, 'cancelled' => 0, 'declined' => 0];
             }
 
             if ($statusId === $pendingStatus) {
@@ -1079,6 +1082,8 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
                 $grouped[$date]['accepted'] += $count;
             } elseif ($statusId === $cancelledStatus) {
                 $grouped[$date]['cancelled'] = $count;
+            } elseif ($statusId === $declinedStatus) {
+                $grouped[$date]['declined'] = $count;
             }
         }
 
@@ -1098,6 +1103,90 @@ class BloodRequestRepository implements BloodRequestRepositoryInterface
         ");
 
         $stmt->execute([$limit]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function resetRequestToDeclined(int $requestId): bool
+    {
+        $declinedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'DECLINED') ?? 47;
+        $acceptedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'ACCEPTED') ?? 8;
+        $completedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'COMPLETED') ?? 9;
+        $cancelledStatus = $this->masterRepo->getId('REQUEST_STATUS', 'CANCELLED') ?? 10;
+
+        $stmt = $this->db->prepare("
+            UPDATE blood_requests
+            SET status = ?, donor_id = NULL
+            WHERE request_id = ? AND status NOT IN (?, ?, ?, ?)
+        ");
+        $stmt->execute([$declinedStatus, $requestId, $acceptedStatus, $completedStatus, $cancelledStatus, $declinedStatus]);
+        return $stmt->rowCount() > 0;
+    }
+
+    public function resetRequestToPending(int $requestId, int $patientId): bool
+    {
+        $declinedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'DECLINED') ?? 47;
+        $pendingStatus = $this->masterRepo->getId('REQUEST_STATUS', 'PENDING') ?? 7;
+
+        $stmt = $this->db->prepare("
+            UPDATE blood_requests
+            SET status = ?, donor_id = NULL
+            WHERE request_id = ? AND patient_id = ? AND status = ?
+        ");
+        $stmt->execute([$pendingStatus, $requestId, $patientId, $declinedStatus]);
+        return $stmt->rowCount() > 0;
+    }
+
+    public function resetRequestToPendingByAdmin(int $requestId): bool
+    {
+        $declinedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'DECLINED') ?? 47;
+        $pendingStatus = $this->masterRepo->getId('REQUEST_STATUS', 'PENDING') ?? 7;
+
+        $stmt = $this->db->prepare("
+            UPDATE blood_requests
+            SET status = ?, donor_id = NULL
+            WHERE request_id = ? AND status = ?
+        ");
+        $stmt->execute([$pendingStatus, $requestId, $declinedStatus]);
+        return $stmt->rowCount() > 0;
+    }
+
+    public function findDeclinedRequestsForDonor(int $donorId): array
+    {
+        $declinedStatus = $this->masterRepo->getId('REQUEST_STATUS', 'DECLINED') ?? 47;
+        $declinedResponse = $this->masterRepo->getId('RESPONSE_STATUS', 'DECLINED') ?? 13;
+
+        $stmt = $this->db->prepare("
+            SELECT DISTINCT
+                br.request_id,
+                br.request_code,
+                br.patient_id,
+                br.patient_name,
+                br.blood_group_needed,
+                br.unit,
+                br.hospital_name,
+                br.urgency,
+                br.contact_phone,
+                br.created_at,
+                br.donor_id,
+                br.status,
+                md.label AS status_name,
+                rd.response_status_id AS donor_response_status,
+                patient.user_id AS patient_user_id,
+                patient.username AS patient_username,
+                patient.email AS patient_email,
+                patient.phone AS patient_phone,
+                patient.address AS patient_address
+            FROM blood_requests br
+            LEFT JOIN master_data md ON md.id = br.status
+            LEFT JOIN users patient ON patient.user_id = br.patient_id
+            LEFT JOIN request_donors rd ON rd.request_id = br.request_id AND rd.donor_id = ?
+            WHERE br.status = ?
+              AND rd.response_status_id = ?
+            ORDER BY br.created_at DESC
+        ");
+
+        $stmt->execute([$donorId, $declinedStatus, $declinedResponse]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

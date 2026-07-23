@@ -28,7 +28,7 @@ if (stripos($status, 'accepted') !== false || (int)($request['status'] ?? 0) ===
     $statusClass = 'bg-emerald-50 text-emerald-700 border-emerald-200/50';
 } elseif (stripos($status, 'assigned') !== false || (int)($request['status'] ?? 0) === 42) {
     $statusClass = 'bg-violet-50 text-violet-700 border-violet-200/50';
-} elseif (stripos($status, 'declined') !== false || (int)($request['status'] ?? 0) === 10) {
+} elseif (stripos($status, 'declined') !== false || (int)($request['status'] ?? 0) === 47) {
     $statusClass = 'bg-rose-50 text-rose-700 border-rose-200/50';
 } elseif (stripos($status, 'completed') !== false || (int)($request['status'] ?? 0) === 9) {
     $statusClass = 'bg-blue-50 text-blue-700 border-blue-200/50';

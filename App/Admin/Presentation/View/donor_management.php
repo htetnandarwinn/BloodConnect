@@ -20,7 +20,7 @@ $highlightId = isset($_GET['highlight']) ? (int)$_GET['highlight'] : 0;
 | FETCH DONORS FROM DATABASE
 |--------------------------------------------------------------------------
 */
-$where = 'u.user_type_id = 2';
+$where = 'u.user_type_id = 2 AND u.deleted_at IS NULL';
 if ($filter === 'available') {
     $where .= ' AND u.available = 1';
 }

@@ -98,6 +98,7 @@ class AdminBloodRequestController
 
         $isAccepted = $this->viewUseCase->isRequestAccepted($request);
         $isCancelledRequest = $this->viewUseCase->isRequestCancelled($request);
+        $isDeclined = $this->viewUseCase->isRequestDeclined($request);
 
         $matchingResult = $this->findMatchingUseCase->execute($requestId);
         $matchingTier = $matchingResult['tier'] ?? 'none';
@@ -282,6 +283,29 @@ class AdminBloodRequestController
         }
 
         header('Location: /BloodConnect/public/admin/blood-requests?deleted=1');
+        exit;
+    }
+
+    public function resetToPending(): void
+    {
+        $requestId = (int)($_POST['request_id'] ?? 0);
+
+        if (!$requestId) {
+            header('Location: /BloodConnect/public/admin/blood-requests');
+            exit;
+        }
+
+        $result = $this->bloodRequestRepo->resetRequestToPendingByAdmin($requestId);
+
+        if ($result) {
+            $_SESSION['flash_message'] = 'Request has been reset to Pending.';
+            $_SESSION['flash_status'] = 'success';
+        } else {
+            $_SESSION['flash_message'] = 'Unable to reset this request. It may not be in Declined status.';
+            $_SESSION['flash_status'] = 'error';
+        }
+
+        header('Location: /BloodConnect/public/admin/blood-request/view?id=' . $requestId);
         exit;
     }
 }

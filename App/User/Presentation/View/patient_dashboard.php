@@ -172,18 +172,20 @@ $metrics = $metrics ?? [
                                         <td class="py-4 px-6"><?= htmlspecialchars($request['contact_phone']) ?></td>
                                         <td class="py-4 px-6 text-center">
                                             <?php
-                                            switch (strtolower($request['status'])) {
-                                                case 'pending':
-                                                    echo '<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600">Pending</span>';
-                                                    break;
-                                                case 'accepted':
-                                                    echo '<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600">Accepted</span>';
-                                                    break;
-                                                case 'completed':
-                                                    echo '<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600">Completed</span>';
-                                                    break;
-                                                default:
-                                                    echo '<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600">Cancelled</span>';
+                                            $statusKey = strtolower($request['status']);
+                                            if (in_array($statusKey, ['pending', 'assigned', 'declined'])) {
+                                                echo '<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600">Pending</span>';
+                                            } else {
+                                                switch ($statusKey) {
+                                                    case 'accepted':
+                                                        echo '<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600">Accepted</span>';
+                                                        break;
+                                                    case 'completed':
+                                                        echo '<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600">Completed</span>';
+                                                        break;
+                                                    default:
+                                                        echo '<span class="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600">Cancelled</span>';
+                                                }
                                             }
                                             ?>
                                         </td>
@@ -225,8 +227,12 @@ $metrics = $metrics ?? [
                             </div>
                             <div class="sm:text-right flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-50">
                                 <span class="text-xs text-slate-400 font-medium sm:hidden">Current Status:</span>
+                                <?php
+                                $mobileStatusKey = strtolower($request['status']);
+                                $mobileStatusDisplay = in_array($mobileStatusKey, ['pending', 'assigned', 'declined']) ? 'Pending' : ucfirst($mobileStatusKey);
+                                ?>
                                 <span class="bg-amber-50 text-amber-700 px-4 py-1.5 text-xs font-bold rounded-xl">
-                                    <?= ucfirst(htmlspecialchars($request['status'])) ?>
+                                    <?= htmlspecialchars($mobileStatusDisplay) ?>
                                 </span>
                             </div>
                         </div>

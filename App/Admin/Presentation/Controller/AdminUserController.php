@@ -92,9 +92,10 @@ class AdminUserController
     public function deleteUser(): void
     {
         $id = (int)($_GET['id'] ?? 0);
+        $referer = $_SERVER['HTTP_REFERER'] ?? '/BloodConnect/public/admin/user-management';
 
         if (!$id) {
-            header("Location: /BloodConnect/public/admin/user-management");
+            header("Location: " . $referer);
             exit;
         }
 
@@ -104,7 +105,7 @@ class AdminUserController
 
         $this->manageUsersUseCase->deleteUser($id, $adminId, $adminName);
 
-        header("Location: /BloodConnect/public/admin/user-management");
+        header("Location: " . $referer);
         exit;
     }
 }

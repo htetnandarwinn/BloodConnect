@@ -29,6 +29,8 @@ class DeclineBloodRequestUseCase
 
         $this->bloodRequestRepo->updateDonorResponse($requestId, $donorId, 13);
 
+        $this->bloodRequestRepo->resetRequestToDeclined($requestId);
+
         $this->activityLogger->log(
             $donorId,
             null,

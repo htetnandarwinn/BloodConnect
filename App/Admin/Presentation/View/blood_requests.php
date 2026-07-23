@@ -26,6 +26,8 @@ try {
         $where = 'WHERE r.status IN (8, 9)';
     } elseif ($filter === 'completed') {
         $where = 'WHERE r.status = 9';
+    } elseif ($filter === 'declined') {
+        $where = 'WHERE r.status = 47';
     }
 
     $stmt = $db->prepare("
@@ -58,6 +60,7 @@ $pageTitle = match ($filter) {
     'assigned' => 'Assigned Blood Requests',
     'accepted' => 'Accepted Blood Requests',
     'completed' => 'Completed Blood Requests',
+    'declined' => 'Declined Blood Requests',
     default => 'Blood Requests',
 };
 
@@ -77,6 +80,7 @@ function getFulfillmentClass($status)
         'accepted' => 'bg-emerald-50 text-emerald-600 border-emerald-200/50',
         'completed' => 'bg-blue-50 text-blue-600 border-blue-200/50',
         'cancelled', 'canceled' => 'bg-red-50 text-red-600 border-red-200/50',
+        'declined' => 'bg-rose-50 text-rose-600 border-rose-200/50',
         default => 'bg-slate-50 text-slate-600 border-slate-200/50',
     };
 }
@@ -204,6 +208,8 @@ function getBloodTypeClass($type)
                                 <span class="text-[10px] font-medium text-slate-500 truncate max-w-full">
                                     <?php if ((int)$req['status_id'] === 42): ?>
                                         Assigned to: <span class="font-bold text-slate-700"><?= htmlspecialchars($req['donor_name']) ?></span>
+                                    <?php elseif ((int)$req['status_id'] === 47): ?>
+                                        Declined by: <span class="font-bold text-slate-700"><?= htmlspecialchars($req['donor_name']) ?></span>
                                     <?php else: ?>
                                         Accepted by: <span class="font-bold text-slate-700"><?= htmlspecialchars($req['donor_name']) ?></span>
                                     <?php endif; ?>
@@ -274,6 +280,8 @@ function getBloodTypeClass($type)
                                     <span class="text-[10px] text-slate-500 font-medium">
                                         <?php if ((int)$req['status_id'] === 42): ?>
                                             Assigned to <span class="font-bold text-slate-700"><?= htmlspecialchars($req['donor_name']) ?></span>
+                                        <?php elseif ((int)$req['status_id'] === 47): ?>
+                                            Declined by <span class="font-bold text-slate-700"><?= htmlspecialchars($req['donor_name']) ?></span>
                                         <?php else: ?>
                                             Accepted by <span class="font-bold text-slate-700"><?= htmlspecialchars($req['donor_name']) ?></span>
                                         <?php endif; ?>

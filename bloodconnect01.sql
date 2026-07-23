@@ -1083,7 +1083,8 @@ INSERT INTO `master_data` (`id`, `category`, `code`, `label`, `description`, `is
 (43, 'NOTIFICATION_TYPE', 'WARNING', 'Warning', 'Warning notification', 1, '2026-07-16 17:30:00'),
 (44, 'NOTIFICATION_TYPE', 'GENERAL', 'General', 'General system notification', 1, '2026-07-16 17:30:00'),
 (45, 'NOTIFICATION_TYPE', 'USER_ACTION', 'User Action', 'User registration or login activity', 1, '2026-07-16 17:30:00'),
-(46, 'NOTIFICATION_TYPE', 'ADMIN_ACTION', 'Admin Action', 'Administrative action notification', 1, '2026-07-16 17:30:00');
+(46, 'NOTIFICATION_TYPE', 'ADMIN_ACTION', 'Admin Action', 'Administrative action notification', 1, '2026-07-16 17:30:00'),
+(47, 'REQUEST_STATUS', 'DECLINED', 'Declined', 'Donor declined the request', 1, '2026-07-22 00:00:00');
 
 -- --------------------------------------------------------
 
